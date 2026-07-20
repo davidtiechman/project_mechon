@@ -1,0 +1,329 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+:root {
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: #3b281f;
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(188, 137, 87, 0.32), transparent 32%),
+    radial-gradient(circle at 88% 30%, rgba(112, 72, 49, 0.42), transparent 38%),
+    linear-gradient(145deg, #2a1b15 0%, #4b3125 48%, #35231c 100%);
+  background-position: center;
+  background-attachment: fixed;
+  color: #262117;
+  font-family: Arial, "Noto Sans Hebrew", sans-serif;
+}
+
+::selection {
+  color: #fff;
+  background: #245448;
+}
+
+@layer utilities {
+  /* Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  input:focus ~ label,
+  input:not(:placeholder-shown) ~ label {
+    @apply -translate-y-2 text-xsmall-regular;
+  }
+
+  input:focus ~ label {
+    @apply left-0;
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus {
+    border: 1px solid #212121;
+    -webkit-text-fill-color: #212121;
+    -webkit-box-shadow: 0 0 0px 1000px #fff inset;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  input[type="search"]::-webkit-search-decoration,
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-results-button,
+  input[type="search"]::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+  }
+}
+
+@layer components {
+  .content-container {
+    @apply max-w-[1440px] w-full mx-auto px-6;
+  }
+
+  .brand-lockup {
+    @apply flex items-center gap-3 shrink-0;
+  }
+
+  .brand-lockup > span:last-child {
+    @apply flex flex-col;
+  }
+
+  .brand-lockup strong {
+    @apply text-[15px] leading-5 font-semibold tracking-wide text-[#4a2d21];
+  }
+
+  .brand-lockup small {
+    @apply text-[9px] leading-4 tracking-[0.08em] text-[#756d5e];
+  }
+
+  .brand-monogram {
+    @apply grid h-10 w-10 place-items-center rounded-full border border-[#b98a5a] bg-[#42291f] text-base font-semibold text-[#f8f2e6];
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .brand-emblem {
+    @apply h-[58px] w-[58px] shrink-0 object-contain;
+  }
+
+  .brand-emblem-light {
+    filter: invert(86%) sepia(20%) saturate(635%) hue-rotate(359deg) brightness(95%);
+  }
+
+  .brand-lockup-light strong,
+  .brand-lockup-light small {
+    color: #f4efe4;
+  }
+
+  .nav-link {
+    @apply relative flex h-full items-center transition-colors hover:text-[#9a7130];
+  }
+
+  .nav-link::after {
+    content: "";
+    @apply absolute inset-x-0 bottom-0 h-px origin-right scale-x-0 bg-[#9a7130] transition-transform;
+  }
+
+  .nav-link:hover::after {
+    @apply scale-x-100;
+  }
+
+  .hero-section {
+    @apply relative min-h-[650px] overflow-hidden text-[#f8f2e6];
+    background-image:
+      radial-gradient(circle at 78% 36%, rgba(201, 155, 100, 0.24), transparent 28%),
+      linear-gradient(115deg, #251711 0%, #4f3022 54%, #704a35 100%);
+  }
+
+  .hero-ornament {
+    @apply absolute inset-0 opacity-20;
+    background-image:
+      linear-gradient(30deg, transparent 48%, #d5b184 49%, #d5b184 50%, transparent 51%),
+      linear-gradient(150deg, transparent 48%, #d5b184 49%, #d5b184 50%, transparent 51%);
+    background-size: 96px 96px;
+    mask-image: linear-gradient(to left, transparent, black);
+  }
+
+  .hero-section h1 {
+    @apply mt-5 text-5xl font-normal leading-[1.08] xsmall:text-6xl small:text-7xl;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .hero-section h1 em {
+    @apply not-italic text-[#d8bf86];
+  }
+
+  .hero-section p {
+    @apply mt-7 max-w-xl text-lg leading-8 text-[#e4ddcf];
+  }
+
+  .eyebrow {
+    @apply inline-block text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8a682d];
+  }
+
+  .brand-button {
+    @apply items-center justify-center rounded-sm bg-[#4a2d21] px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#8a5a3c];
+  }
+
+  .brand-button-light {
+    @apply bg-[#d9b382] text-[#2f1d15] hover:bg-[#f0d3aa];
+  }
+
+  .hero-secondary-link {
+    @apply inline-flex items-center gap-2 border-b border-[#d8bf86]/70 px-2 py-3 text-sm text-[#f8f2e6] transition-colors hover:text-[#d8bf86];
+  }
+
+  .hero-mark {
+    @apply relative mx-auto grid aspect-square w-full max-w-[340px] place-items-center rounded-full border border-[#d8bf86]/40;
+  }
+
+  .hero-mark::before,
+  .hero-mark::after {
+    content: "";
+    @apply absolute rounded-full border border-[#d8bf86]/20;
+  }
+
+  .hero-mark::before { inset: 7%; }
+  .hero-mark::after { inset: 18%; }
+
+  .hero-mark-ring {
+    @apply absolute inset-1/2 h-px w-[115%] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-[#d8bf86]/30;
+  }
+
+  .hero-emblem {
+    @apply relative z-10 h-[76%] w-[76%] object-contain;
+    filter: invert(86%) sepia(20%) saturate(635%) hue-rotate(359deg) brightness(95%);
+  }
+
+  .home-section {
+    @apply py-16 small:py-24;
+  }
+
+  .section-heading {
+    @apply mb-10 flex items-end justify-between gap-6 small:mb-14;
+  }
+
+  .section-heading h2,
+  .about-copy h2 {
+    @apply mt-2 text-3xl font-normal leading-tight text-[#262117] xsmall:text-4xl;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .text-link {
+    @apply shrink-0 border-b border-[#9a7130] pb-1 text-sm text-[#745420] transition-colors hover:text-[#183c34];
+  }
+
+  .empty-home-state {
+    @apply border border-dashed border-[#c9bea8] bg-white p-12 text-center text-[#756d5e];
+  }
+
+  .category-card {
+    @apply relative min-h-[180px] overflow-hidden border border-[#d2c7b1] bg-[#f8f4ea] p-7 transition-all hover:-translate-y-1 hover:border-[#9a7130] hover:shadow-lg;
+  }
+
+  .category-card h3 {
+    @apply mt-10 text-2xl text-[#4a2d21];
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .category-number {
+    @apply text-xs tracking-widest text-[#9a7130];
+  }
+
+  .category-arrow {
+    @apply absolute bottom-6 left-7 text-xl text-[#9a7130] transition-transform group-hover:-translate-x-2;
+  }
+
+  .about-grid {
+    @apply grid items-center gap-14 small:grid-cols-[0.8fr_1.2fr] small:gap-24;
+  }
+
+  .about-seal {
+    @apply relative mx-auto flex aspect-square w-full max-w-[400px] flex-col items-center justify-center rounded-full border border-[#b59657] bg-[#eee3d5] text-[#4a2d21];
+    box-shadow: inset 0 0 0 14px #eee8da, inset 0 0 0 15px rgba(154, 113, 48, .35);
+  }
+
+  .about-seal span { @apply text-2xl; }
+  .about-seal strong { @apply text-5xl font-normal; font-family: Georgia, "Times New Roman", serif; }
+  .about-seal small { @apply mt-5 text-[10px] tracking-[0.2em] text-[#756d5e]; }
+
+  .about-copy p {
+    @apply my-7 max-w-2xl text-base leading-8 text-[#5f584b];
+  }
+
+  .article-card {
+    @apply relative border-t border-[#b59657] pt-6;
+  }
+
+  .article-index {
+    @apply absolute left-0 top-6 text-xs text-[#a1937a];
+  }
+
+  .article-card time { @apply text-xs text-[#8a682d]; }
+  .article-card h3 { @apply mt-5 text-xl text-[#4a2d21]; font-family: Georgia, "Times New Roman", serif; }
+  .article-card p { @apply mt-3 leading-7 text-[#6d6558]; }
+
+  .footer-heading {
+    @apply mb-5 text-sm font-semibold text-[#d8bf86];
+  }
+
+  .footer-links {
+    @apply flex flex-col gap-3 text-sm text-[#d8d0c0];
+  }
+
+  .footer-links a {
+    @apply transition-colors hover:text-white;
+  }
+
+  .contrast-btn {
+    @apply px-4 py-2 border border-black rounded-full hover:bg-black hover:text-white transition-colors duration-200 ease-in;
+  }
+
+  .text-xsmall-regular {
+    @apply text-[10px] leading-4 font-normal;
+  }
+
+  .text-small-regular {
+    @apply text-xs leading-5 font-normal;
+  }
+
+  .text-small-semi {
+    @apply text-xs leading-5 font-semibold;
+  }
+
+  .text-base-regular {
+    @apply text-sm leading-6 font-normal;
+  }
+
+  .text-base-semi {
+    @apply text-sm leading-6 font-semibold;
+  }
+
+  .text-large-regular {
+    @apply text-base leading-6 font-normal;
+  }
+
+  .text-large-semi {
+    @apply text-base leading-6 font-semibold;
+  }
+
+  .text-xl-regular {
+    @apply text-2xl leading-[36px] font-normal;
+  }
+
+  .text-xl-semi {
+    @apply text-2xl leading-[36px] font-semibold;
+  }
+
+  .text-2xl-regular {
+    @apply text-[30px] leading-[48px] font-normal;
+  }
+
+  .text-2xl-semi {
+    @apply text-[30px] leading-[48px] font-semibold;
+  }
+
+  .text-3xl-regular {
+    @apply text-[32px] leading-[44px] font-normal;
+  }
+
+  .text-3xl-semi {
+    @apply text-[32px] leading-[44px] font-semibold;
+  }
+}
