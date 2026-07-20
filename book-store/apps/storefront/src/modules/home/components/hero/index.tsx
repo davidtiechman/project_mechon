@@ -22,7 +22,7 @@ const Hero = () => {
         <div className="hero-mark" aria-hidden="true">
           <span className="hero-mark-ring" />
           <Image
-            src="/images/institute-emblem.png"
+            src="/images/institute-emblem-refined.png"
             alt=""
             width={270}
             height={270}

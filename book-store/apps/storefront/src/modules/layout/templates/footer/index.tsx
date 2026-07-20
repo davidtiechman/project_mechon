@@ -18,7 +18,7 @@ export default async function Footer() {
           <div className="max-w-md">
             <LocalizedClientLink href="/" className="brand-lockup brand-lockup-light">
               <Image
-                src="/images/institute-emblem.png"
+                src="/images/institute-emblem-refined.png"
                 alt="סמל מכון מעשה רוקח"
                 width={76}
                 height={76}

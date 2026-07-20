@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   },
   description: "ספרי קודש, סידורים תהילים והוצאה לאור מבית מכון מעשה רוקח",
   icons: {
-    icon: "/images/institute-emblem.png",
+    icon: "/images/institute-emblem-refined.png",
   },
 }
 

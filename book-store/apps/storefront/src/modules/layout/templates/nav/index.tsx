@@ -23,7 +23,7 @@ export default async function Nav() {
           <div className="flex items-center gap-8 h-full">
             <LocalizedClientLink href="/" className="brand-lockup" data-testid="nav-store-link">
               <Image
-                src="/images/institute-emblem.png"
+                src="/images/institute-emblem-refined.png"
                 alt="סמל מכון מעשה רוקח"
                 width={58}
                 height={58}
