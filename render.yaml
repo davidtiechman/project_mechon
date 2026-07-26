@@ -1,0 +1,61 @@
+services:
+  - type: web
+    name: mechon-backend
+    runtime: node
+    plan: free
+    rootDir: book-store
+    buildCommand: npm ci && npm run build --workspace=@dtc/backend && cd apps/backend/.medusa/server && npm install --omit=dev
+    startCommand: cd apps/backend && npx medusa db:migrate && cd .medusa/server && npm run start
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: COOKIE_SECRET
+        generateValue: true
+      - key: MEDUSA_WORKER_MODE
+        value: shared
+      - key: DISABLE_MEDUSA_ADMIN
+        value: "false"
+      - key: MEDUSA_BACKEND_URL
+        value: https://mechon-backend.onrender.com
+      - key: STORE_CORS
+        value: https://mechon-storefront.onrender.com
+      - key: ADMIN_CORS
+        value: https://mechon-backend.onrender.com
+      - key: AUTH_CORS
+        value: https://mechon-storefront.onrender.com,https://mechon-backend.onrender.com
+
+  - type: web
+    name: mechon-storefront
+    runtime: node
+    plan: free
+    rootDir: book-store
+    buildCommand: npm ci && npm run build --workspace=@dtc/storefront
+    startCommand: npm run start --workspace=@dtc/storefront
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_MEDUSA_BACKEND_URL
+        value: https://mechon-backend.onrender.com
+      - key: NEXT_PUBLIC_BASE_URL
+        value: https://mechon-storefront.onrender.com
+      - key: NEXT_PUBLIC_DEFAULT_REGION
+        value: il
+      - key: NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_STRIPE_KEY
+        sync: false
+      - key: IMAGE_STORAGE_URL
+        sync: false
