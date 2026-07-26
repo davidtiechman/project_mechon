@@ -5,19 +5,21 @@ The repository contains a Render Blueprint (`render.yaml`) for:
 - `mechon-backend`: Medusa API and Admin
 - `mechon-storefront`: Next.js storefront
 
-## Required external services
+## Required external service
 
 Render's free PostgreSQL database expires after 30 days, so use a free external
-PostgreSQL provider such as Neon. Medusa also expects Redis in production; use a
-free Redis provider and copy its connection URL.
+PostgreSQL provider such as Neon.
+
+Redis is recommended for a production Medusa deployment, especially when using
+separate server and worker instances. This free demo deployment uses one backend
+instance in shared worker mode, so Redis is optional and can be added later.
 
 ## Deploy
 
-1. Create PostgreSQL and Redis databases and copy their connection URLs.
+1. Create a PostgreSQL database and copy its connection URL.
 2. In Render, choose **New > Blueprint** and connect this GitHub repository.
 3. Render reads `render.yaml`. Enter:
    - `DATABASE_URL`: PostgreSQL connection string.
-   - `REDIS_URL`: Redis connection string.
    - `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`: enter `pending` for the first deploy.
    - `NEXT_PUBLIC_STRIPE_KEY`: leave empty if Stripe is not configured.
    - `IMAGE_STORAGE_URL`: the public image bucket URL, if used.
