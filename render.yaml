@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     rootDir: book-store
-    buildCommand: npm ci && npm run build --workspace=@dtc/backend && cd apps/backend/.medusa/server && npm install --omit=dev
+    buildCommand: npm ci --include=dev --workspace=@dtc/backend --include-workspace-root=false && npm run build --workspace=@dtc/backend && cd apps/backend/.medusa/server && npm install --omit=dev
     startCommand: cd apps/backend && npx medusa db:migrate && cd .medusa/server && npm run start
     healthCheckPath: /health
     autoDeployTrigger: commit
@@ -37,7 +37,7 @@ services:
     runtime: node
     plan: free
     rootDir: book-store
-    buildCommand: npm ci && npm run build --workspace=@dtc/storefront
+    buildCommand: npm ci --include=dev --workspace=@dtc/storefront --include-workspace-root=false && npm run build --workspace=@dtc/storefront
     startCommand: npm run start --workspace=@dtc/storefront
     autoDeployTrigger: commit
     envVars:
