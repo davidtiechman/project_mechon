@@ -34,9 +34,12 @@ export async function retrieveCart(cartId?: string, fields?: string) {
     ...(await getAuthHeaders()),
   }
 
-  const next = {
-    ...(await getCacheOptions("carts")),
-  }
+  const isDevelopment = process.env.NODE_ENV === "development"
+  const next = isDevelopment
+    ? undefined
+    : {
+        ...(await getCacheOptions("carts")),
+      }
 
   return await sdk.client
     .fetch<HttpTypes.StoreCartResponse>(`/store/carts/${id}`, {
@@ -46,7 +49,7 @@ export async function retrieveCart(cartId?: string, fields?: string) {
       },
       headers,
       next,
-      cache: "force-cache",
+      cache: isDevelopment ? "no-store" : "force-cache",
     })
     .then(({ cart }: { cart: HttpTypes.StoreCart }) => cart)
     .catch(() => null)

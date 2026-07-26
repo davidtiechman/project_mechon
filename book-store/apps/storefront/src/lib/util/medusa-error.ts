@@ -1,4 +1,6 @@
 type MedusaError = {
+  status?: number
+  statusText?: string
   response?: {
     data: { message?: string } | string
     status: number
@@ -27,7 +29,12 @@ export default function medusaError(error: unknown): never {
     throw new Error(message.charAt(0).toUpperCase() + message.slice(1) + ".")
   } else if (err.request) {
     throw new Error("No response received: " + String(err.request))
+  } else if (typeof err.status === "number") {
+    const detail = err.message || err.statusText || "Medusa request failed"
+    throw new Error(`${detail} (HTTP ${err.status})`)
   } else {
-    throw new Error("Error setting up the request: " + err.message)
+    const detail =
+      error instanceof Error ? error.message : String(error ?? "Unknown error")
+    throw new Error("Error setting up the request: " + detail)
   }
 }

@@ -44,7 +44,11 @@ export const retrieveCustomer =
   async (): Promise<HttpTypes.StoreCustomer | null> => {
     const authHeaders = await getAuthHeaders()
 
-    if (!authHeaders) return null
+    // getAuthHeaders returns an empty object for guests. Avoid calling the
+    // authenticated `/customers/me` endpoint when no JWT cookie exists.
+    if (!("authorization" in authHeaders)) {
+      return null
+    }
 
     const headers = {
       ...authHeaders,
