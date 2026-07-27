@@ -1,6 +1,7 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { listProducts } from "@lib/data/products"
+import { resolveMediaUrl } from "@lib/util/resolve-media-url"
 import { getRegion, listRegions } from "@lib/data/regions"
 import ProductTemplate from "@modules/products/templates"
 import { HttpTypes } from "@medusajs/types"
@@ -101,7 +102,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     openGraph: {
       title: `${product.title} | מכון מעשה רוקח`,
       description: `${product.title}`,
-      images: product.thumbnail ? [product.thumbnail] : [],
+      images: product.thumbnail ? [resolveMediaUrl(product.thumbnail)!] : [],
     },
   }
 }
