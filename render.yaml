@@ -25,6 +25,20 @@ services:
         value: "false"
       - key: MEDUSA_BACKEND_URL
         value: https://mechon-backend.onrender.com
+      - key: FILE_STORAGE_PROVIDER
+        value: s3
+      - key: S3_FILE_URL
+        value: https://vcfwymgtphigdfiipvou.supabase.co/storage/v1/object/public/product_images
+      - key: S3_ENDPOINT
+        value: https://vcfwymgtphigdfiipvou.storage.supabase.co/storage/v1/s3
+      - key: S3_BUCKET
+        value: product_images
+      - key: S3_REGION
+        value: ap-south-1
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
       - key: STORE_CORS
         value: https://mechon-storefront.onrender.com
       - key: ADMIN_CORS

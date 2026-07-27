@@ -2,14 +2,30 @@ import { loadEnv, defineConfig } from '@medusajs/framework/utils'
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
-const s3FileProviderEnabled = [
-  process.env.S3_FILE_URL,
-  process.env.S3_ACCESS_KEY_ID,
-  process.env.S3_SECRET_ACCESS_KEY,
-  process.env.S3_REGION,
-  process.env.S3_BUCKET,
-  process.env.S3_ENDPOINT,
-].every(Boolean)
+const s3EnvironmentVariables = [
+  "S3_FILE_URL",
+  "S3_ACCESS_KEY_ID",
+  "S3_SECRET_ACCESS_KEY",
+  "S3_REGION",
+  "S3_BUCKET",
+  "S3_ENDPOINT",
+] as const
+
+const s3FileProviderEnabled = process.env.FILE_STORAGE_PROVIDER === "s3"
+
+if (s3FileProviderEnabled) {
+  const missingVariables = s3EnvironmentVariables.filter(
+    (name) => !process.env[name]
+  )
+
+  if (missingVariables.length) {
+    throw new Error(
+      `Supabase S3 storage is enabled, but these environment variables are missing: ${missingVariables.join(
+        ", "
+      )}`
+    )
+  }
+}
 
 module.exports = defineConfig({
   projectConfig: {
