@@ -10,6 +10,14 @@ type Props = {
   searchParams: Promise<{ v_id?: string }>
 }
 
+function decodeHandle(handle: string) {
+  try {
+    return decodeURIComponent(handle)
+  } catch {
+    return handle
+  }
+}
+
 export async function generateStaticParams() {
   try {
     const countryCodes = await listRegions().then((regions) =>
@@ -71,7 +79,7 @@ function getImagesForVariant(
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
-  const { handle } = params
+  const handle = decodeHandle(params.handle)
   const region = await getRegion(params.countryCode)
 
   if (!region) {
@@ -100,6 +108,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function ProductPage(props: Props) {
   const params = await props.params
+  const handle = decodeHandle(params.handle)
   const region = await getRegion(params.countryCode)
   const searchParams = await props.searchParams
 
@@ -111,7 +120,7 @@ export default async function ProductPage(props: Props) {
 
   const pricedProduct = await listProducts({
     countryCode: params.countryCode,
-    queryParams: { handle: params.handle },
+    queryParams: { handle },
   }).then(({ response }) => response.products[0])
 
   if (!pricedProduct) {
