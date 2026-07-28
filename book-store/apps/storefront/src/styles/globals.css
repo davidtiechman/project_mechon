@@ -9,11 +9,11 @@
 
 body {
   margin: 0;
-  background-color: #3b281f;
+  background-color: #f3ece4;
   background-image:
-    radial-gradient(circle at 12% 8%, rgba(188, 137, 87, 0.32), transparent 32%),
-    radial-gradient(circle at 88% 30%, rgba(112, 72, 49, 0.42), transparent 38%),
-    linear-gradient(145deg, #2a1b15 0%, #4b3125 48%, #35231c 100%);
+    radial-gradient(circle at 10% 6%, rgba(196, 158, 124, 0.16), transparent 30%),
+    radial-gradient(circle at 90% 34%, rgba(221, 198, 176, 0.3), transparent 36%),
+    linear-gradient(145deg, #f8f4ef 0%, #f1e8df 52%, #eadfd5 100%);
   background-position: center;
   background-attachment: fixed;
   color: #262117;
@@ -210,11 +210,11 @@ body {
   }
 
   .empty-home-state {
-    @apply border border-dashed border-[#c9bea8] bg-white p-12 text-center text-[#756d5e];
+    @apply border border-dashed border-[#d5c4b4] bg-[#faf6f1] p-12 text-center text-[#756d5e];
   }
 
   .category-card {
-    @apply relative min-h-[180px] overflow-hidden border border-[#d2c7b1] bg-[#f8f4ea] p-7 transition-all hover:-translate-y-1 hover:border-[#9a7130] hover:shadow-lg;
+    @apply relative min-h-[180px] overflow-hidden border border-[#ddcec0] bg-[#f8f1ea] p-7 transition-all hover:-translate-y-1 hover:border-[#b18a66] hover:shadow-lg;
   }
 
   .category-card h3 {
@@ -235,8 +235,8 @@ body {
   }
 
   .about-seal {
-    @apply relative mx-auto flex aspect-square w-full max-w-[400px] flex-col items-center justify-center rounded-full border border-[#b59657] bg-[#eee3d5] text-[#4a2d21];
-    box-shadow: inset 0 0 0 14px #eee8da, inset 0 0 0 15px rgba(154, 113, 48, .35);
+    @apply relative mx-auto flex aspect-square w-full max-w-[400px] flex-col items-center justify-center rounded-full border border-[#c5a784] bg-[#f0e4d8] text-[#4a2d21];
+    box-shadow: inset 0 0 0 14px #f7f0e8, inset 0 0 0 15px rgba(154, 113, 48, .24);
   }
 
   .about-seal span { @apply text-2xl; }

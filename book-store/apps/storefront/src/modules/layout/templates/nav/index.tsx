@@ -18,7 +18,7 @@ export default async function Nav() {
 
   return (
     <div className="sticky top-0 inset-x-0 z-50 group" dir="rtl">
-      <header className="relative h-[76px] mx-auto border-b border-[#d9d0bd] bg-[#fbfaf6]/95 backdrop-blur-md">
+      <header className="relative h-[76px] mx-auto border-b border-[#e0d2c5] bg-[#faf6f1]/95 backdrop-blur-md">
         <nav className="content-container flex items-center justify-between w-full h-full text-sm text-[#3b352a]">
           <div className="flex items-center gap-8 h-full">
             <LocalizedClientLink href="/" className="brand-lockup" data-testid="nav-store-link">

@@ -49,7 +49,7 @@ export default async function Home(props: {
   )
 
   return (
-    <main className="min-h-screen bg-[#f5efe6]/95 text-[#2f241e] backdrop-blur-[1px]">
+    <main className="min-h-screen bg-[#f6f0e9]/80 text-[#352820] backdrop-blur-[1px]">
       <Hero />
 
       <section id="new-books" className="home-section content-container">
@@ -75,7 +75,7 @@ export default async function Home(props: {
         )}
       </section>
 
-      <section id="categories" className="bg-[#e8ddd0]/95">
+      <section id="categories" className="bg-[#ede1d6]/85">
         <div className="home-section content-container">
           <div className="section-heading">
             <div>
@@ -124,7 +124,7 @@ export default async function Home(props: {
         </div>
       </section>
 
-      <section id="articles" className="border-y border-[#d9d0bd] bg-white/90">
+      <section id="articles" className="border-y border-[#dfd1c4] bg-[#faf6f1]/90">
         <div className="home-section content-container">
           <div className="section-heading">
             <div>
