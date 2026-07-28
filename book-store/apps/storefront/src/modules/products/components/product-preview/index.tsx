@@ -38,6 +38,7 @@ export default async function ProductPreview({
           images={product.images}
           size="full"
           isFeatured={isFeatured}
+          className="border border-[#cdbbaa] bg-transparent"
         />
         <div className="mt-4 flex items-start justify-between gap-3 txt-compact-medium">
           <Text
