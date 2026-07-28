@@ -63,7 +63,7 @@ export default async function Home(props: {
           </LocalizedClientLink>
         </div>
         {region && products.length > 0 ? (
-          <ul className="grid grid-cols-2 gap-x-4 gap-y-12 small:grid-cols-3 small:gap-x-7">
+          <ul className="grid grid-cols-2 gap-x-5 gap-y-12 small:grid-cols-3 small:gap-x-8 small:gap-y-16">
             {products.map((product) => (
               <li key={product.id}>
                 <ProductPreview product={product} region={region} isFeatured />
