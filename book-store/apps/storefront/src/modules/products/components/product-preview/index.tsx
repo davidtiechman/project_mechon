@@ -39,7 +39,7 @@ export default async function ProductPreview({
           size="full"
           isFeatured={isFeatured}
           imageFit="cover"
-          className="border border-[#cdbbaa] bg-white"
+          className="rounded-[18px] bg-white"
         />
         <div className="mt-4 flex items-start justify-between gap-3 txt-compact-medium">
           <Text
