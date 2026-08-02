@@ -5,7 +5,7 @@ import Link from "next/link"
 
 export const metadata: Metadata = {
   title: "404",
-  description: "Something went wrong",
+  description: "העמוד המבוקש לא נמצא",
 }
 
 export default function NotFound() {
@@ -13,7 +13,7 @@ export default function NotFound() {
     <div className="flex flex-col gap-4 items-center justify-center min-h-[calc(100vh-64px)]">
       <h1 className="text-2xl-semi text-ui-fg-base">העמוד לא נמצא</h1>
       <p className="text-small-regular text-ui-fg-base">
-        The page you tried to access does not exist.
+        העמוד שניסית להגיע אליו אינו קיים.
       </p>
       <Link className="flex gap-x-1 items-center group" href="/">
         <Text className="text-ui-fg-interactive">חזרה לדף הבית</Text>

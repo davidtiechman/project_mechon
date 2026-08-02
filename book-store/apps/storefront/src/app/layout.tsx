@@ -1,6 +1,19 @@
 import type { Metadata } from "next"
+import { Frank_Ruhl_Libre, Heebo } from "next/font/google"
 import { getBaseURL } from "@lib/util/env"
 import "../styles/globals.css"
+
+const heebo = Heebo({
+  subsets: ["hebrew", "latin"],
+  variable: "--font-heebo",
+  display: "swap",
+})
+
+const frankRuhlLibre = Frank_Ruhl_Libre({
+  subsets: ["hebrew", "latin"],
+  variable: "--font-frank-ruhl",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseURL()),
@@ -21,7 +34,9 @@ export default function MainLayout({
 }) {
   return (
     <html lang="he" dir="rtl">
-      <body>{children}</body>
+      <body className={`${heebo.variable} ${frankRuhlLibre.variable}`}>
+        {children}
+      </body>
     </html>
   )
 }

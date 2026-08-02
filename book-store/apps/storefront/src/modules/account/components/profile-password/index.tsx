@@ -30,9 +30,9 @@ const ProfilePassword: React.FC<MyInformationProps> = ({ customer: _customer }) 
       className="w-full"
     >
       <AccountInfo
-        label="Password"
+        label="סיסמה"
         currentInfo={
-          <span>The password is not shown for security reasons</span>
+          <span>הסיסמה אינה מוצגת מטעמי אבטחה</span>
         }
         isSuccess={successState}
         isError={false}
@@ -42,21 +42,21 @@ const ProfilePassword: React.FC<MyInformationProps> = ({ customer: _customer }) 
       >
         <div className="grid grid-cols-2 gap-4">
           <Input
-            label="Old password"
+            label="סיסמה נוכחית"
             name="old_password"
             required
             type="password"
             data-testid="old-password-input"
           />
           <Input
-            label="New password"
+            label="סיסמה חדשה"
             type="password"
             name="new_password"
             required
             data-testid="new-password-input"
           />
           <Input
-            label="Confirm password"
+            label="אימות סיסמה"
             type="password"
             name="confirm_password"
             required

@@ -22,7 +22,7 @@ const AccountInfo = ({
   isSuccess,
   isError,
   clearState,
-  errorMessage = "An error occurred, please try again",
+  errorMessage = "אירעה שגיאה, נא לנסות שוב",
   children,
   'data-testid': dataTestid
 }: AccountInfoProps) => {
@@ -63,7 +63,7 @@ const AccountInfo = ({
             data-testid="edit-button"
             data-active={state}
           >
-            {state ? "Cancel" : "Edit"}
+            {state ? "ביטול" : "עריכה"}
           </Button>
         </div>
       </div>

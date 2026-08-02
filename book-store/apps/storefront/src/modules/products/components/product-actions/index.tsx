@@ -177,10 +177,10 @@ export default function ProductActions({
           data-testid="add-product-button"
         >
           {!selectedVariant && !options
-            ? "Select variant"
+            ? "יש לבחור אפשרות"
             : !inStock || !isValidVariant
-            ? "Out of stock"
-            : "Add to cart"}
+            ? "אזל מהמלאי"
+            : "הוספה לסל"}
         </Button>
         <MobileActions
           product={product}

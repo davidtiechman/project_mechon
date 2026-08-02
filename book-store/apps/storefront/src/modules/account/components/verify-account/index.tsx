@@ -37,7 +37,7 @@ const VerifyAccount = () => {
       className="max-w-sm w-full flex flex-col items-center text-center gap-y-4"
       data-testid="verify-account-page"
     >
-      <h1 className="text-large-semi uppercase">Email verification</h1>
+      <h1 className="text-large-semi">אימות כתובת הדוא״ל</h1>
 
       {state === "verifying" && (
         <p className="text-base-regular text-ui-fg-base">
@@ -51,7 +51,7 @@ const VerifyAccount = () => {
             Your email is verified. You can now sign in to your account.
           </p>
           <LocalizedClientLink href="/account">
-            <Button variant="primary">Go to sign in</Button>
+            <Button variant="primary">מעבר להתחברות</Button>
           </LocalizedClientLink>
         </>
       )}
@@ -63,7 +63,7 @@ const VerifyAccount = () => {
             a new verification email.
           </p>
           <LocalizedClientLink href="/account">
-            <Button variant="secondary">Go to sign in</Button>
+            <Button variant="secondary">מעבר להתחברות</Button>
           </LocalizedClientLink>
         </>
       )}
