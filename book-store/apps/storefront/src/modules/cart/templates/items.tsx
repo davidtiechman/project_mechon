@@ -19,14 +19,14 @@ const ItemsTemplate = ({ cart }: ItemsTemplateProps) => {
       <Table>
         <Table.Header className="border-t-0">
           <Table.Row className="text-ui-fg-subtle txt-medium-plus">
-            <Table.HeaderCell className="!pl-0">פריט</Table.HeaderCell>
+            <Table.HeaderCell className="!pr-0 text-right">פריט</Table.HeaderCell>
             <Table.HeaderCell></Table.HeaderCell>
-            <Table.HeaderCell>כמות</Table.HeaderCell>
-            <Table.HeaderCell className="hidden small:table-cell">
-              Price
+            <Table.HeaderCell className="text-right">כמות</Table.HeaderCell>
+            <Table.HeaderCell className="hidden small:table-cell text-right">
+              מחיר
             </Table.HeaderCell>
-            <Table.HeaderCell className="!pr-0 text-right">
-              Total
+            <Table.HeaderCell className="!pl-0 text-right">
+              סה״כ
             </Table.HeaderCell>
           </Table.Row>
         </Table.Header>
