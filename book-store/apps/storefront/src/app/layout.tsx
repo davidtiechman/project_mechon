@@ -16,6 +16,9 @@ const frankRuhlLibre = Frank_Ruhl_Libre({
 })
 
 export const metadata: Metadata = {
+  verification: {
+    google: "QfXV3TadhjRB12PIlCZMmvjLxh9OAkqxK6xzGDc4TPY",
+  },
   metadataBase: new URL(getBaseURL()),
   title: {
     default: "מכון מעשה רוקח",
