@@ -95,7 +95,7 @@ body {
 
   .brand-monogram {
     @apply grid h-10 w-10 place-items-center rounded-full border border-[#b98a5a] bg-[#42291f] text-base font-semibold text-[#f8f2e6];
-    font-family: var(--font-frank-ruhl), Georgia, serif;
+    font-family: var(--font-heebo), Arial, sans-serif;
   }
 
   .brand-emblem {
@@ -131,18 +131,9 @@ body {
       linear-gradient(115deg, #251711 0%, #4f3022 54%, #704a35 100%);
   }
 
-  .hero-ornament {
-    @apply absolute inset-0 opacity-20;
-    background-image:
-      linear-gradient(30deg, transparent 48%, #d5b184 49%, #d5b184 50%, transparent 51%),
-      linear-gradient(150deg, transparent 48%, #d5b184 49%, #d5b184 50%, transparent 51%);
-    background-size: 96px 96px;
-    mask-image: linear-gradient(to left, transparent, black);
-  }
-
   .hero-section h1 {
     @apply mt-5 text-5xl font-normal leading-[1.08] xsmall:text-6xl small:text-7xl;
-    font-family: var(--font-frank-ruhl), Georgia, serif;
+    font-family: var(--font-heebo), Arial, sans-serif;
   }
 
   .hero-section h1 em {
@@ -182,10 +173,6 @@ body {
   .hero-mark::before { inset: 7%; }
   .hero-mark::after { inset: 18%; }
 
-  .hero-mark-ring {
-    @apply absolute inset-1/2 h-px w-[115%] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-[#d8bf86]/30;
-  }
-
   .hero-emblem {
     @apply relative z-10 h-[76%] w-[76%] object-contain;
     filter: invert(86%) sepia(20%) saturate(635%) hue-rotate(359deg) brightness(95%);
@@ -202,7 +189,7 @@ body {
   .section-heading h2,
   .about-copy h2 {
     @apply mt-2 text-3xl font-normal leading-tight text-[#262117] xsmall:text-4xl;
-    font-family: var(--font-frank-ruhl), Georgia, serif;
+    font-family: var(--font-heebo), Arial, sans-serif;
   }
 
   .text-link {
@@ -219,7 +206,7 @@ body {
 
   .category-card h3 {
     @apply mt-10 text-2xl text-[#4a2d21];
-    font-family: var(--font-frank-ruhl), Georgia, serif;
+    font-family: var(--font-heebo), Arial, sans-serif;
   }
 
   .category-number {
@@ -240,7 +227,7 @@ body {
   }
 
   .about-seal span { @apply text-2xl; }
-  .about-seal strong { @apply text-5xl font-normal; font-family: var(--font-frank-ruhl), Georgia, serif; }
+  .about-seal strong { @apply text-5xl font-normal; font-family: var(--font-heebo), Arial, sans-serif; }
   .about-seal small { @apply mt-5 text-[10px] tracking-[0.2em] text-[#756d5e]; }
 
   .about-copy p {
@@ -256,7 +243,7 @@ body {
   }
 
   .article-card time { @apply text-xs text-[#8a682d]; }
-  .article-card h3 { @apply mt-5 text-xl text-[#4a2d21]; font-family: var(--font-frank-ruhl), Georgia, serif; }
+  .article-card h3 { @apply mt-5 text-xl text-[#4a2d21]; font-family: var(--font-heebo), Arial, sans-serif; }
   .article-card p { @apply mt-3 leading-7 text-[#6d6558]; }
 
   .footer-heading {

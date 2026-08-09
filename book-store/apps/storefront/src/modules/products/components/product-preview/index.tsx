@@ -4,6 +4,7 @@ import { HttpTypes } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import Thumbnail from "../thumbnail"
 import PreviewPrice from "./price"
+import CardAddToCart from "./card-add-to-cart"
 
 export default async function ProductPreview({
   product,
@@ -27,13 +28,24 @@ export default async function ProductPreview({
     product,
   })
 
+  const singleVariant =
+    product.variants?.length === 1 ? product.variants[0] : undefined
+  const singleVariantInStock = singleVariant
+    ? !singleVariant.manage_inventory ||
+      singleVariant.allow_backorder ||
+      (singleVariant.inventory_quantity ?? 0) > 0
+    : true
+
   return (
-    <LocalizedClientLink
-      href={`/products/${product.handle}`}
-      className="group block focus-visible:outline-none"
+    <article
+      className="group/card relative h-full overflow-hidden rounded-[18px] bg-white shadow-sm transition-shadow hover:shadow-md focus-within:ring-2 focus-within:ring-[#9a7130]"
+      data-testid="product-wrapper"
     >
-      <div className="h-full" data-testid="product-wrapper">
-        <div className="relative overflow-hidden rounded-[18px] bg-white">
+      <LocalizedClientLink
+        href={`/products/${product.handle}`}
+        className="group block h-full focus-visible:outline-none"
+      >
+        <div className="overflow-hidden bg-white">
           <Thumbnail
             thumbnail={product.thumbnail}
             images={product.images}
@@ -41,19 +53,32 @@ export default async function ProductPreview({
             isFeatured={isFeatured}
             imageFit="cover"
           />
-          <div className="absolute inset-x-0 bottom-0 z-10 flex h-[76px] items-center justify-between gap-3 bg-[#2f211b]/90 px-4 text-right text-white backdrop-blur-sm">
+        </div>
+
+        <div className="flex min-h-[132px] flex-col bg-white px-4 py-3 text-right" dir="rtl">
           <Text
-              className="min-w-0 flex-1 overflow-hidden text-ellipsis text-sm font-medium leading-5 text-white"
+            className="overflow-hidden text-base font-semibold leading-6 text-[#352820]"
             data-testid="product-title"
           >
             {product.title}
           </Text>
-            <div className="flex shrink-0 items-center gap-x-2 [&_[data-testid=original-price]]:!text-[#d8cfc7] [&_[data-testid=price]]:!text-white">
+
+          {(product.subtitle || product.description) && (
+            <p className="mt-1 max-h-10 overflow-hidden text-xs leading-5 text-[#756d5e]">
+              {product.subtitle || product.description}
+            </p>
+          )}
+
+          <div className="mt-auto flex items-center gap-x-2 pt-2 [&_[data-testid=original-price]]:!text-base [&_[data-testid=price]]:!text-lg [&_[data-testid=price]]:!font-bold [&_[data-testid=price]]:!text-[#4a2d21]">
             {cheapestPrice && <PreviewPrice price={cheapestPrice} />}
-            </div>
           </div>
         </div>
-      </div>
-    </LocalizedClientLink>
+      </LocalizedClientLink>
+      <CardAddToCart
+        variantId={singleVariant?.id}
+        productHandle={product.handle}
+        disabled={!!singleVariant && !singleVariantInStock}
+      />
+    </article>
   )
 }
