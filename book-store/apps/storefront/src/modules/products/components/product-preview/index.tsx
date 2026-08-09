@@ -35,12 +35,20 @@ export default async function ProductPreview({
       singleVariant.allow_backorder ||
       (singleVariant.inventory_quantity ?? 0) > 0
     : true
+  const isNewProduct = product.tags?.some(
+    (tag) => tag.value === "מוצר חדש"
+  )
 
   return (
     <article
       className="group/card relative h-full overflow-hidden rounded-[18px] bg-white shadow-sm transition-shadow hover:shadow-md focus-within:ring-2 focus-within:ring-[#9a7130]"
       data-testid="product-wrapper"
     >
+      {isNewProduct && (
+        <span className="absolute right-3 top-3 z-20 inline-flex h-7 items-center justify-center rounded-full bg-[#9a7130] px-3 text-xs font-bold text-white shadow-md">
+          חדש
+        </span>
+      )}
       <LocalizedClientLink
         href={`/products/${product.handle}`}
         className="group block h-full focus-visible:outline-none"
@@ -55,21 +63,15 @@ export default async function ProductPreview({
           />
         </div>
 
-        <div className="flex min-h-[132px] flex-col bg-white px-4 py-3 text-right" dir="rtl">
+        <div className="flex h-[108px] flex-col justify-end bg-white px-4 py-3 text-right" dir="rtl">
           <Text
-            className="overflow-hidden text-base font-semibold leading-6 text-[#352820]"
+            className="max-h-[60px] overflow-hidden text-base font-semibold leading-5 text-[#352820]"
             data-testid="product-title"
           >
             {product.title}
           </Text>
 
-          {(product.subtitle || product.description) && (
-            <p className="mt-1 max-h-10 overflow-hidden text-xs leading-5 text-[#756d5e]">
-              {product.subtitle || product.description}
-            </p>
-          )}
-
-          <div className="mt-auto flex items-center gap-x-2 pt-2 [&_[data-testid=original-price]]:!text-base [&_[data-testid=price]]:!text-lg [&_[data-testid=price]]:!font-bold [&_[data-testid=price]]:!text-[#4a2d21]">
+          <div className="mt-1 flex min-h-6 items-center gap-x-2 [&_[data-testid=original-price]]:!text-base [&_[data-testid=price]]:!text-lg [&_[data-testid=price]]:!font-bold [&_[data-testid=price]]:!text-[#4a2d21]">
             {cheapestPrice && <PreviewPrice price={cheapestPrice} />}
           </div>
         </div>
