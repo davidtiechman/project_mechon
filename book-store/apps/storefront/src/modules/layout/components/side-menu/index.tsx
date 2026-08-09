@@ -1,6 +1,6 @@
 "use client"
 
-import { Popover, PopoverPanel, Transition } from "@headlessui/react"
+import { Disclosure, DisclosureButton, DisclosurePanel, Popover, PopoverPanel, Transition } from "@headlessui/react"
 import useToggleState from "@lib/hooks/use-toggle-state"
 import { ArrowRightMini, XMark } from "@medusajs/icons"
 import { HttpTypes } from "@medusajs/types"
@@ -10,6 +10,7 @@ import { Fragment } from "react"
 import CountrySelect from "../country-select"
 import LanguageSelect from "../language-select"
 import { Locale } from "@lib/data/locales"
+import { instituteProjects } from "@lib/data/institute-projects"
 
 
 const SideMenuItems = {
@@ -87,6 +88,32 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                           </li>
                         )
                       })}
+                      <li className="w-full">
+                        <Disclosure>
+                          {() => (
+                            <>
+                              <DisclosureButton className="flex w-full items-center text-3xl leading-10 hover:text-ui-fg-disabled">
+                                <span>מפעלי המכון</span>
+                              </DisclosureButton>
+                              <DisclosurePanel>
+                                <ul className="mt-3 flex flex-col gap-3 border-r border-white/30 pr-4">
+                                  {instituteProjects.map((project) => (
+                                    <li key={project.slug}>
+                                      <LocalizedClientLink
+                                        href={`/institute-projects/${project.slug}`}
+                                        className="block py-1 text-xl leading-8 hover:text-ui-fg-disabled"
+                                        onClick={close}
+                                      >
+                                        {project.title}
+                                      </LocalizedClientLink>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </DisclosurePanel>
+                            </>
+                          )}
+                        </Disclosure>
+                      </li>
                     </ul>
                     <div className="flex flex-col gap-y-6">
                       {!!locales?.length && (

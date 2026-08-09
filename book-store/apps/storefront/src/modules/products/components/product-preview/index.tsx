@@ -32,24 +32,25 @@ export default async function ProductPreview({
       href={`/products/${product.handle}`}
       className="group block focus-visible:outline-none"
     >
-      <div className="flex h-full flex-col" data-testid="product-wrapper">
-        <Thumbnail
-          thumbnail={product.thumbnail}
-          images={product.images}
-          size="full"
-          isFeatured={isFeatured}
-          imageFit="cover"
-          className="rounded-[18px] bg-white"
-        />
-        <div className="mt-4 flex items-start justify-between gap-3 txt-compact-medium">
+      <div className="h-full" data-testid="product-wrapper">
+        <div className="relative overflow-hidden rounded-[18px] bg-white">
+          <Thumbnail
+            thumbnail={product.thumbnail}
+            images={product.images}
+            size="full"
+            isFeatured={isFeatured}
+            imageFit="cover"
+          />
+          <div className="absolute inset-x-0 bottom-0 z-10 flex h-[76px] items-center justify-between gap-3 bg-[#2f211b]/90 px-4 text-right text-white backdrop-blur-sm">
           <Text
-            className="min-w-0 flex-1 text-ui-fg-subtle transition-colors group-hover:text-ui-fg-base"
+              className="min-w-0 flex-1 overflow-hidden text-ellipsis text-sm font-medium leading-5 text-white"
             data-testid="product-title"
           >
             {product.title}
           </Text>
-          <div className="flex shrink-0 items-center gap-x-2">
+            <div className="flex shrink-0 items-center gap-x-2 [&_[data-testid=original-price]]:!text-[#d8cfc7] [&_[data-testid=price]]:!text-white">
             {cheapestPrice && <PreviewPrice price={cheapestPrice} />}
+            </div>
           </div>
         </div>
       </div>

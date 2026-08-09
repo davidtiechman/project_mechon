@@ -8,6 +8,7 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
 import Image from "next/image"
+import InstituteProjectsMenu from "@modules/layout/components/institute-projects-menu"
 
 export default async function Nav() {
   const [regions, locales, currentLocale] = await Promise.all([
@@ -35,7 +36,7 @@ export default async function Nav() {
             <div className="hidden small:flex items-center gap-7 h-full">
               <LocalizedClientLink href="/store" className="nav-link">חנות הספרים</LocalizedClientLink>
               <LocalizedClientLink href="/#new-books" className="nav-link">חדשים</LocalizedClientLink>
-              <LocalizedClientLink href="/#categories" className="nav-link">קטגוריות</LocalizedClientLink>
+              <InstituteProjectsMenu />
               <LocalizedClientLink href="/#about" className="nav-link">אודות</LocalizedClientLink>
               <LocalizedClientLink href="/#articles" className="nav-link">מאמרים</LocalizedClientLink>
             </div>

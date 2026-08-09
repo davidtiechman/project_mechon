@@ -33,9 +33,10 @@ export const listCategories = async (query?: Record<string, unknown>) => {
 export const getCategoryByHandle = async (categoryHandle: string[]) => {
   const handle = `${categoryHandle.join("/")}`
 
-  const next = {
-    ...(await getCacheOptions("categories")),
-  }
+  const isDevelopment = process.env.NODE_ENV === "development"
+  const next = isDevelopment
+    ? undefined
+    : { ...(await getCacheOptions("categories")), revalidate: 60 }
 
   return sdk.client
     .fetch<HttpTypes.StoreProductCategoryListResponse>(
@@ -46,7 +47,7 @@ export const getCategoryByHandle = async (categoryHandle: string[]) => {
           handle,
         },
         next,
-        cache: "force-cache",
+        cache: isDevelopment ? "no-store" : "force-cache",
       }
     )
     .then(({ product_categories }) => product_categories[0])

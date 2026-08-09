@@ -5,6 +5,7 @@ import { getRegion } from "@lib/data/regions"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import ProductPreview from "@modules/products/components/product-preview"
 import Hero from "@modules/home/components/hero"
+import { getProductTagByValue } from "@lib/data/product-tags"
 
 export const metadata: Metadata = {
   title: { absolute: "מכון מעשה רוקח" },
@@ -35,15 +36,21 @@ export default async function Home(props: {
   const { countryCode } = await props.params
   const region = await getRegion(countryCode)
 
-  const [productsResult, categories] = await Promise.all([
-    listProducts({
-      countryCode,
-      queryParams: { limit: 6, order: "-created_at" },
-    }),
+  const [newProductTag, categories] = await Promise.all([
+    getProductTagByValue("מוצר חדש"),
     listCategories({ limit: 6 }),
   ])
 
-  const products = productsResult.response.products
+  const products = newProductTag
+    ? await listProducts({
+        countryCode,
+        queryParams: {
+          tag_id: [newProductTag.id],
+          limit: 6,
+          order: "-created_at",
+        },
+      }).then(({ response }) => response.products)
+    : []
   const populatedCategories = categories.filter(
     (category) => !category.parent_category && (category.products?.length ?? 0) > 0
   )
