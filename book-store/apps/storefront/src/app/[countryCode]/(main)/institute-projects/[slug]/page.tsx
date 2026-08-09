@@ -1,4 +1,4 @@
-import { getInstituteProject, instituteProjects } from "@lib/data/institute-projects"
+import { getInstituteProject } from "@lib/data/institute-projects"
 import InstituteProjectTemplate from "@modules/institute-projects/templates"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
@@ -7,8 +7,8 @@ type Props = {
   params: Promise<{ countryCode: string; slug: string }>
 }
 
-export const generateStaticParams = () =>
-  instituteProjects.map(({ slug }) => ({ slug }))
+// Product assignments and locale data come from Medusa at request time.
+export const dynamic = "force-dynamic"
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
