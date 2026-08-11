@@ -40,7 +40,7 @@ export default function InstituteProjectsMenu({ projects = fallbackProjects.map(
         aria-label="מפעלי המכון"
         className={`absolute right-0 top-full min-w-[220px] border border-[#ddcec0] bg-[#faf6f1] py-2 shadow-xl transition duration-150 ${open ? "visible translate-y-0 opacity-100" : "invisible -translate-y-1 opacity-0"}`}
       >
-        {instituteProjects.map((project) => (
+        {projects.map((project) => (
           <LocalizedClientLink
             key={project.slug}
             href={`/brands/${project.slug}`}
