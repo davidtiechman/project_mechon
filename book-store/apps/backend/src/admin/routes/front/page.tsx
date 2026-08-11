@@ -30,4 +30,9 @@ export default function SiteContentDashboard() {
   </div>
 }
 
-export const config = defineRouteConfig({ label: "siteContent.menu", icon: BookOpen, rank: 70 })
+export const config = defineRouteConfig({
+  label: "siteContent.menu",
+  translationNs: "translation",
+  icon: BookOpen,
+  rank: 70,
+})
