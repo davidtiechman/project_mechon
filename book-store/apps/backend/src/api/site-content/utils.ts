@@ -74,8 +74,10 @@ export function listConfig(entity: ContentEntity, query: Record<string, unknown>
   for (const key of ["status", "active", "placement", "owner_type", "owner_id", "menu_id", "section_id", "handle", "slug"]) {
     if (query[key] !== undefined) filters[key] = query[key]
   }
-  const order = ["settings", "navigation-menus"].includes(entity)
-    ? { updated_at: "DESC" }
-    : { sort_order: "ASC", updated_at: "DESC" }
+  const order = entity === "articles"
+    ? { published_at: "DESC", updated_at: "DESC" }
+    : ["settings", "navigation-menus"].includes(entity)
+      ? { updated_at: "DESC" }
+      : { sort_order: "ASC", updated_at: "DESC" }
   return { filters, config: { take: limit, skip: offset, order } }
 }
