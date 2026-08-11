@@ -9,12 +9,14 @@ import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
 import Image from "next/image"
 import InstituteProjectsMenu from "@modules/layout/components/institute-projects-menu"
+import { listContent } from "@lib/data/site-content"
 
 export default async function Nav() {
-  const [regions, locales, currentLocale] = await Promise.all([
+  const [regions, locales, currentLocale, brands] = await Promise.all([
     listRegions().then((regions: StoreRegion[]) => regions),
     listLocales(),
     getLocale(),
+    listContent("brands"),
   ])
 
   return (
@@ -36,7 +38,7 @@ export default async function Nav() {
             <div className="hidden small:flex items-center gap-7 h-full">
               <LocalizedClientLink href="/store" className="nav-link">חנות הספרים</LocalizedClientLink>
               <LocalizedClientLink href="/#new-books" className="nav-link">חדשים</LocalizedClientLink>
-              <InstituteProjectsMenu />
+              <InstituteProjectsMenu projects={brands.length ? brands.map((brand) => ({ slug: brand.slug!, title: brand.title || brand.name || "" })) : undefined} />
               <LocalizedClientLink href="/#about" className="nav-link">אודות</LocalizedClientLink>
               <LocalizedClientLink href="/#articles" className="nav-link">מאמרים</LocalizedClientLink>
             </div>

@@ -6,13 +6,14 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import ProductPreview from "@modules/products/components/product-preview"
 import Hero from "@modules/home/components/hero"
 import { getProductTagByValue } from "@lib/data/product-tags"
+import { getHomeContent } from "@lib/data/site-content"
 
 export const metadata: Metadata = {
   title: { absolute: "מכון מעשה רוקח" },
   description: "אתר הספרים של מכון מעשה רוקח",
 }
 
-const articles = [
+const fallbackArticles = [
   {
     title: "על סידור עבודת השם",
     excerpt: "???",
@@ -34,7 +35,7 @@ export default async function Home(props: {
   params: Promise<{ countryCode: string }>
 }) {
   const { countryCode } = await props.params
-  const region = await getRegion(countryCode)
+  const [region, homeContent] = await Promise.all([getRegion(countryCode), getHomeContent()])
 
   const [newProductTag, categories] = await Promise.all([
     getProductTagByValue("מוצר חדש"),
@@ -54,10 +55,12 @@ export default async function Home(props: {
   const populatedCategories = categories.filter(
     (category) => !category.parent_category && (category.products?.length ?? 0) > 0
   )
+  const hero = homeContent?.sections.find((section) => section.type === "hero" && section.active)
+  const articles = homeContent?.articles?.length ? homeContent.articles.map((article) => ({ title: article.title || "", excerpt: article.excerpt || "", date: article.published_at ? new Intl.DateTimeFormat("he-IL", { dateStyle: "long" }).format(new Date(article.published_at)) : "" })) : fallbackArticles
 
   return (
     <main className="min-h-screen bg-[#f6f0e9]/80 text-[#352820] backdrop-blur-[1px]">
-      <Hero />
+      <Hero eyebrow={hero?.subtitle} title={hero?.title} description={hero?.content} buttonText={hero?.data?.button_text} buttonUrl={hero?.data?.button_url} image={hero?.data?.desktop_image} />
 
       <section id="new-books" className="home-section content-container">
         <div className="section-heading">

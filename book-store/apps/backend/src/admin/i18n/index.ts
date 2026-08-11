@@ -1,4 +1,5 @@
 import he from "./json/he.json" with { type: "json" }
+import { siteContentEn, siteContentHe } from "./content"
 
 /**
  * Completes Medusa's bundled Hebrew resource.
@@ -9,6 +10,9 @@ import he from "./json/he.json" with { type: "json" }
  */
 export default {
   he: {
-    translation: he,
+    translation: { ...he, siteContent: siteContentHe },
+  },
+  en: {
+    translation: { siteContent: siteContentEn },
   },
 }
