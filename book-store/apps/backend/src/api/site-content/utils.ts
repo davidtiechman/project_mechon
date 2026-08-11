@@ -67,12 +67,15 @@ export function resolveContentEntity(entity: string) {
   return entity as ContentEntity
 }
 
-export function listConfig(query: Record<string, unknown>) {
+export function listConfig(entity: ContentEntity, query: Record<string, unknown>) {
   const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 100)
   const offset = Math.max(Number(query.offset) || 0, 0)
   const filters: Record<string, unknown> = {}
   for (const key of ["status", "active", "placement", "owner_type", "owner_id", "menu_id", "section_id", "handle", "slug"]) {
     if (query[key] !== undefined) filters[key] = query[key]
   }
-  return { filters, config: { take: limit, skip: offset, order: { sort_order: "ASC", updated_at: "DESC" } } }
+  const order = ["settings", "navigation-menus"].includes(entity)
+    ? { updated_at: "DESC" }
+    : { sort_order: "ASC", updated_at: "DESC" }
+  return { filters, config: { take: limit, skip: offset, order } }
 }
