@@ -5,29 +5,35 @@ import { HttpTypes } from "@medusajs/types"
 import { getCacheOptions } from "./cookies"
 
 export const listRegions = async () => {
-  const next = {
-    ...(await getCacheOptions("regions")),
-  }
+  const isDevelopment = process.env.NODE_ENV === "development"
+  const next = isDevelopment
+    ? undefined
+    : {
+        ...(await getCacheOptions("regions")),
+      }
 
   return await sdk.client
     .fetch<{ regions: HttpTypes.StoreRegion[] }>(`/store/regions`, {
       method: "GET",
       next,
-      cache: "force-cache",
+      cache: isDevelopment ? "no-store" : "force-cache",
     })
     .then(({ regions }) => regions)
 }
 
 export const retrieveRegion = async (id: string) => {
-  const next = {
-    ...(await getCacheOptions(["regions", id].join("-"))),
-  }
+  const isDevelopment = process.env.NODE_ENV === "development"
+  const next = isDevelopment
+    ? undefined
+    : {
+        ...(await getCacheOptions(["regions", id].join("-"))),
+      }
 
   return await sdk.client
     .fetch<{ region: HttpTypes.StoreRegion }>(`/store/regions/${id}`, {
       method: "GET",
       next,
-      cache: "force-cache",
+      cache: isDevelopment ? "no-store" : "force-cache",
     })
     .then(({ region }) => region)
 }

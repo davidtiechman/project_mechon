@@ -43,7 +43,7 @@ export default function InstituteProjectsMenu({ projects = fallbackProjects.map(
         {projects.map((project) => (
           <LocalizedClientLink
             key={project.slug}
-            href={`/brands/${project.slug}`}
+            href={`/institute-projects/${project.slug}`}
             role="menuitem"
             className="block px-5 py-3 text-right text-[#3b352a] transition-colors hover:bg-[#f0e4d8] hover:text-[#8a682d] focus:bg-[#f0e4d8] focus:outline-none"
             onClick={() => setOpen(false)}
