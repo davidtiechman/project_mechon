@@ -2,6 +2,7 @@ import { getContentItem } from "@lib/data/site-content"
 import { getCategoryByHandle } from "@lib/data/categories"
 import { getInstituteProject } from "@lib/data/institute-projects"
 import { listProducts } from "@lib/data/products"
+import { getRegion } from "@lib/data/regions"
 import ContentPageTemplate from "@modules/content/templates/content-page"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
@@ -13,30 +14,29 @@ export default async function BrandPage({ params }: Props) {
   const item = await getContentItem("brands", slug)
   if (!item) notFound()
 
-  if (!item.products?.length) {
-    const project = getInstituteProject(slug)
-    const category = project
-      ? await getCategoryByHandle([project.categoryHandle])
+  const project = getInstituteProject(slug)
+  const [region, category] = await Promise.all([
+    getRegion(countryCode),
+    project ? getCategoryByHandle([project.categoryHandle]) : undefined,
+  ])
+
+  const linkedProductIds = item.products?.map((product) => product.id) || []
+  const productFilter = linkedProductIds.length
+    ? { id: linkedProductIds }
+    : category
+      ? { category_id: [category.id] }
       : undefined
 
-    if (category) {
-      item.products = await listProducts({
+  const products = productFilter
+    ? await listProducts({
         countryCode,
         queryParams: {
-          category_id: [category.id],
+          ...productFilter,
           limit: 100,
           order: "-created_at",
         },
-      }).then(({ response }) =>
-        response.products.map((product) => ({
-          id: product.id,
-          handle: product.handle,
-          title: product.title,
-          thumbnail: product.thumbnail || undefined,
-        }))
-      )
-    }
-  }
+      }).then(({ response }) => response.products)
+    : []
 
-  return <ContentPageTemplate item={item} />
+  return <ContentPageTemplate item={item} products={products} region={region || undefined} />
 }

@@ -1,8 +1,9 @@
 import Image from "next/image"
 import { ContentItem } from "@lib/data/site-content"
-import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import { HttpTypes } from "@medusajs/types"
+import ProductPreview from "@modules/products/components/product-preview"
 
-export default function ContentPageTemplate({ item }: { item: ContentItem }) {
+export default function ContentPageTemplate({ item, products, region }: { item: ContentItem; products?: HttpTypes.StoreProduct[]; region?: HttpTypes.StoreRegion }) {
   return <main dir="rtl" className="min-h-[60vh] bg-[#faf6f1]">
     <header className="border-b border-[#ddcec0] bg-[#f8f1ea]">
       <div className="content-container py-14 text-right small:py-20">
@@ -12,6 +13,6 @@ export default function ContentPageTemplate({ item }: { item: ContentItem }) {
       </div>
     </header>
     {item.content && <article className="content-container prose prose-lg max-w-4xl py-14 text-right" dangerouslySetInnerHTML={{ __html: item.content }} />}
-    {item.products && item.products.length > 0 && <section className="content-container pb-14"><h2 className="mb-6 text-3xl text-[#4a2d21]">ספרי המותג</h2><ul className="grid grid-cols-2 gap-5 small:grid-cols-3 medium:grid-cols-4">{item.products.map((product) => <li key={product.id}><LocalizedClientLink href={`/products/${product.handle}`} className="block rounded border border-[#ddcec0] bg-white p-4">{product.thumbnail && <Image src={product.thumbnail} alt="" width={400} height={500} className="mb-3 aspect-[4/5] w-full object-contain" />}<h3>{product.title}</h3></LocalizedClientLink></li>)}</ul></section>}
+    {region && products && products.length > 0 && <section className="content-container pb-14"><h2 className="mb-6 text-3xl text-[#4a2d21]">ספרי המותג</h2><ul className="grid w-full grid-cols-2 gap-x-5 gap-y-12 small:grid-cols-3 small:gap-x-8 small:gap-y-16 medium:grid-cols-4">{products.map((product) => <li key={product.id}><ProductPreview product={product} region={region} /></li>)}</ul></section>}
   </main>
 }
