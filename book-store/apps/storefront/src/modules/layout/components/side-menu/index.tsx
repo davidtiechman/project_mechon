@@ -100,7 +100,7 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                                   {instituteProjects.map((project) => (
                                     <li key={project.slug}>
                                       <LocalizedClientLink
-                                        href={`/institute-projects/${project.slug}`}
+                                        href={`/brands/${project.slug}`}
                                         className="block py-1 text-xl leading-8 hover:text-ui-fg-disabled"
                                         onClick={close}
                                       >
