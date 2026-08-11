@@ -8,6 +8,13 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const { filters, config } = listConfig(entity, req.query as Record<string, unknown>)
   if (["pages", "brands", "articles"].includes(entity)) filters.status = "published"
   if (["sections", "banners", "navigation-menus", "navigation-items", "faq", "footer-sections", "footer-links"].includes(entity)) filters.active = true
-  const [items, count] = await service[contentEntities[entity].list](filters, config)
-  res.json({ items, count })
+  const [listedItems, count] = await service[contentEntities[entity].list](filters, config)
+  const now = Date.now()
+  const items = entity === "banners"
+    ? listedItems.filter((banner: any) =>
+        (!banner.start_at || new Date(banner.start_at).getTime() <= now) &&
+        (!banner.end_at || new Date(banner.end_at).getTime() >= now)
+      )
+    : listedItems
+  res.json({ items, count: entity === "banners" ? items.length : count })
 }

@@ -9,5 +9,10 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     service.listBrands({ status: "published" }, { order: { sort_order: "ASC" } }),
     service.listBanners({ active: true }, { order: { sort_order: "ASC" } }),
   ])
-  res.json({ sections, articles, brands, banners })
+  const now = Date.now()
+  const currentBanners = banners.filter((banner: any) =>
+    (!banner.start_at || new Date(banner.start_at).getTime() <= now) &&
+    (!banner.end_at || new Date(banner.end_at).getTime() >= now)
+  )
+  res.json({ sections, articles, brands, banners: currentBanners })
 }

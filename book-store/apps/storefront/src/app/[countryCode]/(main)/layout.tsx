@@ -8,6 +8,8 @@ import CartMismatchBanner from "@modules/layout/components/cart-mismatch-banner"
 import Footer from "@modules/layout/templates/footer"
 import Nav from "@modules/layout/templates/nav"
 import FreeShippingPriceNudge from "@modules/shipping/components/free-shipping-price-nudge"
+import { getBanners } from "@lib/data/site-content"
+import ContentBanner from "@modules/content/components/content-banner"
 
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseURL()),
@@ -19,8 +21,7 @@ export const metadata: Metadata = {
 }
 
 export default async function PageLayout(props: { children: React.ReactNode }) {
-  const customer = await retrieveCustomer()
-  const cart = await retrieveCart()
+  const [customer, cart, globalBanners] = await Promise.all([retrieveCustomer(), retrieveCart(), getBanners("global")])
   let shippingOptions: StoreCartShippingOption[] = []
 
   if (cart) {
@@ -31,6 +32,7 @@ export default async function PageLayout(props: { children: React.ReactNode }) {
 
   return (
     <>
+      {globalBanners.map((banner) => <ContentBanner banner={banner} key={banner.id} />)}
       <Nav />
       {customer && cart && (
         <CartMismatchBanner customer={customer} cart={cart} />

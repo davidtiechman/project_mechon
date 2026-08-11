@@ -7,6 +7,7 @@ import ProductPreview from "@modules/products/components/product-preview"
 import Hero from "@modules/home/components/hero"
 import { getProductTagByValue } from "@lib/data/product-tags"
 import { getHomeContent } from "@lib/data/site-content"
+import ContentBanner from "@modules/content/components/content-banner"
 
 export const metadata: Metadata = {
   title: { absolute: "מכון מעשה רוקח" },
@@ -61,6 +62,7 @@ export default async function Home(props: {
   return (
     <main className="min-h-screen bg-[#f6f0e9]/80 text-[#352820] backdrop-blur-[1px]">
       <Hero eyebrow={hero?.subtitle} title={hero?.title} description={hero?.content} buttonText={hero?.data?.button_text} buttonUrl={hero?.data?.button_url} image={hero?.data?.desktop_image} />
+      {homeContent?.banners.filter((banner) => banner.placement === "homepage_top").map((banner) => <ContentBanner banner={banner} key={banner.id} />)}
 
       <section id="new-books" className="home-section content-container">
         <div className="section-heading">
