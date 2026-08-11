@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     rootDir: book-store
-    buildCommand: npm ci --include=dev --workspace=@dtc/backend --include-workspace-root=false && npm run build --workspace=@dtc/backend && cd apps/backend && npx medusa db:migrate
+    buildCommand: npm ci --include=dev --workspace=@dtc/backend --include-workspace-root=false && npm run build --workspace=@dtc/backend && cd apps/backend && npx medusa db:migrate --execute-safe-links
     startCommand: cd apps/backend/.medusa/server && npm run start
     healthCheckPath: /health
     autoDeployTrigger: commit
