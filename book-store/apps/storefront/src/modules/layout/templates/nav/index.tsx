@@ -35,7 +35,7 @@ export default async function Nav() {
               />
               <span><strong>מכון מעשה רוקח</strong><small>ספרי קודש ומחקר תורני</small></span>
             </LocalizedClientLink>
-            <div className="hidden small:flex items-center gap-7 h-full">
+            <div className="hidden small:flex items-center gap-4 h-full">
               <LocalizedClientLink href="/store" className="nav-link">חנות הספרים</LocalizedClientLink>
               <LocalizedClientLink href="/#new-books" className="nav-link">חדשים</LocalizedClientLink>
               <InstituteProjectsMenu projects={brands.length ? brands.map((brand) => ({ slug: brand.slug!, title: brand.title || brand.name || "" })) : undefined} />

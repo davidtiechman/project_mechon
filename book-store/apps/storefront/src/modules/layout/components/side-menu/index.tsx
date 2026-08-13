@@ -1,6 +1,6 @@
 "use client"
 
-import { Disclosure, DisclosureButton, DisclosurePanel, Popover, PopoverPanel, Transition } from "@headlessui/react"
+import { Popover, PopoverPanel, Transition } from "@headlessui/react"
 import useToggleState from "@lib/hooks/use-toggle-state"
 import { ArrowRightMini, XMark } from "@medusajs/icons"
 import { HttpTypes } from "@medusajs/types"
@@ -88,32 +88,17 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                           </li>
                         )
                       })}
-                      <li className="w-full">
-                        <Disclosure>
-                          {() => (
-                            <>
-                              <DisclosureButton className="flex w-full items-center text-3xl leading-10 hover:text-ui-fg-disabled">
-                                <span>מפעלי המכון</span>
-                              </DisclosureButton>
-                              <DisclosurePanel>
-                                <ul className="mt-3 flex flex-col gap-3 border-r border-white/30 pr-4">
-                                  {instituteProjects.map((project) => (
-                                    <li key={project.slug}>
-                                      <LocalizedClientLink
-                                        href={`/brands/${project.slug}`}
-                                        className="block py-1 text-xl leading-8 hover:text-ui-fg-disabled"
-                                        onClick={close}
-                                      >
-                                        {project.title}
-                                      </LocalizedClientLink>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </DisclosurePanel>
-                            </>
-                          )}
-                        </Disclosure>
-                      </li>
+                      {instituteProjects.map((project) => (
+                        <li key={project.slug}>
+                          <LocalizedClientLink
+                            href={`/brands/${project.slug}`}
+                            className="text-3xl leading-10 hover:text-ui-fg-disabled"
+                            onClick={close}
+                          >
+                            {project.title}
+                          </LocalizedClientLink>
+                        </li>
+                      ))}
                     </ul>
                     <div className="flex flex-col gap-y-6">
                       {!!locales?.length && (

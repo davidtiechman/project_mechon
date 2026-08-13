@@ -125,7 +125,7 @@ body {
   }
 
   .hero-section {
-    @apply relative min-h-[650px] overflow-hidden text-[#f8f2e6];
+    @apply relative min-h-[325px] overflow-hidden text-[#f8f2e6];
     background-image:
       radial-gradient(circle at 78% 36%, rgba(201, 155, 100, 0.24), transparent 28%),
       linear-gradient(115deg, #251711 0%, #4f3022 54%, #704a35 100%);
@@ -161,7 +161,7 @@ body {
   }
 
   .hero-mark {
-    @apply relative mx-auto grid aspect-square w-full max-w-[340px] place-items-center rounded-full border border-[#d8bf86]/40;
+    @apply relative mx-auto grid aspect-square w-full max-w-[300px] place-items-center rounded-full border border-[#d8bf86]/40;
   }
 
   .hero-mark::before,

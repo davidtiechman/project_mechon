@@ -13,6 +13,6 @@ export default function ContentPageTemplate({ item, products, region }: { item: 
       </div>
     </header>
     {item.content && <article className="content-container prose prose-lg max-w-4xl py-14 text-right" dangerouslySetInnerHTML={{ __html: item.content }} />}
-    {region && products && products.length > 0 && <section className="content-container pb-14"><h2 className="mb-6 text-3xl text-[#4a2d21]">ספרי המותג</h2><ul className="grid w-full grid-cols-2 gap-x-5 gap-y-12 small:grid-cols-3 small:gap-x-8 small:gap-y-16 medium:grid-cols-4">{products.map((product) => <li key={product.id}><ProductPreview product={product} region={region} /></li>)}</ul></section>}
+    {region && products && products.length > 0 && <section className="content-container pb-14"><ul className="grid w-full grid-cols-2 gap-x-5 gap-y-12 small:grid-cols-3 small:gap-x-8 small:gap-y-16 medium:grid-cols-4">{products.map((product) => <li key={product.id}><ProductPreview product={product} region={region} /></li>)}</ul></section>}
   </main>
 }
