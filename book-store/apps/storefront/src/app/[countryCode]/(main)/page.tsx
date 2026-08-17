@@ -143,7 +143,6 @@ export default async function Home(props: {
               <span className="eyebrow">מתוך בית המדרש</span>
               <h2>מאמרים אחרונים</h2>
             </div>
-            <span className="text-xs text-[#756d5e]">תוכן לדוגמה</span>
           </div>
           <div className="grid gap-8 small:grid-cols-3">
             {articles.map((article, index) => (

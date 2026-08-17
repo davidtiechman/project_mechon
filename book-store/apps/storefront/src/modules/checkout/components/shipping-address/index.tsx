@@ -1,6 +1,6 @@
 import { HttpTypes } from "@medusajs/types"
-import { Container } from "@modules/common/components/ui"
 import Checkbox from "@modules/common/components/checkbox"
+import { Container } from "@modules/common/components/ui"
 import Input from "@modules/common/components/input"
 import { mapKeys } from "lodash"
 import React, { useEffect, useMemo, useState } from "react"
@@ -18,14 +18,28 @@ const ShippingAddress = ({
   checked: boolean
   onChange: () => void
 }) => {
+  const addressMetadata = (cart?.shipping_address?.metadata || {}) as Record<
+    string,
+    unknown
+  >
   const [formData, setFormData] = useState<Record<string, string>>({
     "shipping_address.first_name": cart?.shipping_address?.first_name || "",
     "shipping_address.last_name": cart?.shipping_address?.last_name || "",
-    "shipping_address.address_1": cart?.shipping_address?.address_1 || "",
-    "shipping_address.company": cart?.shipping_address?.company || "",
+    "shipping_address.street":
+      String(addressMetadata.street || "") ||
+      cart?.shipping_address?.address_1 ||
+      "",
+    "shipping_address.house_number": String(addressMetadata.house_number || ""),
+    "shipping_address.apartment": String(addressMetadata.apartment || ""),
+    "shipping_address.delivery_notes": String(
+      addressMetadata.delivery_notes || "",
+    ),
     "shipping_address.postal_code": cart?.shipping_address?.postal_code || "",
     "shipping_address.city": cart?.shipping_address?.city || "",
-    "shipping_address.country_code": cart?.shipping_address?.country_code || "",
+    "shipping_address.country_code":
+      cart?.shipping_address?.country_code ||
+      cart?.region?.countries?.[0]?.iso_2 ||
+      "",
     "shipping_address.province": cart?.shipping_address?.province || "",
     "shipping_address.phone": cart?.shipping_address?.phone || "",
     email: cart?.email || "",
@@ -33,29 +47,41 @@ const ShippingAddress = ({
 
   const countriesInRegion = useMemo(
     () => cart?.region?.countries?.map((c) => c.iso_2),
-    [cart?.region]
+    [cart?.region],
   )
+  const showCountrySelect = (countriesInRegion?.length || 0) > 1
+  const selectedCountry = formData["shipping_address.country_code"]
+  const showProvince = selectedCountry !== "il"
 
   // check if customer has saved addresses that are in the current region
   const addressesInRegion = useMemo(
     () =>
       customer?.addresses.filter(
-        (a) => a.country_code && countriesInRegion?.includes(a.country_code)
+        (a) => a.country_code && countriesInRegion?.includes(a.country_code),
       ),
-    [customer?.addresses, countriesInRegion]
+    [customer?.addresses, countriesInRegion],
   )
 
   const setFormAddress = (
     address?: HttpTypes.StoreCartAddress,
-    email?: string
+    email?: string,
   ) => {
     if (address) {
       setFormData((prevState: Record<string, string>) => ({
         ...prevState,
         "shipping_address.first_name": address?.first_name || "",
         "shipping_address.last_name": address?.last_name || "",
-        "shipping_address.address_1": address?.address_1 || "",
-        "shipping_address.company": address?.company || "",
+        "shipping_address.street":
+          String(address?.metadata?.street || "") || address?.address_1 || "",
+        "shipping_address.house_number": String(
+          address?.metadata?.house_number || "",
+        ),
+        "shipping_address.apartment": String(
+          address?.metadata?.apartment || "",
+        ),
+        "shipping_address.delivery_notes": String(
+          address?.metadata?.delivery_notes || "",
+        ),
         "shipping_address.postal_code": address?.postal_code || "",
         "shipping_address.city": address?.city || "",
         "shipping_address.country_code": address?.country_code || "",
@@ -85,8 +111,8 @@ const ShippingAddress = ({
 
   const handleChange = (
     e: React.ChangeEvent<
-      HTMLInputElement | HTMLInputElement | HTMLSelectElement
-    >
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
     setFormData({
       ...formData,
@@ -99,20 +125,20 @@ const ShippingAddress = ({
       {customer && (addressesInRegion?.length || 0) > 0 && (
         <Container className="mb-6 flex flex-col gap-y-4 p-5">
           <p className="text-small-regular">
-            {`Hi ${customer.first_name}, do you want to use one of your saved addresses?`}
+            {`שלום ${customer.first_name || ""}, אפשר לבחור כתובת שמורה:`}
           </p>
           <AddressSelect
             addresses={customer.addresses}
             addressInput={
               mapKeys(formData, (_, key) =>
-                key.replace("shipping_address.", "")
+                key.replace("shipping_address.", ""),
               ) as unknown as HttpTypes.StoreCartAddress
             }
             onSelect={setFormAddress}
           />
         </Container>
       )}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 small:grid-cols-2 gap-4">
         <Input
           label="שם פרטי"
           name="shipping_address.first_name"
@@ -132,30 +158,28 @@ const ShippingAddress = ({
           data-testid="shipping-last-name-input"
         />
         <Input
-          label="כתובת"
-          name="shipping_address.address_1"
+          label="רחוב"
+          name="shipping_address.street"
           autoComplete="address-line1"
-          value={formData["shipping_address.address_1"]}
+          value={formData["shipping_address.street"]}
           onChange={handleChange}
           required
           data-testid="shipping-address-input"
         />
         <Input
-          label="חברה"
-          name="shipping_address.company"
-          value={formData["shipping_address.company"]}
-          onChange={handleChange}
-          autoComplete="organization"
-          data-testid="shipping-company-input"
-        />
-        <Input
-          label="מיקוד"
-          name="shipping_address.postal_code"
-          autoComplete="postal-code"
-          value={formData["shipping_address.postal_code"]}
+          label="מספר בית"
+          name="shipping_address.house_number"
+          value={formData["shipping_address.house_number"]}
           onChange={handleChange}
           required
-          data-testid="shipping-postal-code-input"
+          data-testid="shipping-house-number-input"
+        />
+        <Input
+          label="מספר דירה"
+          name="shipping_address.apartment"
+          value={formData["shipping_address.apartment"]}
+          onChange={handleChange}
+          data-testid="shipping-apartment-input"
         />
         <Input
           label="עיר"
@@ -166,34 +190,42 @@ const ShippingAddress = ({
           required
           data-testid="shipping-city-input"
         />
-        <CountrySelect
-          name="shipping_address.country_code"
-          autoComplete="country"
-          region={cart?.region}
-          value={formData["shipping_address.country_code"]}
-          onChange={handleChange}
-          required
-          data-testid="shipping-country-select"
-        />
         <Input
-          label="מחוז"
-          name="shipping_address.province"
-          autoComplete="address-level1"
-          value={formData["shipping_address.province"]}
+          label="מיקוד"
+          name="shipping_address.postal_code"
+          autoComplete="postal-code"
+          value={formData["shipping_address.postal_code"]}
           onChange={handleChange}
-          data-testid="shipping-province-input"
+          required={selectedCountry !== "il"}
+          data-testid="shipping-postal-code-input"
         />
-      </div>
-      <div className="my-8">
-        <Checkbox
-          label="כתובת החיוב זהה לכתובת המשלוח"
-          name="same_as_billing"
-          checked={checked}
-          onChange={onChange}
-          data-testid="billing-address-checkbox"
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4 mb-4">
+        {showCountrySelect ? (
+          <CountrySelect
+            name="shipping_address.country_code"
+            autoComplete="country"
+            region={cart?.region}
+            value={selectedCountry}
+            onChange={handleChange}
+            required
+            data-testid="shipping-country-select"
+          />
+        ) : (
+          <input
+            type="hidden"
+            name="shipping_address.country_code"
+            value={selectedCountry}
+          />
+        )}
+        {showProvince && (
+          <Input
+            label="מחוז / מדינה"
+            name="shipping_address.province"
+            autoComplete="address-level1"
+            value={formData["shipping_address.province"]}
+            onChange={handleChange}
+            data-testid="shipping-province-input"
+          />
+        )}
         <Input
           label="דוא״ל"
           name="email"
@@ -211,7 +243,28 @@ const ShippingAddress = ({
           autoComplete="tel"
           value={formData["shipping_address.phone"]}
           onChange={handleChange}
+          required
           data-testid="shipping-phone-input"
+        />
+        <label className="flex flex-col gap-2 small:col-span-2 txt-compact-medium text-ui-fg-subtle">
+          הערות למשלוח
+          <textarea
+            name="shipping_address.delivery_notes"
+            value={formData["shipping_address.delivery_notes"]}
+            onChange={handleChange}
+            rows={3}
+            className="block w-full resize-y rounded-md border border-ui-border-base bg-ui-bg-field px-4 py-3 text-ui-fg-base focus:outline-none focus:shadow-borders-interactive-with-active"
+            data-testid="shipping-delivery-notes-input"
+          />
+        </label>
+      </div>
+      <div className="my-8">
+        <Checkbox
+          label="כתובת החיוב זהה לכתובת המשלוח"
+          name="same_as_billing"
+          checked={checked}
+          onChange={onChange}
+          data-testid="billing-address-checkbox"
         />
       </div>
     </>

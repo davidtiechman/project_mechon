@@ -73,7 +73,7 @@ export async function getOrSetCart(countryCode: string) {
     const cartResp = await sdk.store.cart.create(
       { region_id: region.id, locale: locale || undefined },
       {},
-      headers
+      headers,
     )
     cart = cartResp.cart
 
@@ -148,7 +148,7 @@ export async function addToCart({
         quantity,
       },
       {},
-      headers
+      headers,
     )
     .then(async () => {
       const cartCacheTag = await getCacheTag("carts")
@@ -242,7 +242,7 @@ export async function setShippingMethod({
 
 export async function initiatePaymentSession(
   cart: HttpTypes.StoreCart,
-  data: HttpTypes.StoreInitializePaymentSession
+  data: HttpTypes.StoreInitializePaymentSession,
 ) {
   const headers = {
     ...(await getAuthHeaders()),
@@ -306,7 +306,7 @@ export async function removeDiscount(code: string) {
 
 export async function removeGiftCard(
   codeToRemove: string,
-  giftCards: any[]
+  giftCards: any[],
   // giftCards: GiftCard[]
 ) {
   //   const cartId = getCartId()
@@ -326,7 +326,7 @@ export async function removeGiftCard(
 
 export async function submitPromotionForm(
   currentState: unknown,
-  formData: FormData
+  formData: FormData,
 ) {
   const code = formData.get("code") as string
   try {
@@ -347,26 +347,51 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
       throw new Error("No existing cart found when setting addresses")
     }
 
-    const data = {
-      shipping_address: {
-        first_name: formData.get("shipping_address.first_name"),
-        last_name: formData.get("shipping_address.last_name"),
-        address_1: formData.get("shipping_address.address_1"),
-        address_2: "",
-        company: formData.get("shipping_address.company"),
-        postal_code: formData.get("shipping_address.postal_code"),
-        city: formData.get("shipping_address.city"),
-        country_code: formData.get("shipping_address.country_code"),
-        province: formData.get("shipping_address.province"),
-        phone: formData.get("shipping_address.phone"),
+    const street = String(formData.get("shipping_address.street") || "").trim()
+    const houseNumber = String(
+      formData.get("shipping_address.house_number") || "",
+    ).trim()
+    const apartment = String(
+      formData.get("shipping_address.apartment") || "",
+    ).trim()
+    const deliveryNotes = String(
+      formData.get("shipping_address.delivery_notes") || "",
+    ).trim()
+    const countryCode = String(
+      formData.get("shipping_address.country_code") || "",
+    ).toLowerCase()
+
+    if (!countryCode) {
+      throw new Error("לא נמצאה מדינת משלוח באזור הפעיל")
+    }
+
+    const shippingAddress = {
+      first_name: formData.get("shipping_address.first_name"),
+      last_name: formData.get("shipping_address.last_name"),
+      address_1: `${street} ${houseNumber}`.trim(),
+      address_2: apartment ? `דירה ${apartment}` : "",
+      company: null,
+      postal_code: formData.get("shipping_address.postal_code"),
+      city: formData.get("shipping_address.city"),
+      country_code: countryCode,
+      province: formData.get("shipping_address.province") || null,
+      phone: formData.get("shipping_address.phone"),
+      metadata: {
+        street,
+        house_number: houseNumber,
+        apartment,
+        delivery_notes: deliveryNotes,
       },
+    }
+
+    const data = {
+      shipping_address: shippingAddress,
       email: formData.get("email"),
     } as any
 
-    const sameAsBilling = formData.get("same_as_billing")
-    if (sameAsBilling === "on") data.billing_address = data.shipping_address
-
-    if (sameAsBilling !== "on")
+    if (formData.get("same_as_billing") === "on") {
+      data.billing_address = shippingAddress
+    } else {
       data.billing_address = {
         first_name: formData.get("billing_address.first_name"),
         last_name: formData.get("billing_address.last_name"),
@@ -379,13 +404,14 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
         province: formData.get("billing_address.province"),
         phone: formData.get("billing_address.phone"),
       }
+    }
     await updateCart(data)
   } catch (e: any) {
     return e.message
   }
 
   redirect(
-    `/${formData.get("shipping_address.country_code")}/checkout?step=delivery`
+    `/${String(formData.get("shipping_address.country_code")).toLowerCase()}/checkout?step=delivery`,
   )
 }
 

@@ -23,7 +23,7 @@ const CartDropdown = ({
   cart?: HttpTypes.StoreCart | null
 }) => {
   const [activeTimer, setActiveTimer] = useState<NodeJS.Timer | undefined>(
-    undefined
+    undefined,
   )
   const [cartDropdownOpen, setCartDropdownOpen] = useState(false)
 
@@ -177,8 +177,7 @@ const CartDropdown = ({
                 <div className="p-4 flex flex-col gap-y-4 text-small-regular">
                   <div className="flex items-center justify-between">
                     <span className="text-ui-fg-base font-semibold">
-                      סכום ביניים{" "}
-                      <span className="font-normal">(לפני מסים)</span>
+                      סכום ביניים
                     </span>
                     <span
                       className="text-large-semi"
