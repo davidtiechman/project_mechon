@@ -73,6 +73,25 @@ body {
 }
 
 @layer components {
+  .new-product-ribbon {
+    @apply absolute inset-x-0 top-[32%] z-20 flex -translate-y-1/2 items-center justify-center overflow-hidden py-3 text-sm font-bold tracking-[0.38em] text-[#4a2d21] shadow-sm;
+    background: rgba(255, 248, 238, 0.66);
+    border-block: 1px solid rgba(74, 45, 33, 0.18);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    animation: new-product-ribbon-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .new-product-ribbon::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 38%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+    transform: translateX(270%);
+    animation: new-product-ribbon-shine 3.4s ease-in-out 900ms infinite;
+  }
+
   .content-container {
     @apply max-w-[1440px] w-full mx-auto px-6;
   }
@@ -312,5 +331,32 @@ body {
 
   .text-3xl-semi {
     @apply text-[32px] leading-[44px] font-semibold;
+  }
+}
+
+@keyframes new-product-ribbon-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scaleX(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scaleX(1);
+  }
+}
+
+@keyframes new-product-ribbon-shine {
+  0%, 55% {
+    transform: translateX(270%);
+  }
+  80%, 100% {
+    transform: translateX(-170%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .new-product-ribbon,
+  .new-product-ribbon::after {
+    animation: none;
   }
 }

@@ -37,7 +37,6 @@ export default async function Nav() {
             </LocalizedClientLink>
             <div className="hidden small:flex items-center gap-4 h-full">
               <LocalizedClientLink href="/store" className="nav-link">חנות הספרים</LocalizedClientLink>
-              <LocalizedClientLink href="/#new-books" className="nav-link">חדשים</LocalizedClientLink>
               <InstituteProjectsMenu projects={brands.length ? brands.map((brand) => ({ slug: brand.slug!, title: brand.title || brand.name || "" })) : undefined} />
               <LocalizedClientLink href="/#about" className="nav-link">אודות</LocalizedClientLink>
               <LocalizedClientLink href="/#articles" className="nav-link">מאמרים</LocalizedClientLink>

@@ -44,16 +44,11 @@ export default async function ProductPreview({
       className="group/card relative h-full overflow-hidden rounded-[18px] bg-white shadow-sm transition-shadow hover:shadow-md focus-within:ring-2 focus-within:ring-[#9a7130]"
       data-testid="product-wrapper"
     >
-      {isNewProduct && (
-        <span className="absolute right-3 top-3 z-20 inline-flex h-7 items-center justify-center rounded-full bg-[#9a7130] px-3 text-xs font-bold text-white shadow-md">
-          חדש
-        </span>
-      )}
       <LocalizedClientLink
         href={`/products/${product.handle}`}
         className="group block h-full focus-visible:outline-none"
       >
-        <div className="overflow-hidden bg-white">
+        <div className="relative overflow-hidden bg-white">
           <Thumbnail
             thumbnail={product.thumbnail}
             images={product.images}
@@ -61,6 +56,11 @@ export default async function ProductPreview({
             isFeatured={isFeatured}
             imageFit="cover"
           />
+          {isNewProduct && (
+            <span className="new-product-ribbon" aria-label="מוצר חדש">
+              חדש
+            </span>
+          )}
         </div>
 
         <div className="flex h-[108px] flex-col justify-end bg-white px-4 py-3 text-right" dir="rtl">
