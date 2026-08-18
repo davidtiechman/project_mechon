@@ -35,7 +35,7 @@ const CartDropdown = ({
       return acc + item.quantity
     }, 0) || 0
 
-  const subtotal = cartState?.subtotal ?? 0
+  const total = cartState?.total ?? 0
   const itemRef = useRef<number>(totalItems || 0)
 
   const timedOpen = () => {
@@ -177,15 +177,15 @@ const CartDropdown = ({
                 <div className="p-4 flex flex-col gap-y-4 text-small-regular">
                   <div className="flex items-center justify-between">
                     <span className="text-ui-fg-base font-semibold">
-                      סכום ביניים
+                      סה״כ
                     </span>
                     <span
                       className="text-large-semi"
-                      data-testid="cart-subtotal"
-                      data-value={subtotal}
+                      data-testid="cart-total"
+                      data-value={total}
                     >
                       {convertToLocale({
-                        amount: subtotal,
+                        amount: total,
                         currency_code: cartState.currency_code,
                       })}
                     </span>

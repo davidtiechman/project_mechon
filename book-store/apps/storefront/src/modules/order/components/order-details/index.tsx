@@ -7,16 +7,35 @@ type OrderDetailsProps = {
 }
 
 const OrderDetails = ({ order, showStatus }: OrderDetailsProps) => {
-  const formatStatus = (str: string) => {
-    const formatted = str.split("_").join(" ")
+  const statusLabels: Record<string, string> = {
+    not_fulfilled: "טרם טופלה",
+    partially_fulfilled: "טופלה חלקית",
+    fulfilled: "טופלה",
+    partially_shipped: "נשלחה חלקית",
+    shipped: "נשלחה",
+    partially_delivered: "נמסרה חלקית",
+    delivered: "נמסרה",
+    partially_returned: "הוחזרה חלקית",
+    returned: "הוחזרה",
+    canceled: "בוטלה",
+    requires_action: "נדרשת פעולה",
+    awaiting: "ממתין לתשלום",
+    authorized: "התשלום אושר",
+    partially_authorized: "התשלום אושר חלקית",
+    captured: "שולם",
+    partially_captured: "שולם חלקית",
+    refunded: "הוחזר",
+    partially_refunded: "הוחזר חלקית",
+  }
 
-    return formatted.slice(0, 1).toUpperCase() + formatted.slice(1)
+  const formatStatus = (status: string) => {
+    return statusLabels[status] ?? status.split("_").join(" ")
   }
 
   return (
     <div>
       <Text>
-        We have sent the order confirmation details to{" "}
+        פרטי אישור ההזמנה נשלחו לכתובת{" "}
         <span
           className="text-ui-fg-medium-plus font-semibold"
           data-testid="order-email"
@@ -26,29 +45,31 @@ const OrderDetails = ({ order, showStatus }: OrderDetailsProps) => {
         .
       </Text>
       <Text className="mt-2">
-        Order date:{" "}
+        תאריך ההזמנה:{" "}
         <span data-testid="order-date">
-          {new Date(order.created_at).toDateString()}
+          {new Intl.DateTimeFormat("he-IL", { dateStyle: "long" }).format(
+            new Date(order.created_at)
+          )}
         </span>
       </Text>
       <Text className="mt-2 text-ui-fg-interactive">
-        Order number: <span data-testid="order-id">{order.display_id}</span>
+        מספר הזמנה: <span data-testid="order-id">{order.display_id}</span>
       </Text>
 
       <div className="flex items-center text-compact-small gap-x-4 mt-4">
         {showStatus && (
           <>
             <Text>
-              Order status:{" "}
+              סטטוס הזמנה:{" "}
               <span className="text-ui-fg-subtle " data-testid="order-status">
                 {formatStatus(order.fulfillment_status)}
               </span>
             </Text>
             <Text>
-              Payment status:{" "}
+              סטטוס תשלום:{" "}
               <span
                 className="text-ui-fg-subtle "
-                sata-testid="order-payment-status"
+                data-testid="order-payment-status"
               >
                 {formatStatus(order.payment_status)}
               </span>

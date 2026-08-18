@@ -9,18 +9,23 @@ type ShippingDetailsProps = {
 }
 
 const ShippingDetails = ({ order }: ShippingDetailsProps) => {
+  const countryCode = order.shipping_address?.country_code?.toUpperCase()
+  const countryName = countryCode
+    ? new Intl.DisplayNames(["he"], { type: "region" }).of(countryCode)
+    : undefined
+
   return (
     <div>
       <Heading level="h2" className="flex flex-row text-3xl-regular my-6">
-        Delivery
+        פרטי משלוח
       </Heading>
-      <div className="flex items-start gap-x-8">
+      <div className="grid grid-cols-1 gap-6 small:grid-cols-3 small:gap-8">
         <div
-          className="flex flex-col w-1/3"
+          className="flex min-w-0 flex-col"
           data-testid="shipping-address-summary"
         >
           <Text className="txt-medium-plus text-ui-fg-base mb-1">
-            Shipping Address
+            כתובת למשלוח
           </Text>
           <Text className="txt-medium text-ui-fg-subtle">
             {order.shipping_address?.first_name}{" "}
@@ -35,12 +40,12 @@ const ShippingDetails = ({ order }: ShippingDetailsProps) => {
             {order.shipping_address?.city}
           </Text>
           <Text className="txt-medium text-ui-fg-subtle">
-            {order.shipping_address?.country_code?.toUpperCase()}
+            {countryName}
           </Text>
         </div>
 
         <div
-          className="flex flex-col w-1/3 "
+          className="flex min-w-0 flex-col"
           data-testid="shipping-contact-summary"
         >
           <Text className="txt-medium-plus text-ui-fg-base mb-1">פרטי קשר</Text>
@@ -51,7 +56,7 @@ const ShippingDetails = ({ order }: ShippingDetailsProps) => {
         </div>
 
         <div
-          className="flex flex-col w-1/3"
+          className="flex min-w-0 flex-col"
           data-testid="shipping-method-summary"
         >
           <Text className="txt-medium-plus text-ui-fg-base mb-1">שיטת משלוח</Text>
