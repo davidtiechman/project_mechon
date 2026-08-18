@@ -10,14 +10,23 @@ import Nav from "@modules/layout/templates/nav"
 import FreeShippingPriceNudge from "@modules/shipping/components/free-shipping-price-nudge"
 import { getBanners } from "@lib/data/site-content"
 import ContentBanner from "@modules/content/components/content-banner"
+import { isIndexableLocale, privatePageRobots } from "@lib/util/seo"
 
-export const metadata: Metadata = {
+const layoutMetadata: Metadata = {
   metadataBase: new URL(getBaseURL()),
   title: {
     default: "מכון מעשה רוקח",
     template: "%s | מכון מעשה רוקח",
   },
   description: "ספרי קודשי סידור תהילים ביאורי החסידות והוצאה לאור מבית מכון מעשה רוקח",
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ countryCode: string }> }): Promise<Metadata> {
+  const { countryCode } = await params
+  return {
+    ...layoutMetadata,
+    robots: isIndexableLocale(countryCode) ? undefined : privatePageRobots,
+  }
 }
 
 export default async function PageLayout(props: { children: React.ReactNode }) {

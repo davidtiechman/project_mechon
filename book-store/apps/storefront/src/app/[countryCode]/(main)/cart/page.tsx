@@ -3,8 +3,10 @@ import { retrieveCustomer } from "@lib/data/customer"
 import CartTemplate from "@modules/cart/templates"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { privatePageRobots } from "@lib/util/seo"
 
 export const metadata: Metadata = {
+  robots: privatePageRobots,
   title: "סל הקניות",
   description: "צפייה בסל הקניות",
 }

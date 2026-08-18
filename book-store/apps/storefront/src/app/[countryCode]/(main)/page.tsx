@@ -8,10 +8,16 @@ import Hero from "@modules/home/components/hero"
 import { getProductTagByValue } from "@lib/data/product-tags"
 import { getHomeContent } from "@lib/data/site-content"
 import ContentBanner from "@modules/content/components/content-banner"
+import { canonicalMetadata } from "@lib/util/seo"
 
-export const metadata: Metadata = {
+const homeMetadata: Metadata = {
   title: { absolute: "מכון מעשה רוקח" },
   description: "אתר הספרים של מכון מעשה רוקח",
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ countryCode: string }> }): Promise<Metadata> {
+  const { countryCode } = await params
+  return { ...homeMetadata, alternates: canonicalMetadata(countryCode) }
 }
 
 const fallbackArticles = [

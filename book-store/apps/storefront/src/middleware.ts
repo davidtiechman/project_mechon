@@ -133,7 +133,7 @@ export async function middleware(request: NextRequest) {
   const queryString = request.nextUrl.search || ""
   const redirectUrl = `${request.nextUrl.origin}/${country}${redirectPath}${queryString}`
 
-  return NextResponse.redirect(redirectUrl, 307)
+  return NextResponse.redirect(redirectUrl, 308)
 }
 
 export const config = {

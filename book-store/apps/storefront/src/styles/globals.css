@@ -86,7 +86,7 @@ body {
   }
 
   .brand-lockup strong {
-    @apply text-[15px] leading-5 font-semibold tracking-wide text-[#4a2d21];
+    @apply text-[15px] leading-5 font-bold tracking-wide text-[#4a2d21];
   }
 
   .brand-lockup small {
@@ -112,7 +112,7 @@ body {
   }
 
   .nav-link {
-    @apply relative flex h-full items-center transition-colors hover:text-[#9a7130];
+    @apply relative flex h-full items-center text-[15px] font-semibold transition-colors hover:text-[#9a7130];
   }
 
   .nav-link::after {

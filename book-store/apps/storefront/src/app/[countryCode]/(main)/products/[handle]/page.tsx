@@ -5,6 +5,7 @@ import { resolveMediaUrl } from "@lib/util/resolve-media-url"
 import { getRegion, listRegions } from "@lib/data/regions"
 import ProductTemplate from "@modules/products/templates"
 import { HttpTypes } from "@medusajs/types"
+import { canonicalMetadata } from "@lib/util/seo"
 
 type Props = {
   params: Promise<{ countryCode: string; handle: string }>
@@ -97,6 +98,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   }
 
   return {
+    alternates: canonicalMetadata(params.countryCode, `products/${params.handle}`),
     title: product.title,
     description: `${product.title}`,
     openGraph: {

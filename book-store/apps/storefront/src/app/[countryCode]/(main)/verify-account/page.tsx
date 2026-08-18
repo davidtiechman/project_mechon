@@ -2,8 +2,10 @@ import { Metadata } from "next"
 import { Suspense } from "react"
 
 import VerifyAccount from "@modules/account/components/verify-account"
+import { privatePageRobots } from "@lib/util/seo"
 
 export const metadata: Metadata = {
+  robots: privatePageRobots,
   title: "אימות כתובת הדוא״ל",
   description: "אימות כתובת הדוא״ל להשלמת ההרשמה.",
 }

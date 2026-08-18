@@ -7,6 +7,7 @@ import { HttpTypes, StoreRegion } from "@medusajs/types"
 import CategoryTemplate from "@modules/categories/templates"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import { parseOptionValueIds } from "@lib/util/product-option-filters"
+import { canonicalMetadata } from "@lib/util/seo"
 
 type Props = {
   params: Promise<{ category: string[]; countryCode: string }>
@@ -59,7 +60,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
       title,
       description,
       alternates: {
-        canonical: `${params.category.join("/")}`,
+        ...canonicalMetadata(params.countryCode, `categories/${params.category.join("/")}`),
       },
     }
   } catch {

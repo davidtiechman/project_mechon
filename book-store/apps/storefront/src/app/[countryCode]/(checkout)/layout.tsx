@@ -1,5 +1,9 @@
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import ChevronDown from "@modules/common/icons/chevron-down"
+import { privatePageRobots } from "@lib/util/seo"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = { robots: privatePageRobots }
 
 export default function CheckoutLayout({
   children,

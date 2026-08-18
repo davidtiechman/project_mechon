@@ -3,10 +3,16 @@ import { Metadata } from "next"
 import { parseOptionValueIds } from "@lib/util/product-option-filters"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import StoreTemplate from "@modules/store/templates"
+import { canonicalMetadata } from "@lib/util/seo"
 
-export const metadata: Metadata = {
+const storeMetadata: Metadata = {
   title: "חנות הספרים",
   description: "כל ספרי מכון מעשה רוקח במקום אחד.",
+}
+
+export async function generateMetadata({ params }: Pick<Params, "params">): Promise<Metadata> {
+  const { countryCode } = await params
+  return { ...storeMetadata, alternates: canonicalMetadata(countryCode, "store") }
 }
 
 type StorePageSearchParams = Record<string, string | string[] | undefined> & {
