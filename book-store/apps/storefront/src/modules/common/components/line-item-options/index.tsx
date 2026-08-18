@@ -12,8 +12,21 @@ const LineItemOptions = ({
   "data-testid": dataTestid,
   "data-value": dataValue,
 }: LineItemOptionsProps) => {
-  const variantTitle =
-    variant?.title === "Default variant" ? "ברירת מחדל" : variant?.title
+  const isDefaultVariant =
+    !variant || variant.title?.toLowerCase() === "default variant"
+
+  if (isDefaultVariant) {
+    return null
+  }
+
+  const optionValues = variant.options
+    ?.map((value) =>
+      value.option?.title
+        ? `${value.option.title}: ${value.value}`
+        : value.value,
+    )
+    .filter(Boolean)
+    .join(" · ")
 
   return (
     <Text
@@ -21,7 +34,7 @@ const LineItemOptions = ({
       data-value={dataValue}
       className="inline-block txt-medium text-ui-fg-subtle w-full overflow-hidden text-ellipsis"
     >
-      גרסה: {variantTitle}
+      {optionValues || `גרסה: ${variant.title}`}
     </Text>
   )
 }
