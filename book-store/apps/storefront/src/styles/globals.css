@@ -7,6 +7,11 @@
   scroll-behavior: smooth;
 }
 
+:focus-visible {
+  outline: 3px solid #8a682d;
+  outline-offset: 3px;
+}
+
 body {
   margin: 0;
   background-color: #f3ece4;
