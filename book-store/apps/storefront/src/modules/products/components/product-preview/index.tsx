@@ -35,9 +35,7 @@ export default async function ProductPreview({
       singleVariant.allow_backorder ||
       (singleVariant.inventory_quantity ?? 0) > 0
     : true
-  const isNewProduct = product.tags?.some(
-    (tag) => tag.value === "מוצר חדש"
-  )
+  const isNewProduct = product.tags?.some((tag) => tag.value === "מוצר חדש")
 
   return (
     <article
@@ -55,6 +53,7 @@ export default async function ProductPreview({
             size="full"
             isFeatured={isFeatured}
             imageFit="cover"
+            alt={`עטיפת הספר ${product.title}`}
           />
           {isNewProduct && (
             <span className="new-product-ribbon" aria-label="מוצר חדש">
@@ -63,7 +62,10 @@ export default async function ProductPreview({
           )}
         </div>
 
-        <div className="flex h-[108px] flex-col justify-end bg-white px-4 py-3 text-right" dir="rtl">
+        <div
+          className="flex h-[108px] flex-col justify-end bg-white px-4 py-3 text-right"
+          dir="rtl"
+        >
           <Text
             className="max-h-[60px] overflow-hidden text-base font-semibold leading-5 text-[#352820]"
             data-testid="product-title"

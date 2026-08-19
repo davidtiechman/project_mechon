@@ -12,6 +12,7 @@ type ThumbnailProps = {
   isFeatured?: boolean
   className?: string
   imageFit?: "contain" | "cover"
+  alt?: string
   "data-testid"?: string
 }
 
@@ -21,6 +22,7 @@ const Thumbnail: React.FC<ThumbnailProps> = ({
   size = "small",
   className,
   imageFit = "contain",
+  alt = "",
   "data-testid": dataTestid,
 }) => {
   const initialImage = resolveMediaUrl(thumbnail || images?.[0]?.url)
@@ -37,11 +39,16 @@ const Thumbnail: React.FC<ThumbnailProps> = ({
           "w-[290px]": size === "medium",
           "w-[440px]": size === "large",
           "w-full": size === "full",
-        }
+        },
       )}
       data-testid={dataTestid}
     >
-      <ImageOrPlaceholder image={initialImage} size={size} imageFit={imageFit} />
+      <ImageOrPlaceholder
+        image={initialImage}
+        size={size}
+        imageFit={imageFit}
+        alt={alt}
+      />
     </div>
   )
 }
@@ -50,14 +57,15 @@ const ImageOrPlaceholder = ({
   image,
   size,
   imageFit,
-}: Pick<ThumbnailProps, "size" | "imageFit"> & { image?: string }) => {
+  alt,
+}: Pick<ThumbnailProps, "size" | "imageFit" | "alt"> & { image?: string }) => {
   return image ? (
     <Image
       src={image}
-      alt="תמונת הספר"
+      alt={alt || ""}
       className={clx(
         "absolute inset-0 object-center transition-transform duration-300 ease-out group-hover:scale-105 motion-reduce:transform-none",
-        imageFit === "cover" ? "object-cover" : "object-contain"
+        imageFit === "cover" ? "object-cover" : "object-contain",
       )}
       draggable={false}
       quality={50}

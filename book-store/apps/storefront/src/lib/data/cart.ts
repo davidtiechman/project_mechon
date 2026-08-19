@@ -15,6 +15,13 @@ import {
 } from "./cookies"
 import { getRegion } from "./regions"
 import { getLocale } from "./locale-actions"
+import {
+  isValidEmail,
+  isValidIsraeliPhone,
+  isValidOptionalIsraeliPostalCode,
+  normalizeIsraeliPhone,
+  normalizePostalCode,
+} from "@lib/util/checkout-validation"
 
 /**
  * Retrieves a cart by its ID. If no ID is provided, it will use the cart ID from the cookies.
@@ -342,7 +349,7 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
     if (!formData) {
       throw new Error("No form data found when setting addresses")
     }
-    const cartId = getCartId()
+    const cartId = await getCartId()
     if (!cartId) {
       throw new Error("No existing cart found when setting addresses")
     }
@@ -354,39 +361,66 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
     const apartment = String(
       formData.get("shipping_address.apartment") || "",
     ).trim()
+    const floor = String(formData.get("shipping_address.floor") || "").trim()
     const deliveryNotes = String(
       formData.get("shipping_address.delivery_notes") || "",
     ).trim()
     const countryCode = String(
       formData.get("shipping_address.country_code") || "",
     ).toLowerCase()
+    const city = String(formData.get("shipping_address.city") || "").trim()
+    const email = String(formData.get("email") || "").trim()
+    const phone = String(formData.get("shipping_address.phone") || "").trim()
+    const postalCode = String(
+      formData.get("shipping_address.postal_code") || "",
+    ).trim()
 
     if (!countryCode) {
       throw new Error("לא נמצאה מדינת משלוח באזור הפעיל")
+    }
+    if (!street) throw new Error("יש לבחור רחוב")
+    if (!houseNumber) throw new Error("יש להזין מספר בית")
+    if (!city) throw new Error("יש לבחור עיר")
+    if (!isValidEmail(email)) throw new Error("כתובת האימייל אינה תקינה")
+
+    if (countryCode === "il") {
+      if (!isValidIsraeliPhone(phone)) throw new Error("מספר הטלפון אינו תקין")
+      if (!isValidOptionalIsraeliPostalCode(postalCode)) {
+        throw new Error("המיקוד צריך להכיל 7 ספרות")
+      }
+    } else if (!phone) {
+      throw new Error("יש להזין מספר טלפון")
     }
 
     const shippingAddress = {
       first_name: formData.get("shipping_address.first_name"),
       last_name: formData.get("shipping_address.last_name"),
       address_1: `${street} ${houseNumber}`.trim(),
-      address_2: apartment ? `דירה ${apartment}` : "",
+      address_2: [
+        apartment ? `דירה ${apartment}` : "",
+        floor ? `קומה ${floor}` : "",
+      ]
+        .filter(Boolean)
+        .join(", "),
       company: null,
-      postal_code: formData.get("shipping_address.postal_code"),
-      city: formData.get("shipping_address.city"),
+      postal_code:
+        countryCode === "il" ? normalizePostalCode(postalCode) : postalCode,
+      city,
       country_code: countryCode,
       province: formData.get("shipping_address.province") || null,
-      phone: formData.get("shipping_address.phone"),
+      phone: countryCode === "il" ? normalizeIsraeliPhone(phone) : phone,
       metadata: {
         street,
         house_number: houseNumber,
         apartment,
+        floor,
         delivery_notes: deliveryNotes,
       },
     }
 
     const data = {
       shipping_address: shippingAddress,
-      email: formData.get("email"),
+      email,
     } as any
 
     if (formData.get("same_as_billing") === "on") {

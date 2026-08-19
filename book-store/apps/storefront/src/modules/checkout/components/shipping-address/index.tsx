@@ -6,6 +6,12 @@ import { mapKeys } from "lodash"
 import React, { useEffect, useMemo, useState } from "react"
 import AddressSelect from "../address-select"
 import CountrySelect from "../country-select"
+import type { IsraeliCity, IsraeliStreet } from "@lib/israel-addresses"
+import {
+  isValidEmail,
+  isValidIsraeliPhone,
+  isValidOptionalIsraeliPostalCode,
+} from "@lib/util/checkout-validation"
 
 const ShippingAddress = ({
   customer,
@@ -31,6 +37,7 @@ const ShippingAddress = ({
       "",
     "shipping_address.house_number": String(addressMetadata.house_number || ""),
     "shipping_address.apartment": String(addressMetadata.apartment || ""),
+    "shipping_address.floor": String(addressMetadata.floor || ""),
     "shipping_address.delivery_notes": String(
       addressMetadata.delivery_notes || "",
     ),
@@ -44,6 +51,12 @@ const ShippingAddress = ({
     "shipping_address.phone": cart?.shipping_address?.phone || "",
     email: cart?.email || "",
   })
+  const [cities, setCities] = useState<IsraeliCity[]>([])
+  const [streets, setStreets] = useState<IsraeliStreet[]>([])
+  const [cityCode, setCityCode] = useState("")
+  const [streetCode, setStreetCode] = useState("")
+  const [streetsLoading, setStreetsLoading] = useState(false)
+  const [manualStreet, setManualStreet] = useState(false)
 
   const countriesInRegion = useMemo(
     () => cart?.region?.countries?.map((c) => c.iso_2),
@@ -79,6 +92,7 @@ const ShippingAddress = ({
         "shipping_address.apartment": String(
           address?.metadata?.apartment || "",
         ),
+        "shipping_address.floor": String(address?.metadata?.floor || ""),
         "shipping_address.delivery_notes": String(
           address?.metadata?.delivery_notes || "",
         ),
@@ -109,6 +123,78 @@ const ShippingAddress = ({
     }
   }, [cart]) // Add cart as a dependency
 
+  useEffect(() => {
+    const query = formData["shipping_address.city"].trim()
+    if (selectedCountry !== "il" || query.length < 1) {
+      setCities([])
+      return
+    }
+    const controller = new AbortController()
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `/api/israel-addresses/cities?q=${encodeURIComponent(query)}`,
+          {
+            signal: controller.signal,
+          },
+        )
+        const data = (await response.json()) as { cities?: IsraeliCity[] }
+        setCities(data.cities || [])
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") setCities([])
+      }
+    }, 180)
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [formData["shipping_address.city"], selectedCountry])
+
+  useEffect(() => {
+    if (!cityCode) {
+      const exactCity = cities.find(
+        (city) => city.name === formData["shipping_address.city"].trim(),
+      )
+      if (exactCity) setCityCode(String(exactCity.code))
+    }
+  }, [cities, cityCode, formData])
+
+  useEffect(() => {
+    if (!cityCode || selectedCountry !== "il") {
+      setStreets([])
+      return
+    }
+    const controller = new AbortController()
+    setStreetsLoading(true)
+    setManualStreet(false)
+    fetch(`/api/israel-addresses/streets?cityCode=${cityCode}`, {
+      signal: controller.signal,
+    })
+      .then((response) => response.json())
+      .then((data: { streets?: IsraeliStreet[] }) => {
+        const nextStreets = data.streets || []
+        setStreets(nextStreets)
+        setManualStreet(nextStreets.length === 0)
+      })
+      .catch((error) => {
+        if ((error as Error).name !== "AbortError") {
+          setStreets([])
+          setManualStreet(true)
+        }
+      })
+      .finally(() => setStreetsLoading(false))
+    return () => controller.abort()
+  }, [cityCode, selectedCountry])
+
+  useEffect(() => {
+    if (!streetCode) {
+      const exactStreet = streets.find(
+        (street) => street.name === formData["shipping_address.street"].trim(),
+      )
+      if (exactStreet) setStreetCode(String(exactStreet.code))
+    }
+  }, [streets, streetCode, formData])
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -118,6 +204,27 @@ const ShippingAddress = ({
       ...formData,
       [e.target.name]: e.target.value,
     })
+  }
+
+  const handleCityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+    const city = cities.find((candidate) => candidate.name === value)
+    setCityCode(city ? String(city.code) : "")
+    setStreetCode("")
+    setStreets([])
+    setManualStreet(false)
+    setFormData((current) => ({
+      ...current,
+      "shipping_address.city": value,
+      "shipping_address.street": "",
+    }))
+  }
+
+  const handleStreetChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+    const street = streets.find((candidate) => candidate.name === value)
+    setStreetCode(street ? String(street.code) : "")
+    setFormData((current) => ({ ...current, "shipping_address.street": value }))
   }
 
   return (
@@ -157,15 +264,72 @@ const ShippingAddress = ({
           required
           data-testid="shipping-last-name-input"
         />
-        <Input
-          label="רחוב"
-          name="shipping_address.street"
-          autoComplete="address-line1"
-          value={formData["shipping_address.street"]}
-          onChange={handleChange}
-          required
-          data-testid="shipping-address-input"
-        />
+        <div>
+          <Input
+            label="עיר"
+            name="shipping_address.city"
+            list={selectedCountry === "il" ? "israeli-cities" : undefined}
+            autoComplete="address-level2"
+            value={formData["shipping_address.city"]}
+            onChange={
+              selectedCountry === "il" ? handleCityChange : handleChange
+            }
+            required
+            onInvalid={(event) =>
+              event.currentTarget.setCustomValidity("יש לבחור עיר")
+            }
+            onInput={(event) => event.currentTarget.setCustomValidity("")}
+            data-testid="shipping-city-input"
+          />
+          <input
+            type="hidden"
+            name="shipping_address.city_code"
+            value={cityCode}
+          />
+          <datalist id="israeli-cities">
+            {cities.map((city) => (
+              <option key={city.code} value={city.name} />
+            ))}
+          </datalist>
+        </div>
+        <div className="flex flex-col gap-1">
+          <Input
+            label={streetsLoading ? "טוען רחובות..." : "רחוב"}
+            name="shipping_address.street"
+            list={
+              selectedCountry === "il" && !manualStreet
+                ? "israeli-streets"
+                : undefined
+            }
+            autoComplete="address-line1"
+            value={formData["shipping_address.street"]}
+            onChange={
+              selectedCountry === "il" ? handleStreetChange : handleChange
+            }
+            disabled={selectedCountry === "il" && streetsLoading}
+            required
+            onInvalid={(event) =>
+              event.currentTarget.setCustomValidity("יש לבחור רחוב")
+            }
+            onInput={(event) => event.currentTarget.setCustomValidity("")}
+            data-testid="shipping-address-input"
+          />
+          <input
+            type="hidden"
+            name="shipping_address.street_code"
+            value={streetCode}
+          />
+          <datalist id="israeli-streets">
+            {streets.map((street) => (
+              <option key={street.code} value={street.name} />
+            ))}
+          </datalist>
+          {manualStreet && cityCode && (
+            <span className="txt-compact-small text-ui-fg-muted">
+              לא נמצאה רשימת רחובות; אפשר להזין רחוב ידנית.
+            </span>
+          )}
+        </div>
         <Input
           label="מספר בית"
           name="shipping_address.house_number"
@@ -182,13 +346,11 @@ const ShippingAddress = ({
           data-testid="shipping-apartment-input"
         />
         <Input
-          label="עיר"
-          name="shipping_address.city"
-          autoComplete="address-level2"
-          value={formData["shipping_address.city"]}
+          label="קומה"
+          name="shipping_address.floor"
+          value={formData["shipping_address.floor"]}
           onChange={handleChange}
-          required
-          data-testid="shipping-city-input"
+          data-testid="shipping-floor-input"
         />
         <Input
           label="מיקוד"
@@ -197,6 +359,26 @@ const ShippingAddress = ({
           value={formData["shipping_address.postal_code"]}
           onChange={handleChange}
           required={selectedCountry !== "il"}
+          inputMode="numeric"
+          onBlur={(event) =>
+            event.currentTarget.setCustomValidity(
+              selectedCountry !== "il" ||
+                isValidOptionalIsraeliPostalCode(event.currentTarget.value)
+                ? ""
+                : "המיקוד צריך להכיל 7 ספרות",
+            )
+          }
+          onInvalid={(event) =>
+            event.currentTarget.setCustomValidity("המיקוד צריך להכיל 7 ספרות")
+          }
+          onInput={(event) => {
+            event.currentTarget.setCustomValidity(
+              selectedCountry !== "il" ||
+                isValidOptionalIsraeliPostalCode(event.currentTarget.value)
+                ? ""
+                : "המיקוד צריך להכיל 7 ספרות",
+            )
+          }}
           data-testid="shipping-postal-code-input"
         />
         {showCountrySelect ? (
@@ -227,24 +409,61 @@ const ShippingAddress = ({
           />
         )}
         <Input
+          label="טלפון"
+          name="shipping_address.phone"
+          autoComplete="tel"
+          inputMode="tel"
+          value={formData["shipping_address.phone"]}
+          onChange={handleChange}
+          required
+          onBlur={(event) =>
+            event.currentTarget.setCustomValidity(
+              selectedCountry !== "il" ||
+                isValidIsraeliPhone(event.currentTarget.value)
+                ? ""
+                : "מספר הטלפון אינו תקין",
+            )
+          }
+          onInvalid={(event) =>
+            event.currentTarget.setCustomValidity("מספר הטלפון אינו תקין")
+          }
+          onInput={(event) =>
+            event.currentTarget.setCustomValidity(
+              selectedCountry !== "il" ||
+                isValidIsraeliPhone(event.currentTarget.value)
+                ? ""
+                : "מספר הטלפון אינו תקין",
+            )
+          }
+          data-testid="shipping-phone-input"
+        />
+        <Input
           label="דוא״ל"
           name="email"
           type="email"
-          title="יש להזין כתובת דוא״ל תקינה."
+          title="כתובת האימייל אינה תקינה"
           autoComplete="email"
           value={formData.email}
           onChange={handleChange}
           required
+          onBlur={(event) =>
+            event.currentTarget.setCustomValidity(
+              isValidEmail(event.currentTarget.value)
+                ? ""
+                : "כתובת האימייל אינה תקינה",
+            )
+          }
+          onInvalid={(event) =>
+            event.currentTarget.setCustomValidity("כתובת האימייל אינה תקינה")
+          }
+          onInput={(event) =>
+            event.currentTarget.setCustomValidity(
+              isValidEmail(event.currentTarget.value)
+                ? ""
+                : "כתובת האימייל אינה תקינה",
+            )
+          }
           data-testid="shipping-email-input"
-        />
-        <Input
-          label="טלפון"
-          name="shipping_address.phone"
-          autoComplete="tel"
-          value={formData["shipping_address.phone"]}
-          onChange={handleChange}
-          required
-          data-testid="shipping-phone-input"
         />
         <label className="flex flex-col gap-2 small:col-span-2 txt-compact-medium text-ui-fg-subtle">
           הערות למשלוח
