@@ -2,7 +2,12 @@ import { getContentItem } from "@lib/data/site-content"
 import ContentPageTemplate from "@modules/content/templates/content-page"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { canonicalMetadata } from "@lib/util/seo"
+import {
+  canonicalMetadata,
+  metadataDescription,
+  nonIndexablePageSlugs,
+  privatePageRobots,
+} from "@lib/util/seo"
 import { legalPages } from "@lib/legal-content"
 import ContactForm from "@modules/content/components/contact-form"
 
@@ -13,8 +18,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!item) return {}
   return {
     title: item.seo?.seo_title || item.title,
-    description: item.seo?.seo_description || item.excerpt,
+    description: metadataDescription(
+      item.seo?.seo_description,
+      item.excerpt,
+      item.content,
+      item.title,
+    ),
     alternates: canonicalMetadata(countryCode, `pages/${slug}`),
+    robots: nonIndexablePageSlugs.has(slug) ? privatePageRobots : undefined,
     openGraph: {
       title: item.seo?.og_title || item.title,
       description: item.seo?.og_description || item.excerpt,

@@ -13,14 +13,15 @@ export function isIndexableLocale(countryCode: string) {
 
 export function localizedPath(countryCode: string, path = "") {
   const locale = countryCode.toLowerCase()
-  const suffix = path && path !== "/" ? `/${path.replace(/^\/+|\/+$/g, "")}` : ""
+  const suffix =
+    path && path !== "/" ? `/${path.replace(/^\/+|\/+$/g, "")}` : ""
 
   return `/${locale}${suffix}`
 }
 
 export function canonicalMetadata(
   countryCode: string,
-  path = ""
+  path = "",
 ): Metadata["alternates"] {
   const locales = getIndexableLocales()
   const locale = locales.includes(countryCode.toLowerCase())
@@ -33,4 +34,22 @@ export function canonicalMetadata(
 export const privatePageRobots: Metadata["robots"] = {
   index: false,
   follow: true,
+}
+
+export const nonIndexablePageSlugs = new Set([
+  "terms",
+  "privacy",
+  "cancellations",
+])
+
+export function metadataDescription(
+  ...values: Array<string | null | undefined>
+) {
+  const value = values
+    .find((candidate) => candidate?.trim())
+    ?.replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+
+  return value ? value.slice(0, 160) : undefined
 }

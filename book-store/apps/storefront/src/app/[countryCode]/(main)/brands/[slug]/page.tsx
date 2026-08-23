@@ -7,10 +7,25 @@ import { getRegion } from "@lib/data/regions"
 import ContentPageTemplate from "@modules/content/templates/content-page"
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { canonicalMetadata } from "@lib/util/seo"
+import { canonicalMetadata, metadataDescription } from "@lib/util/seo"
 
 type Props = { params: Promise<{ countryCode: string; slug: string }> }
-export async function generateMetadata({ params }: Props): Promise<Metadata> { const { countryCode, slug } = await params; const item = await getContentItem("brands", slug); if (!item) return {}; return { title: item.seo?.seo_title || item.title || item.name, description: item.seo?.seo_description || item.short_description, alternates: canonicalMetadata(countryCode, `brands/${slug}`) } }
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { countryCode, slug } = await params
+  const item = await getContentItem("brands", slug)
+  if (!item) return {}
+  return {
+    title: item.seo?.seo_title || item.title || item.name,
+    description: metadataDescription(
+      item.seo?.seo_description,
+      item.short_description,
+      item.content,
+      item.title,
+      item.name,
+    ),
+    alternates: canonicalMetadata(countryCode, `brands/${slug}`),
+  }
+}
 export default async function BrandPage({ params }: Props) {
   const { countryCode, slug } = await params
   const item = await getContentItem("brands", slug)
@@ -47,5 +62,11 @@ export default async function BrandPage({ params }: Props) {
       }).then(({ response }) => response.products)
     : []
 
-  return <ContentPageTemplate item={item} products={products} region={region || undefined} />
+  return (
+    <ContentPageTemplate
+      item={item}
+      products={products}
+      region={region || undefined}
+    />
+  )
 }

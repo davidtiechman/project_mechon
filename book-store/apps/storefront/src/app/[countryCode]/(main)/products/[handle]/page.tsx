@@ -5,7 +5,7 @@ import { resolveMediaUrl } from "@lib/util/resolve-media-url"
 import { getRegion, listRegions } from "@lib/data/regions"
 import ProductTemplate from "@modules/products/templates"
 import { HttpTypes } from "@medusajs/types"
-import { canonicalMetadata } from "@lib/util/seo"
+import { canonicalMetadata, metadataDescription } from "@lib/util/seo"
 
 type Props = {
   params: Promise<{ countryCode: string; handle: string }>
@@ -23,7 +23,7 @@ function decodeHandle(handle: string) {
 export async function generateStaticParams() {
   try {
     const countryCodes = await listRegions().then((regions) =>
-      regions?.map((r) => r.countries?.map((c) => c.iso_2)).flat()
+      regions?.map((r) => r.countries?.map((c) => c.iso_2)).flat(),
     )
 
     if (!countryCodes) {
@@ -49,14 +49,14 @@ export async function generateStaticParams() {
         countryData.products.map((product) => ({
           countryCode: countryData.country,
           handle: product.handle,
-        }))
+        })),
       )
       .filter((param) => param.handle)
   } catch (error) {
     console.error(
       `Failed to generate static paths for product pages: ${
         error instanceof Error ? error.message : "Unknown error"
-      }.`
+      }.`,
     )
     return []
   }
@@ -64,7 +64,7 @@ export async function generateStaticParams() {
 
 function getImagesForVariant(
   product: HttpTypes.StoreProduct,
-  selectedVariantId?: string
+  selectedVariantId?: string,
 ) {
   if (!selectedVariantId || !product.variants) {
     return product.images
@@ -97,13 +97,22 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     notFound()
   }
 
+  const description = metadataDescription(
+    product.description,
+    product.subtitle,
+    product.title,
+  )
+
   return {
-    alternates: canonicalMetadata(params.countryCode, `products/${params.handle}`),
+    alternates: canonicalMetadata(
+      params.countryCode,
+      `products/${params.handle}`,
+    ),
     title: product.title,
-    description: `${product.title}`,
+    description,
     openGraph: {
       title: `${product.title} | מכון מעשה רוקח`,
-      description: `${product.title}`,
+      description,
       images: product.thumbnail ? [resolveMediaUrl(product.thumbnail)!] : [],
     },
   }
