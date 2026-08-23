@@ -61,9 +61,29 @@ function Layout({ preview, title, children }: { preview: string; title: string; 
 }
 
 function numberValue(value: unknown): number {
-  if (typeof value === "number") return value
-  if (typeof value === "string") return Number(value)
-  if (value && typeof value === "object" && "value" in value) return Number((value as { value: unknown }).value)
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0
+  if (typeof value === "string") {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : 0
+  }
+  if (value && typeof value === "object") {
+    const numeric = value as Record<string, unknown>
+
+    // Medusa can expose monetary values and quantities as BigNumber-like
+    // objects when they come from query.graph.
+    for (const key of ["numeric_", "raw_", "value"]) {
+      if (key in numeric && numeric[key] !== value) {
+        const parsed = numberValue(numeric[key])
+        if (parsed || numeric[key] === 0 || numeric[key] === "0") return parsed
+      }
+    }
+
+    const primitive = value.valueOf()
+    if (primitive !== value) return numberValue(primitive)
+
+    const stringValue = value.toString()
+    if (stringValue !== "[object Object]") return numberValue(stringValue)
+  }
   return 0
 }
 
@@ -84,7 +104,7 @@ function AddressBlock({ address }: { address?: Address | null }) {
 }
 
 function Items({ data }: { data: OrderEmailData }) {
-  return <Section><Heading as="h3" style={{ ...styles.title, fontSize: "17px", textAlign: "right" }}>פרטי ההזמנה</Heading>{data.items?.map((item, index) => <Section key={item.id ?? index} style={styles.row}><Text style={{ ...styles.text, margin: 0 }}><strong>{item.product_title ?? item.title ?? "מוצר"}</strong>{item.variant_title ? ` — ${item.variant_title}` : ""}</Text><Text style={{ ...styles.muted, margin: "4px 0 0" }}>כמות: {item.quantity ?? 0} · מחיר: {money(item.total, data.currency_code)}</Text></Section>)}</Section>
+  return <Section><Heading as="h3" style={{ ...styles.title, fontSize: "17px", textAlign: "right" }}>פרטי ההזמנה</Heading>{data.items?.map((item, index) => <Section key={item.id ?? index} style={styles.row}><Text style={{ ...styles.text, margin: 0 }}><strong>{item.product_title ?? item.title ?? "מוצר"}</strong>{item.variant_title ? ` — ${item.variant_title}` : ""}</Text><Text style={{ ...styles.muted, margin: "4px 0 0" }}>כמות: {numberValue(item.quantity)} · מחיר: {money(item.total, data.currency_code)}</Text></Section>)}</Section>
 }
 
 function Totals({ data }: { data: OrderEmailData }) {
