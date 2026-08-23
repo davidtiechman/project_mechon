@@ -11,15 +11,22 @@ type HeroProps = {
 }
 
 const Hero = ({ eyebrow, title, description, buttonText, buttonUrl, image }: HeroProps) => {
+  const hasRichDescription = Boolean(description?.match(/<[^>]+>/))
+
   return (
     <section className="hero-section">
       <div className="content-container relative z-10 grid items-center gap-12 py-4 small:grid-cols-[1.2fr_0.8fr] small:py-[36px]">
         <div className="max-w-3xl">
           <span className="eyebrow text-[#d8bf86]">{eyebrow || "מכון להוצאת והאדרת תורת רבותינו זיע״א"}</span>
           <h1>{title || "מכון מעשה רוקח"}</h1>
-          <p>
-           {description || "מהדירים את תורות רבותינו מבעלזא, יצירת פאר של סידור עבודת השם"}
-          </p>
+          {hasRichDescription ? (
+            <div dangerouslySetInnerHTML={{ __html: description! }} />
+          ) : (
+            <p>
+              {description ||
+                "מהדירים את תורות רבותינו מבעלזא, יצירת פאר של סידור עבודת השם"}
+            </p>
+          )}
           <div className="mt-9 flex flex-wrap gap-4">
             <LocalizedClientLink href={buttonUrl || "/store"} className="brand-button brand-button-light">
               {buttonText || "לחנות הספרים"}
