@@ -51,6 +51,23 @@ module.exports = defineConfig({
     {
       resolve: "./src/modules/site-content",
     },
+    {
+      resolve: "@medusajs/medusa/notification",
+      options: {
+        providers: [
+          {
+            resolve: "./src/modules/resend",
+            id: "resend",
+            options: {
+              channels: ["email"],
+              api_key: process.env.RESEND_API_KEY,
+              from_email: process.env.RESEND_FROM_EMAIL,
+              from_name: process.env.RESEND_FROM_NAME,
+            },
+          },
+        ],
+      },
+    },
     ...(s3FileProviderEnabled
       ? [
           {

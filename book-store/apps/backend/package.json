@@ -31,6 +31,7 @@
     "@medusajs/framework": "2.17.2",
     "@medusajs/medusa": "2.17.2",
     "@medusajs/ui": "4.1.19",
+    "@react-email/components": "^0.0.41",
     "@tanstack/react-query": "5.64.2",
     "@tiptap/extension-image": "^3.29.2",
     "@tiptap/extension-link": "^3.29.2",
@@ -40,6 +41,7 @@
     "@types/sanitize-html": "^2.16.1",
     "react-i18next": "13.5.0",
     "react-router-dom": "6.30.4",
+    "resend": "^6.22.0",
     "sanitize-html": "^2.17.6",
     "zod": "4.2.0"
   },
