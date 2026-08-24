@@ -124,6 +124,10 @@ export function AdminPasswordResetEmail({ reset_url }: { reset_url: string }) {
   return <Layout preview="קישור לאיפוס הסיסמה" title="איפוס סיסמה"><Text style={styles.text}>התקבלה בקשה לאיפוס הסיסמה שלך במערכת הניהול.</Text><Section style={{ textAlign: "center", margin: "28px 0" }}><Button href={reset_url} style={styles.button}>איפוס סיסמה</Button></Section><Text style={styles.muted}>הקישור תקף לזמן מוגבל. אם לא ביקשת לאפס סיסמה, אפשר להתעלם מהמייל.</Text></Layout>
 }
 
+export function CustomerLoginCodeEmail({ code, expires_minutes }: { code: string; expires_minutes: number }) {
+  return <Layout preview="קוד הכניסה שלך" title="קוד כניסה חד־פעמי"><Text style={styles.text}>קוד הכניסה שלך למכון מעשה רוקח:</Text><Text style={{ ...styles.title, fontSize: "34px", letterSpacing: "8px", direction: "ltr" }}><strong>{code}</strong></Text><Text style={styles.text}>הקוד תקף ל־{expires_minutes} דקות.</Text><Text style={styles.muted}>אם לא ביקשת קוד זה, ניתן להתעלם מהודעה זו. אין להעביר את הקוד לאדם אחר.</Text></Layout>
+}
+
 export function AdminInviteEmail({ invite_url }: { invite_url: string }) {
   return <Layout preview="הזמנה למערכת הניהול" title="הזמנה למערכת הניהול"><Text style={styles.text}>הוזמנת להצטרף למערכת הניהול של מכון מעשה רוקח.</Text><Section style={{ textAlign: "center", margin: "28px 0" }}><Button href={invite_url} style={styles.button}>קבלת ההזמנה</Button></Section><Text style={styles.muted}>הקישור מכיל את קוד ההזמנה המאובטח שיצרה המערכת ותקף לזמן מוגבל.</Text></Layout>
 }

@@ -4,68 +4,29 @@ import React from "react"
 import Input from "@modules/common/components/input"
 import AccountInfo from "../account-info"
 import { HttpTypes } from "@medusajs/types"
-// TODO: Re-add toast notifications when Toaster component is implemented
+import { getCustomerPasswordStatus, updateCustomerPassword } from "@lib/data/customer"
 
-type MyInformationProps = {
-  customer: HttpTypes.StoreCustomer
-}
+export default function ProfilePassword({ customer: _customer }: { customer: HttpTypes.StoreCustomer }) {
+  const [success, setSuccess] = React.useState(false)
+  const [error, setError] = React.useState<string>()
+  const [hasPassword, setHasPassword] = React.useState<boolean | null>(null)
+  React.useEffect(() => { void getCustomerPasswordStatus().then(setHasPassword) }, [])
 
-const ProfilePassword: React.FC<MyInformationProps> = ({ customer: _customer }) => {
-  const [successState, setSuccessState] = React.useState(false)
-
-  // TODO: Add support for password updates
-  const updatePassword = async () => {
-    // TODO: Re-add toast notification when Toaster component is implemented
-    console.info("Password update is not implemented")
+  const updatePassword = async (formData: FormData) => {
+    setError(undefined)
+    const result = await updateCustomerPassword(null, formData)
+    setSuccess(result.success)
+    setError(result.error)
+    if (result.success) setHasPassword(true)
   }
 
-  const clearState = () => {
-    setSuccessState(false)
-  }
-
-  return (
-    <form
-      action={updatePassword}
-      onReset={() => clearState()}
-      className="w-full"
-    >
-      <AccountInfo
-        label="סיסמה"
-        currentInfo={
-          <span>הסיסמה אינה מוצגת מטעמי אבטחה</span>
-        }
-        isSuccess={successState}
-        isError={false}
-        errorMessage={undefined}
-        clearState={clearState}
-        data-testid="account-password-editor"
-      >
-        <div className="grid grid-cols-2 gap-4">
-          <Input
-            label="סיסמה נוכחית"
-            name="old_password"
-            required
-            type="password"
-            data-testid="old-password-input"
-          />
-          <Input
-            label="סיסמה חדשה"
-            type="password"
-            name="new_password"
-            required
-            data-testid="new-password-input"
-          />
-          <Input
-            label="אימות סיסמה"
-            type="password"
-            name="confirm_password"
-            required
-            data-testid="confirm-password-input"
-          />
-        </div>
-      </AccountInfo>
-    </form>
-  )
+  return <form action={updatePassword} onReset={() => { setSuccess(false); setError(undefined) }} className="w-full">
+    <AccountInfo label={hasPassword === false ? "הגדרת סיסמה" : "שינוי סיסמה"} currentInfo={<span>הסיסמה אינה מוצגת מטעמי אבטחה</span>} isSuccess={success} isError={Boolean(error)} errorMessage={error} clearState={() => { setSuccess(false); setError(undefined) }} data-testid="account-password-editor">
+      <div className="grid grid-cols-1 small:grid-cols-2 gap-4">
+        {hasPassword !== false && <Input label="סיסמה נוכחית" name="old_password" required type="password" autoComplete="current-password" data-testid="old-password-input" />}
+        <Input label="סיסמה חדשה" type="password" name="new_password" minLength={8} maxLength={128} required autoComplete="new-password" data-testid="new-password-input" />
+        <Input label="אימות סיסמה חדשה" type="password" name="confirm_password" minLength={8} maxLength={128} required autoComplete="new-password" data-testid="confirm-password-input" />
+      </div>
+    </AccountInfo>
+  </form>
 }
-
-export default ProfilePassword

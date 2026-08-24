@@ -46,7 +46,7 @@ module.exports = defineConfig({
       authCors: process.env.AUTH_CORS!,
       authMethodsPerActor: {
         user: ["emailpass"],
-        customer: ["emailpass", "google"],
+        customer: ["emailpass", "google", "emailotp"],
       },
       jwtSecret: process.env.JWT_SECRET,
       cookieSecret: process.env.COOKIE_SECRET,
@@ -78,11 +78,18 @@ module.exports = defineConfig({
               callbackUrl: process.env.GOOGLE_CALLBACK_URL,
             },
           },
+          {
+            resolve: "./src/modules/email-otp-auth",
+            id: "emailotp",
+          },
         ],
       },
     },
     {
       resolve: "./src/modules/site-content",
+    },
+    {
+      resolve: "./src/modules/email-otp",
     },
     {
       resolve: "@medusajs/medusa/notification",

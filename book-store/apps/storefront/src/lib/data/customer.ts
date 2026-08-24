@@ -25,6 +25,12 @@ export type CustomerAuthState =
   | { state: "success" }
   | null
 
+export type OtpAuthState =
+  | { state: "error"; error: string }
+  | { state: "code_sent"; email: string }
+  | { state: "success" }
+  | null
+
 // Requests a verification email for the given customer. The request must be
 // authenticated with a token tied to the auth identity (the token returned by
 // register or by a login that requires verification).
@@ -136,6 +142,77 @@ export async function login(
   const password = formData.get("password") as string
 
   return completeLogin(email, password)
+}
+
+export async function requestEmailOtp(
+  _currentState: unknown,
+  formData: FormData
+): Promise<OtpAuthState> {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase()
+  try {
+    await sdk.client.fetch("/store/auth/email-otp/request", {
+      method: "POST",
+      body: { email },
+    })
+    return { state: "code_sent", email }
+  } catch (error) {
+    return { state: "error", error: String(error) }
+  }
+}
+
+export async function loginWithEmailOtp(
+  _currentState: unknown,
+  formData: FormData
+): Promise<OtpAuthState> {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase()
+  const code = String(formData.get("code") ?? "")
+  try {
+    const result = await sdk.auth.login("customer", "emailotp", { email, code })
+    if (typeof result !== "string") {
+      return { state: "error", error: "Authentication requires an unsupported additional step." }
+    }
+    await setAuthToken(result)
+    const customerCacheTag = await getCacheTag("customers")
+    revalidateTag(customerCacheTag)
+    await transferCart()
+    return { state: "success" }
+  } catch (error) {
+    return { state: "error", error: String(error) }
+  }
+}
+
+export async function updateCustomerPassword(
+  _currentState: unknown,
+  formData: FormData
+): Promise<{ success: boolean; error?: string }> {
+  const newPassword = String(formData.get("new_password") ?? "")
+  if (newPassword !== String(formData.get("confirm_password") ?? "")) {
+    return { success: false, error: "הסיסמאות החדשות אינן תואמות." }
+  }
+  try {
+    await sdk.client.fetch("/store/customers/me/password", {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: {
+        current_password: String(formData.get("old_password") ?? "") || undefined,
+        new_password: newPassword,
+      },
+    })
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: String(error) }
+  }
+}
+
+export async function getCustomerPasswordStatus(): Promise<boolean> {
+  try {
+    const result = await sdk.client.fetch<{ has_password: boolean }>("/store/customers/me/password", {
+      method: "GET", headers: await getAuthHeaders(), cache: "no-store",
+    })
+    return result.has_password
+  } catch {
+    return false
+  }
 }
 
 // Logs the customer in and reconciles the customer record. The behavior is

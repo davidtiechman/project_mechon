@@ -12,6 +12,7 @@ import { renderToStaticMarkup } from "react-dom/server"
 import {
   AdminInviteEmail,
   AdminPasswordResetEmail,
+  CustomerLoginCodeEmail,
   OrderCustomerEmail,
   OrderOwnerEmail,
 } from "./emails"
@@ -28,6 +29,7 @@ const templates = {
   "order-customer": OrderCustomerEmail,
   "order-owner": OrderOwnerEmail,
   "admin-password-reset": AdminPasswordResetEmail,
+  "customer-login-code": CustomerLoginCodeEmail,
   "admin-invite": AdminInviteEmail,
 } as const
 
@@ -72,6 +74,7 @@ export default class ResendNotificationProviderService extends AbstractNotificat
 
     const displayId = String(notification.data?.display_id ?? "")
     const subjects: Record<TemplateName, string> = {
+      "customer-login-code": "קוד הכניסה שלך למכון מעשה רוקח",
       "order-customer": `הזמנה מספר #${displayId} התקבלה בהצלחה`,
       "order-owner": `התקבלה הזמנה חדשה #${displayId}`,
       "admin-password-reset": "איפוס סיסמה למערכת הניהול",

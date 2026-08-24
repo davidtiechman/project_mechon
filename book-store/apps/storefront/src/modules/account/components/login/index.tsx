@@ -62,6 +62,13 @@ const Login = ({ setCurrentView }: Props) => {
           התחברות
         </SubmitButton>
       </form>
+      <button
+        type="button"
+        onClick={() => setCurrentView(LOGIN_VIEW.EMAIL_OTP)}
+        className="underline text-small-regular mt-4"
+      >
+        שכחת את הסיסמה? כניסה באמצעות קוד למייל
+      </button>
       <span className="text-center text-ui-fg-base text-small-regular mt-6">
         עדיין אין לך חשבון?{" "}
         <button
