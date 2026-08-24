@@ -8,6 +8,7 @@ import AddressSelect from "../address-select"
 import CountrySelect from "../country-select"
 import type { IsraeliCity, IsraeliStreet } from "@lib/israel-addresses"
 import {
+  getEmailTypoSuggestion,
   isValidEmail,
   isValidIsraeliPhone,
   isValidOptionalIsraeliPostalCode,
@@ -65,6 +66,7 @@ const ShippingAddress = ({
   const showCountrySelect = (countriesInRegion?.length || 0) > 1
   const selectedCountry = formData["shipping_address.country_code"]
   const showProvince = selectedCountry !== "il"
+  const emailSuggestion = getEmailTypoSuggestion(formData.email)
 
   // check if customer has saved addresses that are in the current region
   const addressesInRegion = useMemo(
@@ -437,34 +439,60 @@ const ShippingAddress = ({
           }
           data-testid="shipping-phone-input"
         />
-        <Input
-          label="דוא״ל"
-          name="email"
-          type="email"
-          title="כתובת האימייל אינה תקינה"
-          autoComplete="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          onBlur={(event) =>
-            event.currentTarget.setCustomValidity(
-              isValidEmail(event.currentTarget.value)
-                ? ""
-                : "כתובת האימייל אינה תקינה",
-            )
-          }
-          onInvalid={(event) =>
-            event.currentTarget.setCustomValidity("כתובת האימייל אינה תקינה")
-          }
-          onInput={(event) =>
-            event.currentTarget.setCustomValidity(
-              isValidEmail(event.currentTarget.value)
-                ? ""
-                : "כתובת האימייל אינה תקינה",
-            )
-          }
-          data-testid="shipping-email-input"
-        />
+        <div className="flex flex-col gap-1">
+          <Input
+            label="דוא״ל"
+            name="email"
+            type="email"
+            title="כתובת האימייל אינה תקינה"
+            autoComplete="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            onBlur={(event) =>
+              event.currentTarget.setCustomValidity(
+                isValidEmail(event.currentTarget.value)
+                  ? ""
+                  : "כתובת האימייל אינה תקינה",
+              )
+            }
+            onInvalid={(event) =>
+              event.currentTarget.setCustomValidity("כתובת האימייל אינה תקינה")
+            }
+            onInput={(event) =>
+              event.currentTarget.setCustomValidity(
+                isValidEmail(event.currentTarget.value)
+                  ? ""
+                  : "כתובת האימייל אינה תקינה",
+              )
+            }
+            data-testid="shipping-email-input"
+          />
+          {emailSuggestion && (
+            <p
+              className="txt-compact-small text-ui-fg-subtle"
+              data-testid="shipping-email-suggestion"
+            >
+              האם התכוונת ל־
+              <span dir="ltr" className="font-medium text-ui-fg-base">
+                {emailSuggestion}
+              </span>
+              ?{" "}
+              <button
+                type="button"
+                className="font-medium text-ui-fg-interactive hover:underline"
+                onClick={() =>
+                  setFormData((current) => ({
+                    ...current,
+                    email: emailSuggestion,
+                  }))
+                }
+              >
+                תקן
+              </button>
+            </p>
+          )}
+        </div>
         <label className="flex flex-col gap-2 small:col-span-2 txt-compact-medium text-ui-fg-subtle">
           הערות למשלוח
           <textarea
