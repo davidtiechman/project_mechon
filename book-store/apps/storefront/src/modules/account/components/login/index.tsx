@@ -4,6 +4,8 @@ import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import Input from "@modules/common/components/input"
 import { useActionState } from "react"
+import AuthDivider from "../auth-divider"
+import GoogleAuthButton from "../google-auth-button"
 
 type Props = {
   setCurrentView: (view: LOGIN_VIEW) => void
@@ -30,6 +32,8 @@ const Login = ({ setCurrentView }: Props) => {
           יש לאמת את כתובת הדוא״ל ולאחר מכן להתחבר.
         </div>
       )}
+      <GoogleAuthButton label="כניסה באמצעות Google" />
+      <AuthDivider />
       <form className="w-full" action={formAction}>
         <div className="flex flex-col w-full gap-y-2">
           <Input

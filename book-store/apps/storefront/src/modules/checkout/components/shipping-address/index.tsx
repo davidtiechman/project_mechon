@@ -19,19 +19,23 @@ const ShippingAddress = ({
   cart,
   checked,
   onChange,
+  oauthDraft,
 }: {
   customer: HttpTypes.StoreCustomer | null
   cart: HttpTypes.StoreCart | null
   checked: boolean
   onChange: () => void
+  oauthDraft?: Record<string, string>
 }) => {
   const addressMetadata = (cart?.shipping_address?.metadata || {}) as Record<
     string,
     unknown
   >
   const [formData, setFormData] = useState<Record<string, string>>({
-    "shipping_address.first_name": cart?.shipping_address?.first_name || "",
-    "shipping_address.last_name": cart?.shipping_address?.last_name || "",
+    "shipping_address.first_name":
+      cart?.shipping_address?.first_name || customer?.first_name || "",
+    "shipping_address.last_name":
+      cart?.shipping_address?.last_name || customer?.last_name || "",
     "shipping_address.street":
       String(addressMetadata.street || "") ||
       cart?.shipping_address?.address_1 ||
@@ -84,8 +88,10 @@ const ShippingAddress = ({
     if (address) {
       setFormData((prevState: Record<string, string>) => ({
         ...prevState,
-        "shipping_address.first_name": address?.first_name || "",
-        "shipping_address.last_name": address?.last_name || "",
+        "shipping_address.first_name":
+          address?.first_name || customer?.first_name || "",
+        "shipping_address.last_name":
+          address?.last_name || customer?.last_name || "",
         "shipping_address.street":
           String(address?.metadata?.street || "") || address?.address_1 || "",
         "shipping_address.house_number": String(
@@ -124,6 +130,35 @@ const ShippingAddress = ({
       setFormAddress(undefined, customer.email)
     }
   }, [cart]) // Add cart as a dependency
+
+  useEffect(() => {
+    if (!oauthDraft) return
+
+    const shippingDraft = Object.fromEntries(
+      Object.entries(oauthDraft).filter(
+        ([key]) => key === "email" || key.startsWith("shipping_address.")
+      )
+    )
+
+    setFormData((current) => ({
+      ...current,
+      ...shippingDraft,
+      email: customer?.email || shippingDraft.email || current.email,
+    }))
+  }, [customer?.email, oauthDraft])
+
+  useEffect(() => {
+    if (!customer) return
+
+    setFormData((current) => ({
+      ...current,
+      "shipping_address.first_name":
+        current["shipping_address.first_name"] || customer.first_name || "",
+      "shipping_address.last_name":
+        current["shipping_address.last_name"] || customer.last_name || "",
+      email: customer.email,
+    }))
+  }, [customer])
 
   useEffect(() => {
     const query = formData["shipping_address.city"].trim()

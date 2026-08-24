@@ -5,7 +5,7 @@ import { Link, useParams } from "react-router-dom"
 import { contentApi } from "../../../lib/content-api"
 import { entities } from "../../../lib/content-entities"
 
-export default function ContentListPage() {
+const ContentListPage = () => {
   const { entity = "pages" } = useParams()
   const definition = entities[entity]
   const { t, i18n } = useTranslation()
@@ -30,3 +30,5 @@ export default function ContentListPage() {
       <Table.Body>{visible.map((item) => <Table.Row key={item.id}><Table.Cell>{item.title || item.name || item.internal_name || item.question || item.label || item.key}</Table.Cell><Table.Cell>{item.status ? <Badge color={item.status === "published" ? "green" : item.status === "archived" ? "grey" : "orange"}>{t(`siteContent.${item.status}`)}</Badge> : item.active === false ? <Badge color="grey">—</Badge> : <Badge color="green">✓</Badge>}</Table.Cell><Table.Cell className="text-end"><Link to={`/front/${entity}/${item.id}`}><Button variant="secondary" size="small">{t("siteContent.edit")}</Button></Link></Table.Cell></Table.Row>)}</Table.Body></Table>}
   </Container>
 }
+
+export default ContentListPage

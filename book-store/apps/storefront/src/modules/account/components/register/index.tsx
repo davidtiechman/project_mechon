@@ -7,6 +7,8 @@ import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { signup } from "@lib/data/customer"
+import AuthDivider from "../auth-divider"
+import GoogleAuthButton from "../google-auth-button"
 
 type Props = {
   setCurrentView: (view: LOGIN_VIEW) => void
@@ -35,6 +37,8 @@ const Register = ({ setCurrentView }: Props) => {
           בתיבת הדואר ולאחר מכן להתחבר לחשבון.
         </div>
       )}
+      <GoogleAuthButton />
+      <AuthDivider />
       <form className="w-full flex flex-col" action={formAction}>
         <div className="flex flex-col w-full gap-y-2">
           <Input

@@ -25,7 +25,7 @@ function ProductPicker({ value, onChange }: { value: string[]; onChange: (value:
   return <div className="max-h-64 overflow-auto rounded-lg border border-ui-border-base p-3">{products.map((product) => <label className="flex items-center gap-2 border-b py-2 last:border-0" key={product.id}><input type="checkbox" checked={value.includes(product.id)} onChange={(event) => onChange(event.target.checked ? [...value, product.id] : value.filter((id) => id !== product.id))} /><span>{product.title}</span></label>)}</div>
 }
 
-export default function ContentEditorPage() {
+const ContentEditorPage = () => {
   const { entity = "pages", id = "new" } = useParams()
   const definition = entities[entity]
   const { t, i18n } = useTranslation()
@@ -60,3 +60,5 @@ export default function ContentEditorPage() {
     <Container className="grid grid-cols-1 gap-5 p-6 lg:grid-cols-2">{definition.fields.map((field) => <div key={field.name} className={field.type === "rich" || field.type === "textarea" || field.type === "json" || field.type === "products" ? "lg:col-span-2" : ""}><Label className="mb-2 block">{t(`siteContent.fields.${field.name}`)}</Label><FieldControl field={field} value={form[field.name]} rtl={rtl} t={t} onChange={(value) => { setDirty(true); setForm((current) => ({ ...current, [field.name]: value })) }} /></div>)}</Container>
   </form>
 }
+
+export default ContentEditorPage

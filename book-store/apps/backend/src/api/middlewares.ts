@@ -6,5 +6,12 @@ export default defineMiddlewares({
       matcher: "/admin/site-content/*",
       middlewares: [authenticate("user", ["session", "bearer", "api-key"])],
     },
+    {
+      matcher: "/auth/link-customer-google",
+      method: "POST",
+      middlewares: [
+        authenticate("customer", ["bearer"], { allowUnregistered: true }),
+      ],
+    },
   ],
 })

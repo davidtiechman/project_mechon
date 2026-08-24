@@ -8,7 +8,7 @@ import { contentApi } from "../../lib/content-api"
 
 const destinations = ["home", "pages", "brands", "articles", "banners", "navigation", "faq", "footer", "seo", "settings"]
 
-export default function SiteContentDashboard() {
+const SiteContentDashboard = () => {
   const { t, i18n } = useTranslation()
   const [counts, setCounts] = useState<Record<string, number>>({})
   useEffect(() => { contentApi<{ counts: Record<string, number> }>("/dashboard").then((data) => setCounts(data.counts)).catch(() => undefined) }, [])
@@ -29,6 +29,8 @@ export default function SiteContentDashboard() {
     </div>
   </div>
 }
+
+export default SiteContentDashboard
 
 export const config = defineRouteConfig({
   label: "siteContent.menu",

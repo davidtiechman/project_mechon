@@ -19,6 +19,14 @@ services:
         generateValue: true
       - key: COOKIE_SECRET
         generateValue: true
+      - key: AUTH_MFA_ENCRYPTION_KEY
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALLBACK_URL
+        value: https://mechon-storefront.onrender.com/api/auth/google/callback
       - key: MEDUSA_WORKER_MODE
         value: shared
       - key: DISABLE_MEDUSA_ADMIN

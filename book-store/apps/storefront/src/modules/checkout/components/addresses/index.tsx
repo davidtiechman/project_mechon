@@ -7,8 +7,12 @@ import { HttpTypes } from "@medusajs/types"
 import Divider from "@modules/common/components/divider"
 import { Heading, Text } from "@modules/common/components/ui"
 import Spinner from "@modules/common/icons/spinner"
+import AuthDivider from "@modules/account/components/auth-divider"
+import GoogleAuthButton, {
+  CHECKOUT_DRAFT_KEY,
+} from "@modules/account/components/google-auth-button"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useActionState } from "react"
+import { useActionState, useEffect, useState } from "react"
 import BillingAddress from "../billing_address"
 import ErrorMessage from "../error-message"
 import ShippingAddress from "../shipping-address"
@@ -21,17 +25,54 @@ const Addresses = ({
   cart: HttpTypes.StoreCart | null
   customer: HttpTypes.StoreCustomer | null
 }) => {
+  const [oauthDraft, setOauthDraft] = useState<{
+    values: Record<string, string>
+    sameAsBilling?: boolean
+  } | null>(null)
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
 
   const isOpen = searchParams.get("step") === "address"
 
-  const { state: sameAsBilling, toggle: toggleSameAsBilling } = useToggleState(
+  const {
+    state: sameAsBilling,
+    toggle: toggleSameAsBilling,
+    open: selectSameBilling,
+    close: selectSeparateBilling,
+  } = useToggleState(
     cart?.shipping_address && cart?.billing_address
       ? compareAddresses(cart.shipping_address, cart.billing_address)
       : true,
   )
+
+  useEffect(() => {
+    try {
+      const value = sessionStorage.getItem(CHECKOUT_DRAFT_KEY)
+      if (!value) return
+
+      const draft = JSON.parse(value) as {
+        values?: Record<string, string>
+        sameAsBilling?: boolean
+      }
+      if (!draft.values || typeof draft.values !== "object") {
+        sessionStorage.removeItem(CHECKOUT_DRAFT_KEY)
+        return
+      }
+      sessionStorage.removeItem(CHECKOUT_DRAFT_KEY)
+      setOauthDraft({
+        values: draft.values,
+        sameAsBilling: draft.sameAsBilling,
+      })
+
+      if (draft.sameAsBilling === true) selectSameBilling()
+      if (draft.sameAsBilling === false) selectSeparateBilling()
+    } catch {
+      sessionStorage.removeItem(CHECKOUT_DRAFT_KEY)
+    }
+    // The draft is intentionally consumed once after returning from OAuth.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleEdit = () => {
     router.push(pathname + "?step=address")
@@ -62,11 +103,21 @@ const Addresses = ({
         )}
       </div>
       {isOpen ? (
-        <form action={formAction}>
+        <form action={formAction} data-testid="shipping-address-form">
           <div className="pb-8">
+            {!customer && (
+              <>
+                <GoogleAuthButton
+                  label="כניסה עם Google"
+                  preserveCheckoutDraft
+                />
+                <AuthDivider />
+              </>
+            )}
             <ShippingAddress
               customer={customer}
               cart={cart}
+              oauthDraft={oauthDraft?.values}
               checked={sameAsBilling}
               onChange={toggleSameAsBilling}
             />
@@ -75,7 +126,7 @@ const Addresses = ({
                 <Heading level="h2" className="text-3xl-regular pb-6 pt-8">
                   כתובת לחיוב
                 </Heading>
-                <BillingAddress cart={cart} />
+                <BillingAddress cart={cart} oauthDraft={oauthDraft?.values} />
               </div>
             )}
             <SubmitButton className="mt-6" data-testid="submit-address-button">

@@ -1,9 +1,15 @@
 import { HttpTypes } from "@medusajs/types"
 import Input from "@modules/common/components/input"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import CountrySelect from "../country-select"
 
-const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
+const BillingAddress = ({
+  cart,
+  oauthDraft,
+}: {
+  cart: HttpTypes.StoreCart | null
+  oauthDraft?: Record<string, string>
+}) => {
   const [formData, setFormData] = useState<Record<string, string>>({
     "billing_address.first_name": cart?.billing_address?.first_name || "",
     "billing_address.last_name": cart?.billing_address?.last_name || "",
@@ -15,6 +21,19 @@ const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
     "billing_address.province": cart?.billing_address?.province || "",
     "billing_address.phone": cart?.billing_address?.phone || "",
   })
+
+  useEffect(() => {
+    if (!oauthDraft) return
+
+    setFormData((current) => ({
+      ...current,
+      ...Object.fromEntries(
+        Object.entries(oauthDraft).filter(([key]) =>
+          key.startsWith("billing_address.")
+        )
+      ),
+    }))
+  }, [oauthDraft])
 
   const handleChange = (
     e: React.ChangeEvent<
