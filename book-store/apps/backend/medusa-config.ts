@@ -59,7 +59,11 @@ module.exports = defineConfig({
   modules: [
     {
       resolve: "@medusajs/medusa/auth",
-      dependencies: [Modules.CACHE, ContainerRegistrationKeys.LOGGER],
+      dependencies: [
+        Modules.CACHE,
+        ContainerRegistrationKeys.LOGGER,
+        "emailOtp",
+      ],
       options: {
         mfa: {
           encryption_key: process.env.AUTH_MFA_ENCRYPTION_KEY,
