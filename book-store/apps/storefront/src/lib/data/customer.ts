@@ -204,14 +204,23 @@ export async function updateCustomerPassword(
   }
 }
 
-export async function getCustomerPasswordStatus(): Promise<boolean> {
+export async function getCustomerPasswordStatus(): Promise<{
+  hasPassword: boolean
+  requiresCurrentPassword: boolean
+}> {
   try {
-    const result = await sdk.client.fetch<{ has_password: boolean }>("/store/customers/me/password", {
+    const result = await sdk.client.fetch<{
+      has_password: boolean
+      requires_current_password: boolean
+    }>("/store/customers/me/password", {
       method: "GET", headers: await getAuthHeaders(), cache: "no-store",
     })
-    return result.has_password
+    return {
+      hasPassword: result.has_password,
+      requiresCurrentPassword: result.requires_current_password,
+    }
   } catch {
-    return false
+    return { hasPassword: false, requiresCurrentPassword: false }
   }
 }
 
