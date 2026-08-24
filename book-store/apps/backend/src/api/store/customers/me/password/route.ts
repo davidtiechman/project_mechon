@@ -33,13 +33,13 @@ export const POST = async (req: AuthenticatedMedusaRequest<Body>, res: MedusaRes
 
   const auth = req.scope.resolve<IAuthModuleService>(Modules.AUTH)
   if (emailIdentity) {
-    if (!req.body.current_password) throw new MedusaError(MedusaError.Types.INVALID_DATA, "Current password is required")
+    if (!req.body.current_password) throw new MedusaError(MedusaError.Types.INVALID_DATA, "יש להזין את הסיסמה הנוכחית")
     const verified = await auth.authenticate("emailpass", {
       actor_type: "customer", url: req.url, headers: req.headers, query: req.query,
       body: { email, password: req.body.current_password }, protocol: req.protocol,
     } as unknown as AuthenticationInput)
     if (!verified.success || verified.authIdentity?.id !== identity.id) {
-      throw new MedusaError(MedusaError.Types.UNAUTHORIZED, "Current password is incorrect")
+      throw new MedusaError(MedusaError.Types.UNAUTHORIZED, "הסיסמה הנוכחית שגויה")
     }
   } else {
     await auth.createProviderIdentities({
@@ -49,6 +49,6 @@ export const POST = async (req: AuthenticatedMedusaRequest<Body>, res: MedusaRes
   }
 
   const updated = await auth.updateProvider("emailpass", { entity_id: email, password: req.body.new_password })
-  if (!updated.success) throw new MedusaError(MedusaError.Types.INVALID_DATA, updated.error ?? "Password update failed")
+  if (!updated.success) throw new MedusaError(MedusaError.Types.INVALID_DATA, "עדכון הסיסמה נכשל")
   return res.status(200).json({ success: true, mode: emailIdentity ? "changed" : "set" })
 }
