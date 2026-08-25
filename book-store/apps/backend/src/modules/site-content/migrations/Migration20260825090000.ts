@@ -27,7 +27,7 @@ export class Migration20260825090000 extends Migration {
     )
 
     this.addSql(
-      `update "site_content_page" set "content" = '<p>מכון מעשה רוקח מופעל על ידי מעשה רוקח בע"מ · ח.פ. 514692946 · [טלפון] · [אימייל] · דובר שלום 7, מיקוד: 9447607, ירושלים</p>', "updated_at" = now() where "slug" = 'contact' and ("content" = '<p>[יש להשלים את פרטי הגוף המפעיל]</p>' or "content" = '<p>מעשה רוקח בע"מ · [טלפון] · [אימייל] · דובר שלום 7, מיקוד: 9447607, ירושלים</p>') and "deleted_at" is null;`
+      `update "site_content_page" set "content" = '<p>מכון מעשה רוקח מופעל על ידי מעשה רוקח בע"מ · ח.פ. 514692946 · [טלפון] · [אימייל] · דובר שלום 7 מיקוד: 9447607 ירושלים</p>', "updated_at" = now() where "slug" = 'contact' and ("content" = '<p>[יש להשלים את פרטי הגוף המפעיל]</p>' or "content" = '<p>מעשה רוקח בע"מ · [טלפון] · [אימייל] · דובר שלום 7, מיקוד: 9447607, ירושלים</p>') and "deleted_at" is null;`
     )
   }
 
