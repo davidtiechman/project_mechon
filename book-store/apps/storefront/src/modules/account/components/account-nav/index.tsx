@@ -186,6 +186,7 @@ const AccountNavLink = ({
   return (
     <LocalizedClientLink
       href={href}
+      aria-current={active ? "page" : undefined}
       className={clx("text-ui-fg-subtle hover:text-ui-fg-base", {
         "text-ui-fg-base font-semibold": active,
       })}

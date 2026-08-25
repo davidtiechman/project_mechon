@@ -38,6 +38,7 @@ export default function ProductActions({
 
   const [options, setOptions] = useState<Record<string, string | undefined>>({})
   const [isAdding, setIsAdding] = useState(false)
+  const [cartAnnouncement, setCartAnnouncement] = useState("")
   const countryCode = useParams().countryCode as string
 
   // If there is only 1 variant, preselect the options
@@ -133,6 +134,7 @@ export default function ProductActions({
     })
 
     setIsAdding(false)
+    setCartAnnouncement(`${product.title} נוסף לסל`)
   }
 
   return (
@@ -182,6 +184,9 @@ export default function ProductActions({
             ? "אזל מהמלאי"
             : "הוספה לסל"}
         </Button>
+        <p className="sr-only" role="status" aria-live="polite">
+          {cartAnnouncement}
+        </p>
         <MobileActions
           product={product}
           variant={selectedVariant}

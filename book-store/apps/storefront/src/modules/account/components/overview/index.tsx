@@ -13,13 +13,14 @@ type OverviewProps = {
 const Overview = ({ customer, orders }: OverviewProps) => {
   return (
     <div data-testid="overview-page-wrapper">
+      <h1 className="sr-only">החשבון שלי</h1>
       <div className="hidden small:block">
         <div className="text-xl-semi flex justify-between items-center mb-4">
-          <span data-testid="welcome-message" data-value={customer?.first_name}>
-            Hello {customer?.first_name}
-          </span>
+          <div data-testid="welcome-message" data-value={customer?.first_name}>
+            שלום {customer?.first_name}
+          </div>
           <span className="text-small-regular text-ui-fg-base">
-            Signed in as:{" "}
+            מחובר/ת כ־{" "}
             <span
               className="font-semibold"
               data-testid="customer-email"
@@ -43,7 +44,7 @@ const Overview = ({ customer, orders }: OverviewProps) => {
                     {getProfileCompletion(customer)}%
                   </span>
                   <span className="uppercase text-base-regular text-ui-fg-subtle">
-                    Completed
+                    הושלמו
                   </span>
                 </div>
               </div>
@@ -59,7 +60,7 @@ const Overview = ({ customer, orders }: OverviewProps) => {
                     {customer?.addresses?.length || 0}
                   </span>
                   <span className="uppercase text-base-regular text-ui-fg-subtle">
-                    Saved
+                    שמורות
                   </span>
                 </div>
               </div>
@@ -88,13 +89,13 @@ const Overview = ({ customer, orders }: OverviewProps) => {
                             <div className="grid grid-cols-3 grid-rows-2 text-small-regular gap-x-4 flex-1">
                               <span className="font-semibold">תאריך ההזמנה</span>
                               <span className="font-semibold">
-                                Order number
+                                מספר הזמנה
                               </span>
                               <span className="font-semibold">
-                                Total amount
+                                סכום כולל
                               </span>
                               <span data-testid="order-created-date">
-                                {new Date(order.created_at).toDateString()}
+                                {new Date(order.created_at).toLocaleDateString("he-IL")}
                               </span>
                               <span
                                 data-testid="order-id"
@@ -109,15 +110,15 @@ const Overview = ({ customer, orders }: OverviewProps) => {
                                 })}
                               </span>
                             </div>
-                            <button
+                            <span
                               className="flex items-center justify-between"
                               data-testid="open-order-button"
                             >
                               <span className="sr-only">
-                                Go to order #{order.display_id}
+                                מעבר להזמנה #{order.display_id}
                               </span>
-                              <ChevronDown className="-rotate-90" />
-                            </button>
+                              <span aria-hidden="true"><ChevronDown className="-rotate-90" /></span>
+                            </span>
                           </Container>
                         </LocalizedClientLink>
                       </li>

@@ -39,7 +39,8 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
               <div className="relative flex h-full">
                 <Popover.Button
                   data-testid="nav-menu-button"
-                  className="relative h-full flex items-center transition-all ease-out duration-200 focus:outline-none hover:text-ui-fg-base"
+                  aria-label={open ? "סגירת תפריט" : "פתיחת תפריט"}
+                  className="relative h-full flex items-center transition-all ease-out duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 hover:text-ui-fg-base"
                 >
                   תפריט
                 </Popover.Button>
@@ -69,8 +70,8 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                     className="flex flex-col h-full bg-[rgba(3,7,18,0.5)] rounded-rounded justify-between p-6"
                   >
                     <div className="flex justify-end" id="xmark">
-                      <button data-testid="close-menu-button" onClick={close}>
-                        <XMark />
+                      <button type="button" aria-label="סגירת תפריט" data-testid="close-menu-button" onClick={close}>
+                        <span aria-hidden="true"><XMark /></span>
                       </button>
                     </div>
                     <ul className="flex flex-col gap-6 items-start justify-start">
@@ -139,7 +140,7 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                         />
                       </div>
                       <Text className="flex justify-between txt-compact-small">
-                        © {new Date().getFullYear()} מכון מעשה רוקח. כל הזכויות שמורות.
+                        © {new Date().getFullYear()} מכון מעשה רוקח. כל הזכויות שמורות. האתר מופעל על ידי מעשה רוקח בע&quot;מ.
                       </Text>
                     </div>
                   </div>

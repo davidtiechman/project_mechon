@@ -79,6 +79,9 @@ const AccountInfo = ({
           }
         )}
         data-testid="success-message"
+        role="status"
+        aria-live="polite"
+        aria-hidden={!isSuccess}
       >
           <Badge className="p-2 my-4" color="green">
             <span>{label} עודכן בהצלחה</span>
@@ -95,6 +98,8 @@ const AccountInfo = ({
           }
         )}
         data-testid="error-message"
+        role="alert"
+        aria-hidden={!isError}
       >
           <Badge className="p-2 my-4" color="red">
             <span>{errorMessage}</span>
@@ -103,6 +108,8 @@ const AccountInfo = ({
 
       <div
         id={`${dataTestid ?? "account-info"}-editor`}
+        aria-hidden={!state}
+        inert={!state}
         className={clx(
           "transition-[max-height,opacity] duration-300 ease-in-out",
           {

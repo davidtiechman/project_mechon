@@ -46,7 +46,11 @@ const legalPages = [
     "הצהרת נגישות",
     "[יש להשלים לאחר בדיקת נגישות ידנית ואישור מתאים]",
   ],
-  ["contact", "צור קשר", "[יש להשלים את פרטי הגוף המפעיל]"],
+  [
+    "contact",
+    "צור קשר",
+    'מכון מעשה רוקח מופעל על ידי מעשה רוקח בע"מ · ח.פ. 514692946 · [טלפון] · [אימייל] · דובר שלום 7, מיקוד: 9447607, ירושלים',
+  ],
 ] as const;
 
 export default async function seedSiteContent({
@@ -116,7 +120,7 @@ export default async function seedSiteContent({
         site_name: "מכון מעשה רוקח",
         default_title: "מכון מעשה רוקח",
         default_description:
-          "ספרי קודש, סידורים תהילים והוצאה לאור מבית מכון מעשה רוקח",
+          "ספרי קודש, סידורים, תהילים והוצאה לאור מבית מכון מעשה רוקח",
       },
     });
   logger.info("Site content seed completed");

@@ -31,9 +31,12 @@ const DeleteButton = ({
       <button
         className="flex gap-x-1 text-ui-fg-subtle hover:text-ui-fg-base cursor-pointer"
         onClick={() => handleDelete(id)}
+        aria-label={children ? undefined : "הסרת המוצר מהסל"}
+        disabled={isDeleting}
       >
-        {isDeleting ? <Spinner className="animate-spin" /> : <Trash />}
+        <span aria-hidden="true">{isDeleting ? <Spinner className="animate-spin" /> : <Trash />}</span>
         <span>{children}</span>
+        {isDeleting && <span className="sr-only" role="status">מסירים את המוצר מהסל</span>}
       </button>
     </div>
   )

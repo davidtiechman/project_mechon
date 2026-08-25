@@ -1,9 +1,6 @@
 "use client"
 
 import {
-  Popover,
-  PopoverButton,
-  PopoverPanel,
   Transition,
 } from "@headlessui/react"
 import { convertToLocale } from "@lib/util/money"
@@ -37,6 +34,7 @@ const CartDropdown = ({
 
   const total = cartState?.total ?? 0
   const itemRef = useRef<number>(totalItems || 0)
+  const cartButtonRef = useRef<HTMLButtonElement>(null)
 
   const timedOpen = () => {
     open()
@@ -79,14 +77,24 @@ const CartDropdown = ({
       onMouseEnter={openAndCancel}
       onMouseLeave={close}
     >
-      <Popover className="relative h-full">
-        <PopoverButton className="h-full">
-          <LocalizedClientLink
-            className="hover:text-ui-fg-base"
-            href="/cart"
-            data-testid="nav-cart-link"
-          >{`סל (${totalItems})`}</LocalizedClientLink>
-        </PopoverButton>
+      <div className="relative h-full">
+        <button
+          ref={cartButtonRef}
+          type="button"
+          className="h-full hover:text-ui-fg-base"
+          onClick={() => cartDropdownOpen ? close() : openAndCancel()}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              close()
+              cartButtonRef.current?.focus()
+            }
+          }}
+          aria-expanded={cartDropdownOpen}
+          aria-controls="nav-cart-dropdown-panel"
+          data-testid="nav-cart-link"
+        >
+          {`סל (${totalItems})`}
+        </button>
         <Transition
           show={cartDropdownOpen}
           as={Fragment}
@@ -97,8 +105,16 @@ const CartDropdown = ({
           leaveFrom="opacity-100 translate-y-0"
           leaveTo="opacity-0 translate-y-1"
         >
-          <PopoverPanel
-            static
+          <div
+            id="nav-cart-dropdown-panel"
+            aria-label="תצוגה מקדימה של סל הקניות"
+            role="region"
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                close()
+                cartButtonRef.current?.focus()
+              }
+            }}
             className="fixed left-4 top-[77px] hidden w-[min(420px,calc(100vw-2rem))] border-x border-b border-gray-200 bg-white text-ui-fg-base small:block"
             data-testid="nav-cart-dropdown"
           >
@@ -128,6 +144,7 @@ const CartDropdown = ({
                             thumbnail={item.thumbnail}
                             images={item.variant?.product?.images}
                             size="square"
+                            alt={`תמונת ${item.title}`}
                           />
                         </LocalizedClientLink>
                         <div className="flex min-w-0 flex-1 flex-col justify-between">
@@ -219,9 +236,9 @@ const CartDropdown = ({
                 </div>
               </div>
             )}
-          </PopoverPanel>
+          </div>
         </Transition>
-      </Popover>
+      </div>
     </div>
   )
 }

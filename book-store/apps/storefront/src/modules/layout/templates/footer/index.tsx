@@ -103,9 +103,9 @@ export default async function Footer() {
           <div>
             <h2 className="footer-heading">פרטי הגוף המפעיל</h2>
             <address className="not-italic leading-7 text-[#d8d0c0]">
-              <span className="block">[שם משפטי של הגוף]</span>
-              <span className="block">[מספר חברה / עמותה / עוסק]</span>
-              <span className="block">[כתובת מלאה]</span>
+              <span className="block">מעשה רוקח בע&quot;מ</span>
+              <span className="block">ח.פ. 514692946</span>
+              <span className="block">דובר שלום 7, מיקוד: 9447607, ירושלים</span>
               <span className="block">[טלפון]</span>
               <span className="block">[אימייל]</span>
             </address>
@@ -125,7 +125,7 @@ export default async function Footer() {
         </div>
         <div className="flex flex-col gap-3 pt-7 text-xs text-[#bdb5a6] xsmall:flex-row xsmall:items-center xsmall:justify-between">
           <span>
-            © {new Date().getFullYear()} מכון מעשה רוקח. כל הזכויות שמורות.
+            © {new Date().getFullYear()} מכון מעשה רוקח. כל הזכויות שמורות. האתר מופעל על ידי מעשה רוקח בע&quot;מ.
           </span>
           <span>תורה · מחקר · מורשת</span>
         </div>

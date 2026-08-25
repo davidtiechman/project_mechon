@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Heebo } from "next/font/google"
 import { getBaseURL } from "@lib/util/env"
 import "../styles/globals.css"
+import AccessibilityMenu from "@modules/layout/components/accessibility-menu"
 
 const heebo = Heebo({
   subsets: ["hebrew", "latin"],
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
     default: "מכון מעשה רוקח",
     template: "%s | מכון מעשה רוקח",
   },
-  description: "ספרי קודש, סידורים תהילים והוצאה לאור מבית מכון מעשה רוקח",
+  description: "ספרי קודש, סידורים, תהילים והוצאה לאור מבית מכון מעשה רוקח",
   icons: {
     icon: "/images/institute-emblem-open-left.png",
   },
@@ -31,7 +32,13 @@ export default function MainLayout({
 }) {
   return (
     <html lang="he" dir="rtl">
-      <body className={heebo.variable}>{children}</body>
+      <body className={heebo.variable}>
+        <a href="#main-content" className="skip-link">
+          דלג לתוכן
+        </a>
+        {children}
+        <AccessibilityMenu />
+      </body>
     </html>
   )
 }

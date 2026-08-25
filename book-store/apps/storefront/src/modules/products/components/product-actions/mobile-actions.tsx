@@ -135,6 +135,7 @@ const MobileActions: React.FC<MobileActionsProps> = ({
       </div>
       <Transition appear show={state} as={Fragment}>
         <Dialog as="div" className="relative z-[75]" onClose={close}>
+          <Dialog.Title className="sr-only">בחירת אפשרויות מוצר</Dialog.Title>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -165,10 +166,12 @@ const MobileActions: React.FC<MobileActionsProps> = ({
                   <div className="w-full flex justify-end pr-6">
                     <button
                       onClick={close}
+                      type="button"
+                      aria-label="סגירת בחירת אפשרויות"
                       className="bg-white w-12 h-12 rounded-full text-ui-fg-base flex justify-center items-center"
                       data-testid="close-modal-button"
                     >
-                      <X />
+                      <span aria-hidden="true"><X /></span>
                     </button>
                   </div>
                   <div className="bg-white px-6 py-12">

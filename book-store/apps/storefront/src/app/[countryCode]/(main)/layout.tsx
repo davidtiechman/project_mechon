@@ -18,7 +18,7 @@ const layoutMetadata: Metadata = {
     default: "מכון מעשה רוקח",
     template: "%s | מכון מעשה רוקח",
   },
-  description: "ספרי קודשי סידור תהילים ביאורי החסידות והוצאה לאור מבית מכון מעשה רוקח",
+  description: "ספרי קודש, סידורים, תהילים, ביאורי חסידות והוצאה לאור מבית מכון מעשה רוקח",
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ countryCode: string }> }): Promise<Metadata> {
@@ -54,7 +54,9 @@ export default async function PageLayout(props: { children: React.ReactNode }) {
           shippingOptions={shippingOptions}
         />
       )}
-      {props.children}
+      <main id="main-content" tabIndex={-1}>
+        {props.children}
+      </main>
       <Footer />
     </>
   )

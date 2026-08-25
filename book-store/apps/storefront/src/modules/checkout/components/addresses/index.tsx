@@ -85,6 +85,8 @@ const Addresses = ({
       <div className="flex flex-row items-center justify-between mb-6">
         <Heading
           level="h2"
+          tabIndex={-1}
+          data-checkout-step-heading="address"
           className="flex flex-row text-3xl-regular gap-x-2 items-baseline"
         >
           פרטי משלוח

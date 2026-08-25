@@ -66,7 +66,7 @@ export default async function Home(props: {
   const articles = homeContent?.articles?.length ? homeContent.articles.map((article) => ({ title: article.title || "", excerpt: article.excerpt || "", date: article.published_at ? new Intl.DateTimeFormat("he-IL", { dateStyle: "long" }).format(new Date(article.published_at)) : "" })) : fallbackArticles
 
   return (
-    <main className="min-h-screen bg-[#f6f0e9]/80 text-[#352820] backdrop-blur-[1px]">
+    <div className="min-h-screen bg-[#f6f0e9]/80 text-[#352820] backdrop-blur-[1px]">
       <Hero eyebrow={hero?.subtitle} title={hero?.title} description={hero?.content} buttonText={hero?.data?.button_text} buttonUrl={hero?.data?.button_url} image={hero?.data?.desktop_image} />
       {homeContent?.banners.filter((banner) => banner.placement === "homepage_top").map((banner) => <ContentBanner banner={banner} key={banner.id} />)}
 
@@ -133,7 +133,7 @@ export default async function Home(props: {
             <span className="eyebrow">אודות המכון</span>
             <h2>ספרים שנכתבו בעמל,<br />למען הדורות הבאים</h2>
             <p>
-              מכון מעשה רוקח עוסק בהדרת תורות רבותינו מבעלזא, וכן ביצירת המופת סידור עבודת השם תהילים עבודת השם עם ביאור מבוסס פירוש רש״י וכן ביצירה המופלאה ביאורי חסידות על סדר הפרשיות ועוד המון הוצאות מפוארות
+              מכון מעשה רוקח עוסק בהדרת תורות רבותינו מבעלזא, וכן ביצירת המופת סידור עבודת השם, תהילים עבודת השם עם ביאור מבוסס פירוש רש״י, ביצירה המופלאה ביאורי חסידות על סדר הפרשיות ובעוד הוצאות מפוארות.
             </p>
             <LocalizedClientLink href="/store" className="brand-button inline-flex">
               היכרות עם ספרי המכון
@@ -162,6 +162,6 @@ export default async function Home(props: {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   )
 }

@@ -105,16 +105,16 @@ const EditAddress: React.FC<EditAddressProps> = ({
             onClick={open}
             data-testid="address-edit-button"
           >
-            <Edit />
-            Edit
+            <span aria-hidden="true"><Edit /></span>
+            עריכה
           </button>
           <button
             className="text-small-regular text-ui-fg-base flex items-center gap-x-2"
             onClick={removeAddress}
             data-testid="address-delete-button"
           >
-            {removing ? <Spinner /> : <Trash />}
-            Remove
+            <span aria-hidden="true">{removing ? <Spinner /> : <Trash />}</span>
+            הסרה
           </button>
         </div>
       </div>

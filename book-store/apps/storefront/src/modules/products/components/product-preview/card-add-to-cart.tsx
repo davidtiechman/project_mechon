@@ -37,6 +37,7 @@ export default function CardAddToCart({
   }
 
   return (
+    <>
     <button
       type="button"
       onClick={handleClick}
@@ -51,5 +52,9 @@ export default function CardAddToCart({
         {isAdding ? <Spinner className="animate-spin" /> : <ShoppingCart />}
       </span>
     </button>
+    <span className="sr-only" role="status" aria-live="polite">
+      {added ? "המוצר נוסף לסל" : ""}
+    </span>
+    </>
   )
 }

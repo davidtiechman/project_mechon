@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col gap-4 items-center justify-center min-h-[calc(100vh-64px)]">
+    <main id="main-content" tabIndex={-1} className="flex flex-col gap-4 items-center justify-center min-h-[calc(100vh-64px)]">
       <h1 className="text-2xl-semi text-ui-fg-base">העמוד לא נמצא</h1>
       <p className="text-small-regular text-ui-fg-base">
         העמוד שניסית להגיע אליו אינו קיים.
@@ -22,6 +22,6 @@ export default function NotFound() {
           color="var(--fg-interactive)"
         />
       </Link>
-    </div>
+    </main>
   )
 }

@@ -38,7 +38,7 @@ export default function EmailOtp({ setCurrentView }: { setCurrentView: (view: LO
       <ErrorMessage error={requestState?.state === "error" ? requestState.error : null} />
       <SubmitButton className="w-full mt-6">שליחת קוד</SubmitButton>
     </form> : <>
-      <p className="text-center mb-4">אם קיים חשבון עבור כתובת המייל הזו, נשלח אליו קוד כניסה. הקוד תקף ל־10 דקות.</p>
+      <p role="status" aria-live="polite" className="text-center mb-4">אם קיים חשבון עבור כתובת המייל הזו, נשלח אליו קוד כניסה. הקוד תקף ל־10 דקות.</p>
       <form action={loginAction} className="w-full">
         <input type="hidden" name="email" value={email} />
         <Input label="קוד בן 6 ספרות" name="code" inputMode="numeric" pattern="[0-9]{6}" autoComplete="one-time-code" required />

@@ -23,6 +23,7 @@ type ItemProps = {
 const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
   const [updating, setUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [announcement, setAnnouncement] = useState("")
 
   const changeQuantity = async (quantity: number) => {
     setError(null)
@@ -37,6 +38,7 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
       })
       .finally(() => {
         setUpdating(false)
+        setAnnouncement(`הכמות של ${item.product_title} עודכנה ל־${quantity}`)
       })
   }
 
@@ -58,6 +60,7 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
             thumbnail={item.thumbnail}
             images={item.variant?.product?.images}
             size="square"
+            alt={`תמונת ${item.product_title}`}
           />
         </LocalizedClientLink>
       </Table.Cell>
@@ -77,6 +80,7 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
           <div className="flex gap-2 items-center w-28">
             <DeleteButton id={item.id} data-testid="product-delete-button" />
             <CartItemSelect
+              aria-label={`כמות עבור ${item.product_title}`}
               value={item.quantity}
               onChange={(value) => changeQuantity(parseInt(value.target.value))}
               className="w-14 h-10 p-4"
@@ -99,6 +103,9 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
               </option>
             </CartItemSelect>
             {updating && <Spinner />}
+            <span className="sr-only" role="status" aria-live="polite">
+              {updating ? "מעדכנים כמות" : announcement}
+            </span>
           </div>
           <ErrorMessage error={error} data-testid="product-error-message" />
         </Table.Cell>

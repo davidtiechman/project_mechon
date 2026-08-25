@@ -150,10 +150,10 @@ function FreeShippingInline({
               <div className="flex items-center gap-1.5">
                 {" "}
                 <CheckCircleSolid className="text-green-500 inline-block" />{" "}
-                Free Shipping unlocked!
+                משלוח חינם הופעל!
               </div>
             ) : (
-              `Unlock Free Shipping`
+              `השלימו את הסכום למשלוח חינם`
             )}
           </div>
 
@@ -213,8 +213,9 @@ function FreeShippingPopup({
         <Button
           className="rounded-full bg-neutral-900 shadow-none outline-none border-none text-[15px] p-2"
           onClick={() => setIsClosed(true)}
+          aria-label="סגירת הודעת משלוח חינם"
         >
-          <XMark />
+          <span aria-hidden="true"><XMark /></span>
         </Button>
       </div>
 
@@ -226,10 +227,10 @@ function FreeShippingPopup({
                 {price.target_reached ? (
                   <div className="flex items-center gap-1.5">
                     <CheckCircleSolid className="text-green-500 inline-block" />{" "}
-                    Free Shipping unlocked!
+                    משלוח חינם הופעל!
                   </div>
                 ) : (
-                  `Unlock Free Shipping`
+                  `השלימו את הסכום למשלוח חינם`
                 )}
               </div>
 

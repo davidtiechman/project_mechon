@@ -57,7 +57,7 @@ const styles = {
 }
 
 function Layout({ preview, title, children }: { preview: string; title: string; children: ReactNode }) {
-  return <Html lang="he" dir="rtl"><Head /><Preview>{preview}</Preview><Body style={styles.body}><Container style={styles.card}><Heading style={styles.title}>מכון מעשה רוקח</Heading><Heading as="h2" style={{ ...styles.title, fontSize: "21px" }}>{title}</Heading>{children}<Hr style={{ borderColor: "#ddd3c5", marginTop: "26px" }} /><Text style={styles.muted}>מכון מעשה רוקח</Text></Container></Body></Html>
+  return <Html lang="he" dir="rtl"><Head /><Preview>{preview}</Preview><Body style={styles.body}><Container style={styles.card}><Heading style={styles.title}>מכון מעשה רוקח</Heading><Heading as="h2" style={{ ...styles.title, fontSize: "21px" }}>{title}</Heading>{children}<Hr style={{ borderColor: "#ddd3c5", marginTop: "26px" }} /><Text style={styles.muted}>מכון מעשה רוקח · מופעל על ידי מעשה רוקח בע"מ, ח.פ. 514692946</Text></Container></Body></Html>
 }
 
 function numberValue(value: unknown): number {

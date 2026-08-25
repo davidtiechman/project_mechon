@@ -176,6 +176,8 @@ const Shipping: React.FC<ShippingProps> = ({
       <div className="flex flex-row items-center justify-between mb-6">
         <Heading
           level="h2"
+          tabIndex={-1}
+          data-checkout-step-heading="delivery"
           className={clx(
             "flex flex-row text-3xl-regular gap-x-2 items-baseline",
             {
@@ -320,10 +322,10 @@ const Shipping: React.FC<ShippingProps> = ({
             <div className="grid">
               <div className="flex flex-col">
                 <span className="font-medium txt-medium text-ui-fg-base">
-                  Store
+                  נקודת איסוף
                 </span>
                 <span className="mb-4 text-ui-fg-muted txt-medium">
-                  Choose a store near you
+                  יש לבחור נקודת איסוף קרובה
                 </span>
               </div>
               <div data-testid="delivery-options-container">
@@ -417,7 +419,7 @@ const Shipping: React.FC<ShippingProps> = ({
             {cart && (cart.shipping_methods?.length ?? 0) > 0 && (
               <div className="flex flex-col w-1/3">
                 <Text className="txt-medium-plus text-ui-fg-base mb-1">
-                  Method
+                  שיטת משלוח
                 </Text>
                 <Text className="txt-medium text-ui-fg-subtle">
                   {cart.shipping_methods!.at(-1)!.name}{" "}

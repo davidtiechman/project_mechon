@@ -14,18 +14,19 @@ const ItemsTemplate = ({ cart }: ItemsTemplateProps) => {
   return (
     <div>
       <div className="pb-3 flex items-center">
-        <Heading className="text-[2rem] leading-[2.75rem]">סל הקניות</Heading>
+        <Heading level="h1" className="text-[2rem] leading-[2.75rem]">סל הקניות</Heading>
       </div>
       <Table>
+        <caption className="sr-only">פריטים בסל הקניות</caption>
         <Table.Header className="border-t-0">
           <Table.Row className="text-ui-fg-subtle txt-medium-plus">
-            <Table.HeaderCell className="!pr-0 text-right">פריט</Table.HeaderCell>
-            <Table.HeaderCell></Table.HeaderCell>
-            <Table.HeaderCell className="text-right">כמות</Table.HeaderCell>
-            <Table.HeaderCell className="hidden small:table-cell text-right">
+            <Table.HeaderCell scope="col" className="!pr-0 text-right">פריט</Table.HeaderCell>
+            <Table.HeaderCell scope="col"><span className="sr-only">פרטי המוצר</span></Table.HeaderCell>
+            <Table.HeaderCell scope="col" className="text-right">כמות</Table.HeaderCell>
+            <Table.HeaderCell scope="col" className="hidden small:table-cell text-right">
               מחיר
             </Table.HeaderCell>
-            <Table.HeaderCell className="!pl-0 text-right">
+            <Table.HeaderCell scope="col" className="!pl-0 text-right">
               סה״כ
             </Table.HeaderCell>
           </Table.Row>
