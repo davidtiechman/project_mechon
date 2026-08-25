@@ -23,7 +23,7 @@ export default function ContentPageTemplate({
   return (
     <div dir="rtl" className="min-h-[60vh] bg-[#faf6f1]">
       <header className="border-b border-[#ddcec0] bg-[#f8f1ea]">
-        <div className="content-container py-14 text-right small:py-20">
+        <div className="content-container py-14 text-right small:py-16">
           <h1 className="text-4xl font-normal text-[#4a2d21] small:text-5xl">
             {item.title || item.name}
           </h1>
@@ -46,7 +46,7 @@ export default function ContentPageTemplate({
       {(item.status === "draft" || containsPlaceholder) && (
         <aside
           role="status"
-          className="content-container mt-8 max-w-4xl border-2 border-amber-700 bg-amber-50 p-5 text-right text-amber-950"
+          className="content-container mt-8 max-w-4xl border-2 border-amber-700 bg-amber-50 p-5 text-right text-amber-950 small:max-w-5xl large:max-w-6xl"
         >
           <strong className="block">תוכן זה הוא טיוטה ואינו נוסח מאושר.</strong>
           <span>
@@ -56,7 +56,7 @@ export default function ContentPageTemplate({
       )}
       {item.content && !containsPlaceholder && (
         <article
-          className="content-container prose prose-lg max-w-4xl py-14 text-right"
+          className="content-page-body content-container prose prose-lg max-w-4xl py-14 text-right small:max-w-5xl small:py-10 large:max-w-6xl"
           dangerouslySetInnerHTML={{ __html: item.content }}
         />
       )}

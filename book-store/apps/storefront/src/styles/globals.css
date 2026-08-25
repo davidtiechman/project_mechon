@@ -193,6 +193,22 @@ body {
     @apply max-w-[1440px] w-full mx-auto px-6;
   }
 
+  @media (min-width: 1024px) {
+    .content-page-body h2 {
+      color: #4a2d21;
+      font-size: 1.875rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .content-page-body h3 {
+      color: #4a2d21;
+      font-size: 1.5rem;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+  }
+
   .brand-lockup {
     @apply flex items-center gap-3 shrink-0;
   }

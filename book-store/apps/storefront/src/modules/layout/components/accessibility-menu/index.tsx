@@ -104,12 +104,26 @@ export default function AccessibilityMenu() {
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-5 left-5 z-[70] flex h-12 w-12 items-center justify-center rounded-full border border-[#d8bf86] bg-[#2d1c16] text-white shadow-lg transition-colors hover:bg-[#4a2d21] focus-visible:ring-2 focus-visible:ring-[#8a682d] focus-visible:ring-offset-2"
+        className="fixed bottom-5 left-5 z-[70] flex h-[52px] w-[52px] items-center justify-center rounded-full border-2 border-[#d8bf86] bg-[#2d1c16] text-[#f8f2e6] shadow-[0_6px_20px_rgba(45,28,22,0.28)] transition-colors hover:bg-[#4a2d21] focus-visible:ring-2 focus-visible:ring-[#8a682d] focus-visible:ring-offset-2"
         data-testid="accessibility-menu-button"
       >
-        <svg aria-hidden="true" viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <circle cx="12" cy="4" r="2" />
-          <path d="M5 8.5c4.7 1.7 9.3 1.7 14 0M12 7v13M8.5 21l3.5-7 3.5 7" strokeLinecap="round" strokeLinejoin="round" />
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 32 32"
+          width="30"
+          height="30"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="16" cy="16" r="13" />
+          <circle cx="16" cy="9" r="2" fill="currentColor" stroke="none" />
+          <path d="M9.5 13.2c4.3 1.5 8.7 1.5 13 0" />
+          <path d="M16 13.8v5.1" />
+          <path d="m16 18.2-4.5 7" />
+          <path d="m16 18.2 4.5 7" />
         </svg>
       </button>
 
