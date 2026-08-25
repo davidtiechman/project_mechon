@@ -36,12 +36,6 @@ export const privatePageRobots: Metadata["robots"] = {
   follow: true,
 }
 
-export const nonIndexablePageSlugs = new Set([
-  "terms",
-  "privacy",
-  "cancellations",
-])
-
 export function metadataDescription(
   ...values: Array<string | null | undefined>
 ) {

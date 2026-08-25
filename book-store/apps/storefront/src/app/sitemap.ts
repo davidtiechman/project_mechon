@@ -2,11 +2,8 @@ import { listCollections } from "@lib/data/collections"
 import { listProducts } from "@lib/data/products"
 import { listContent } from "@lib/data/site-content"
 import { getBaseURL } from "@lib/util/env"
-import {
-  getIndexableLocales,
-  localizedPath,
-  nonIndexablePageSlugs,
-} from "@lib/util/seo"
+import { legalPageSlugs } from "@lib/legal-content"
+import { getIndexableLocales, localizedPath } from "@lib/util/seo"
 import type { MetadataRoute } from "next"
 
 export const dynamic = "force-dynamic"
@@ -53,10 +50,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           collection.handle ? [`collections/${collection.handle}`] : [],
         ),
         ...pages.flatMap((item) =>
-          item.slug && !nonIndexablePageSlugs.has(item.slug)
-            ? [`pages/${item.slug}`]
-            : [],
+          item.slug ? [`pages/${item.slug}`] : [],
         ),
+        ...legalPageSlugs.map((slug) => `pages/${slug}`),
         ...brands.flatMap((item) => (item.slug ? [`brands/${item.slug}`] : [])),
         ...articles.flatMap((item) =>
           item.slug ? [`articles/${item.slug}`] : [],

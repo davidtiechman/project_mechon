@@ -86,14 +86,14 @@ const Register = ({ setCurrentView }: Props) => {
         <span className="text-center text-ui-fg-base text-small-regular mt-6">
           בפתיחת חשבון הנך מסכים/ה ל
           <LocalizedClientLink
-            href="/content/privacy-policy"
+            href="/pages/privacy"
             className="underline"
           >
             מדיניות הפרטיות
           </LocalizedClientLink>{" "}
           ול
           <LocalizedClientLink
-            href="/content/terms-of-use"
+            href="/pages/terms"
             className="underline"
           >
             תנאי השימוש

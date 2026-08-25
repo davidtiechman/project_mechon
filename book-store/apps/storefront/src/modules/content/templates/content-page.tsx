@@ -15,9 +15,12 @@ export default function ContentPageTemplate({
   region?: HttpTypes.StoreRegion
   children?: ReactNode
 }) {
+  const content = item.content
+    ?.replace(/<h1(\s[^>]*)?>/gi, "<h2$1>")
+    .replace(/<\/h1>/gi, "</h2>")
   const containsPlaceholder =
     /\[[^\]]+\]|תוכן זמני|נוסח זמני|להשלמה|יש להשלים|יש להחליף/.test(
-      `${item.excerpt || ""} ${item.content || ""}`,
+      `${item.excerpt || ""} ${content || ""}`,
     )
 
   return (
@@ -54,10 +57,10 @@ export default function ContentPageTemplate({
           </span>
         </aside>
       )}
-      {item.content && !containsPlaceholder && (
+      {content && !containsPlaceholder && (
         <article
           className="content-page-body content-container prose prose-lg max-w-4xl py-14 text-right small:max-w-5xl small:py-10 large:max-w-6xl"
-          dangerouslySetInnerHTML={{ __html: item.content }}
+          dangerouslySetInnerHTML={{ __html: content }}
         />
       )}
       {children}

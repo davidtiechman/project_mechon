@@ -66,6 +66,21 @@ export default async function Footer() {
             <h2 className="footer-heading">מידע ושירות</h2>
             <ul className="footer-links">
               <li>
+                <LocalizedClientLink href="/pages/shipping">
+                  משלוחים ואיסוף עצמי
+                </LocalizedClientLink>
+              </li>
+              <li>
+                <LocalizedClientLink href="/pages/cancellations">
+                  ביטולים והחזרות
+                </LocalizedClientLink>
+              </li>
+              <li>
+                <LocalizedClientLink href="/pages/contact">
+                  צור קשר
+                </LocalizedClientLink>
+              </li>
+              <li>
                 <LocalizedClientLink href="/pages/terms">
                   תקנון ותנאי רכישה
                 </LocalizedClientLink>
@@ -76,36 +91,18 @@ export default async function Footer() {
                 </LocalizedClientLink>
               </li>
               <li>
-                <LocalizedClientLink href="/pages/cancellations">
-                  ביטולים והחזרות
-                </LocalizedClientLink>
-              </li>
-              <li>
-                <LocalizedClientLink href="/pages/shipping">
-                  משלוחים ואיסוף עצמי
-                </LocalizedClientLink>
-              </li>
-              <li>
                 <LocalizedClientLink href="/pages/accessibility">
                   הצהרת נגישות
                 </LocalizedClientLink>
               </li>
-              <li>
-                <LocalizedClientLink href="/pages/contact">
-                  צור קשר
-                </LocalizedClientLink>
-              </li>
-              <li>
-                <LocalizedClientLink href="/#about">אודות</LocalizedClientLink>
-              </li>
             </ul>
           </div>
           <div>
-            <h2 className="footer-heading">פרטי הגוף המפעיל</h2>
+            <h2 className="footer-heading">פרטי התקשרות</h2>
             <address className="not-italic leading-7 text-[#d8d0c0]">
-              <span className="block">מעשה רוקח בע&quot;מ</span>
+              <span className="block">מעשה רוקח בע״מ</span>
               <span className="block">ח.פ. 514692946</span>
-              <span className="block">דובר שלום 7, מיקוד: 9447607, ירושלים</span>
+              <span className="block">דובר שלום 7 מיקוד: 9447607 ירושלים</span>
               <span className="block">[טלפון]</span>
               <span className="block">[אימייל]</span>
             </address>
@@ -125,7 +122,7 @@ export default async function Footer() {
         </div>
         <div className="flex flex-col gap-3 pt-7 text-xs text-[#bdb5a6] xsmall:flex-row xsmall:items-center xsmall:justify-between">
           <span>
-            © {new Date().getFullYear()} מכון מעשה רוקח. כל הזכויות שמורות. האתר מופעל על ידי מעשה רוקח בע&quot;מ.
+            © {new Date().getFullYear()} מכון מעשה רוקח. כל הזכויות שמורות. האתר מופעל על ידי מעשה רוקח בע״מ.
           </span>
           <span>תורה · מחקר · מורשת</span>
         </div>

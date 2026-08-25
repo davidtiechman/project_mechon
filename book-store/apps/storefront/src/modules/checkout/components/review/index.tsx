@@ -64,6 +64,13 @@ const Review = ({ cart }: { cart: HttpTypes.StoreCart }) => {
                 >
                   מדיניות הביטולים
                 </LocalizedClientLink>
+                ו־
+                <LocalizedClientLink
+                  className="underline"
+                  href="/pages/shipping"
+                >
+                  מידע על משלוחים ואיסוף עצמי
+                </LocalizedClientLink>
                 .
               </Text>
               {/* ניתן להוסיף כאן checkbox נפרד להסכמה משפטית לאחר אישור הנוסח. */}
