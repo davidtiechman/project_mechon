@@ -31,6 +31,15 @@ export type OtpAuthState =
   | { state: "success" }
   | null
 
+const authErrorMessage = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error ?? "")
+  if (/invalid email or password/i.test(message)) return "כתובת הדוא״ל או הסיסמה שגויות."
+  if (/identity with email already exists/i.test(message)) return "כבר קיים חשבון עם כתובת הדוא״ל הזו."
+  if (/invalid email/i.test(message)) return "יש להזין כתובת דוא״ל תקינה."
+  if (/password should be a string/i.test(message)) return "יש להזין סיסמה תקינה."
+  return "אירעה שגיאה. נא לנסות שוב."
+}
+
 // Requests a verification email for the given customer. The request must be
 // authenticated with a token tied to the auth identity (the token returned by
 // register or by a login that requires verification).
@@ -120,7 +129,7 @@ export async function signup(
       fetchError.statusText !== "Unauthorized" ||
       fetchError.message !== "Identity with email already exists"
     ) {
-      return { state: "error", error: String(error) }
+      return { state: "error", error: authErrorMessage(error) }
     }
   }
 
@@ -156,7 +165,7 @@ export async function requestEmailOtp(
     })
     return { state: "code_sent", email }
   } catch (error) {
-    return { state: "error", error: String(error) }
+    return { state: "error", error: authErrorMessage(error) }
   }
 }
 
@@ -169,7 +178,7 @@ export async function loginWithEmailOtp(
   try {
     const result = await sdk.auth.login("customer", "emailotp", { email, code })
     if (typeof result !== "string") {
-      return { state: "error", error: "Authentication requires an unsupported additional step." }
+      return { state: "error", error: "ההתחברות דורשת שלב אימות נוסף שאינו נתמך כרגע." }
     }
     await setAuthToken(result)
     const customerCacheTag = await getCacheTag("customers")
@@ -177,7 +186,7 @@ export async function loginWithEmailOtp(
     await transferCart()
     return { state: "success" }
   } catch (error) {
-    return { state: "error", error: String(error) }
+    return { state: "error", error: authErrorMessage(error) }
   }
 }
 
@@ -236,7 +245,7 @@ async function completeLogin(
   try {
     result = await sdk.auth.login("customer", "emailpass", { email, password })
   } catch (error) {
-    return { state: "error", error: String(error) }
+    return { state: "error", error: authErrorMessage(error) }
   }
 
   // A `location` is returned by third-party auth providers, which this flow
@@ -244,7 +253,7 @@ async function completeLogin(
   if (typeof result === "object" && "location" in result) {
     return {
       state: "error",
-      error: "This login method isn't supported by the storefront.",
+      error: "שיטת התחברות זו אינה נתמכת באתר.",
     }
   }
 
@@ -266,7 +275,7 @@ async function completeLogin(
   if (typeof result !== "string") {
     return {
       state: "error",
-      error: "Authentication requires additional steps that aren't supported.",
+      error: "ההתחברות דורשת שלבי אימות נוספים שאינם נתמכים כרגע.",
     }
   }
 
@@ -433,7 +442,7 @@ export const updateCustomerAddress = async (
     (currentState.addressId as string) || (formData.get("addressId") as string)
 
   if (!addressId) {
-    return { success: false, error: "Address ID is required" }
+    return { success: false, error: "חסר מזהה כתובת" }
   }
 
   const address = {

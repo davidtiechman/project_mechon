@@ -30,7 +30,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
       </div>
       <div className="flex items-center divide-x divide-gray-200 text-small-regular text-ui-fg-base">
         <span className="pr-2" data-testid="order-created-at">
-          {new Date(order.created_at).toDateString()}
+          {new Intl.DateTimeFormat("he-IL", { dateStyle: "medium" }).format(new Date(order.created_at))}
         </span>
         <span className="px-2" data-testid="order-amount">
           {convertToLocale({
@@ -38,9 +38,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
             currency_code: order.currency_code,
           })}
         </span>
-        <span className="pl-2">{`${numberOfLines} ${
-          numberOfLines > 1 ? "items" : "item"
-        }`}</span>
+        <span className="pl-2">{`${numberOfLines} ${numberOfLines === 1 ? "פריט" : "פריטים"}`}</span>
       </div>
       <div className="grid grid-cols-2 small:grid-cols-4 gap-4 my-4">
         {order.items?.slice(0, 3).map((i) => {
@@ -76,7 +74,7 @@ const OrderCard = ({ order }: OrderCardProps) => {
       <div className="flex justify-end">
         <LocalizedClientLink href={`/account/orders/details/${order.id}`}>
           <Button data-testid="order-details-link" variant="secondary">
-            See details
+            פרטי ההזמנה
           </Button>
         </LocalizedClientLink>
       </div>

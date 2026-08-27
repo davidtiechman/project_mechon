@@ -16,6 +16,17 @@ type InputProps = Omit<
   error?: string | null
 }
 
+const validationMessage = (input: HTMLInputElement) => {
+  if (input.validity.valueMissing) return "יש למלא שדה זה."
+  if (input.validity.typeMismatch && input.type === "email") return "יש להזין כתובת דוא״ל תקינה."
+  if (input.validity.patternMismatch) return "הערך שהוזן אינו בתבנית הנדרשת."
+  if (input.validity.tooShort) return `יש להזין לפחות ${input.minLength} תווים.`
+  if (input.validity.tooLong) return `ניתן להזין עד ${input.maxLength} תווים.`
+  if (input.validity.rangeUnderflow) return `הערך המינימלי הוא ${input.min}.`
+  if (input.validity.rangeOverflow) return `הערך המרבי הוא ${input.max}.`
+  return input.validity.valid ? "" : "יש לבדוק את הערך שהוזן."
+}
+
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     { type, name, label, errors: _errors, touched: _touched, required, topLabel, error, onInvalid, onInput, "aria-describedby": ariaDescribedBy, "aria-invalid": ariaInvalid, ...props },
@@ -60,16 +71,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             aria-invalid={displayedError ? true : ariaInvalid}
             aria-describedby={describedBy}
             onInvalid={(event) => {
+              event.preventDefault()
               onInvalid?.(event)
-              setNativeError(event.currentTarget.validationMessage)
+              setNativeError(validationMessage(event.currentTarget))
             }}
             onInput={(event) => {
               onInput?.(event)
-              setNativeError(
-                event.currentTarget.validity.valid
-                  ? ""
-                  : event.currentTarget.validationMessage,
-              )
+              setNativeError(validationMessage(event.currentTarget))
             }}
             className="pt-4 pb-1 block w-full h-11 px-4 mt-0 bg-ui-bg-field border rounded-md appearance-none focus:outline-none focus:ring-0 focus:shadow-borders-interactive-with-active border-ui-border-base hover:bg-ui-bg-field-hover"
             {...props}

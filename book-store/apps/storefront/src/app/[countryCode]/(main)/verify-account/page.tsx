@@ -16,7 +16,7 @@ export default function VerifyAccountPage() {
       <Suspense
         fallback={
           <p className="text-base-regular text-ui-fg-base">
-            Verifying your email...
+            מאמתים את כתובת הדוא״ל…
           </p>
         }
       >

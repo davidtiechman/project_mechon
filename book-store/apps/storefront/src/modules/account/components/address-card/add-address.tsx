@@ -151,7 +151,7 @@ const AddAddress = ({
                 className="h-10"
                 data-testid="cancel-button"
               >
-                Cancel
+                ביטול
               </Button>
               <SubmitButton data-testid="save-button">שמירה</SubmitButton>
             </div>

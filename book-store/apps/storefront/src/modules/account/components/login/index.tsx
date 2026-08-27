@@ -19,7 +19,7 @@ const Login = ({ setCurrentView }: Props) => {
       className="max-w-sm w-full flex flex-col items-center"
       data-testid="login-page"
     >
-      <h1 className="text-large-semi mb-6">ברוכים השבים</h1>
+      <h1 className="text-large-semi mb-6">ברוכים הבאים</h1>
       <p className="text-center text-base-regular text-ui-fg-base mb-8">
         התחברו לחשבון כדי ליהנות מחוויית קנייה אישית ונוחה יותר.
       </p>
