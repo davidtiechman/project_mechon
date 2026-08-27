@@ -9,14 +9,15 @@ import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
 import Image from "next/image"
 import InstituteProjectsMenu from "@modules/layout/components/institute-projects-menu"
-import { listContent } from "@lib/data/site-content"
+import { getActiveCatalog, listContent } from "@lib/data/site-content"
 
 export default async function Nav() {
-  const [regions, locales, currentLocale, brands] = await Promise.all([
+  const [regions, locales, currentLocale, brands, catalog] = await Promise.all([
     listRegions().then((regions: StoreRegion[]) => regions),
     listLocales(),
     getLocale(),
     listContent("brands"),
+    getActiveCatalog(),
   ])
 
   return (
@@ -45,7 +46,7 @@ export default async function Nav() {
                 <small>ספרי קודש ומחקר תורני</small>
               </span>
             </LocalizedClientLink>
-            <div className="hidden small:flex items-center gap-4 h-full">
+            <div className="hidden large:flex items-center gap-4 h-full">
               <LocalizedClientLink href="/store" className="nav-link">
                 חנות הספרים
               </LocalizedClientLink>
@@ -65,20 +66,26 @@ export default async function Nav() {
               <LocalizedClientLink href="/#articles" className="nav-link">
                 מאמרים
               </LocalizedClientLink>
+              {catalog ? <a href={catalog.file_url} download={catalog.file_name} className="rounded-md border border-[#8a6f4d] px-3 py-2 font-medium transition-colors hover:bg-[#8a6f4d] hover:text-white">
+                קטלוג להורדה
+              </a> : <span aria-disabled="true" title="הקטלוג יעלה בקרוב" className="cursor-not-allowed rounded-md border border-[#cbbba8] px-3 py-2 text-[#8d8275] opacity-70">
+                הקטלוג יעלה בקרוב
+              </span>}
             </div>
           </div>
 
           <div className="flex items-center gap-5 h-full">
-            <div className="small:hidden h-full flex items-center">
+            <div className="large:hidden h-full flex items-center">
               <div className="h-full">
                 <SideMenu
                   regions={regions}
                   locales={locales}
                   currentLocale={currentLocale}
+                  catalog={catalog}
                 />
               </div>
             </div>
-            <div className="hidden small:flex items-center h-full">
+            <div className="hidden large:flex items-center h-full">
               <LocalizedClientLink
                 className="nav-link"
                 href="/account"

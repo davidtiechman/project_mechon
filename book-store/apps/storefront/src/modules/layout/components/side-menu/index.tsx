@@ -11,6 +11,7 @@ import CountrySelect from "../country-select"
 import LanguageSelect from "../language-select"
 import { Locale } from "@lib/data/locales"
 import { instituteProjects } from "@lib/data/institute-projects"
+import { ActiveCatalog } from "@lib/data/site-content"
 
 
 const SideMenuItems = {
@@ -24,9 +25,10 @@ type SideMenuProps = {
   regions: HttpTypes.StoreRegion[] | null
   locales: Locale[] | null
   currentLocale: string | null
+  catalog: ActiveCatalog | null
 }
 
-const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
+const SideMenu = ({ regions, locales, currentLocale, catalog }: SideMenuProps) => {
   const countryToggleState = useToggleState()
   const languageToggleState = useToggleState()
 
@@ -64,7 +66,7 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                 leaveFrom="opacity-100 backdrop-blur-2xl"
                 leaveTo="opacity-0"
               >
-                <PopoverPanel className="flex flex-col absolute w-full pr-4 sm:pr-0 sm:w-1/3 2xl:w-1/4 sm:min-w-min h-[calc(100vh-1rem)] z-[51] inset-x-0 text-sm text-ui-fg-on-color m-2 backdrop-blur-2xl">
+                <PopoverPanel className="absolute inset-x-0 z-[51] m-2 flex h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-sm flex-col text-sm text-ui-fg-on-color backdrop-blur-2xl sm:inset-x-auto sm:start-0">
                   <div
                     data-testid="nav-menu-popup"
                     className="flex flex-col h-full bg-[rgba(3,7,18,0.5)] rounded-rounded justify-between p-6"
@@ -74,7 +76,7 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                         <span aria-hidden="true"><XMark /></span>
                       </button>
                     </div>
-                    <ul className="flex flex-col gap-6 items-start justify-start">
+                    <ul className="flex min-h-0 flex-col items-start justify-start gap-6 overflow-y-auto py-2">
                       {Object.entries(SideMenuItems).map(([name, href]) => {
                         return (
                           <li key={name}>
@@ -100,6 +102,9 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                           </LocalizedClientLink>
                         </li>
                       ))}
+                      <li>
+                        {catalog ? <a href={catalog.file_url} download={catalog.file_name} onClick={close} className="inline-flex max-w-full whitespace-normal rounded-md border border-white/70 px-4 py-2 text-center text-xl hover:bg-white hover:text-[#3b352a]">קטלוג להורדה</a> : <span aria-disabled="true" className="inline-flex max-w-full cursor-not-allowed whitespace-normal rounded-md border border-white/40 px-4 py-2 text-center text-xl opacity-60">הקטלוג יעלה בקרוב</span>}
+                      </li>
                     </ul>
                     <div className="flex flex-col gap-y-6">
                       {!!locales?.length && (

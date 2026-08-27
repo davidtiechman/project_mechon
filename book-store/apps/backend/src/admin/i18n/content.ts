@@ -63,3 +63,6 @@ export const siteContentHe = {
   sections: { home: "דף הבית", pages: "דפים", brands: "מותגים / סדרות", articles: "מאמרים", banners: "באנרים", navigation: "תפריטים", faq: "שאלות ותשובות", footer: "פוטר", seo: "SEO", settings: "הגדרות" },
   metrics: { pages: "דפים", brands: "מותגים", articles: "מאמרים", drafts: "טיוטות" },
 }
+
+Object.assign(siteContentEn.sections, { catalog: "Catalog" })
+Object.assign(siteContentHe.sections, { catalog: "קטלוג" })

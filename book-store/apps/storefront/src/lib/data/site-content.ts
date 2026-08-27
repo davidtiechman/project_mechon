@@ -20,8 +20,21 @@ export type SeoFields = { seo_title?: string; seo_description?: string; canonica
 export type ContentBanner = { id: string; title?: string; subtitle?: string; desktop_image?: string; mobile_image?: string; image_alt?: string; button_text?: string; button_url?: string; open_new_tab?: boolean; placement: "homepage_top" | "homepage_middle" | "products" | "articles" | "global"; sort_order?: number }
 export type ContentItem = { id: string; title?: string; name?: string; slug?: string; excerpt?: string; short_description?: string; content?: string; status?: string; featured_image?: string; hero_image?: string; image_alt?: string; author?: string; published_at?: string; seo?: SeoFields; products?: Array<{ id: string; handle: string; title: string; thumbnail?: string }> }
 export type HomeContent = { sections: Array<Record<string, any>>; articles: ContentItem[]; brands: ContentItem[]; banners: ContentBanner[] }
+export type ActiveCatalog = { file_url: string; file_name: string; updated_at: string }
 
 export const getHomeContent = () => getContent<HomeContent>("/home")
 export const getBanners = async (placement: ContentBanner["placement"]) => (await getContent<{ items: ContentBanner[] }>(`/banners?placement=${placement}&limit=20`))?.items || []
 export const listContent = async (entity: "pages" | "brands" | "articles") => (await getContent<{ items: ContentItem[] }>(`/${entity}?limit=100`))?.items || []
 export const getContentItem = async (entity: "pages" | "brands" | "articles", slug: string) => (await getContent<{ item: ContentItem }>(`/${entity}/${encodeURIComponent(slug)}`))?.item || null
+export async function getActiveCatalog(): Promise<ActiveCatalog | null> {
+  try {
+    const response = await fetch(`${backendUrl}/store/site-content/catalog`, {
+      headers: publishableKey ? { "x-publishable-api-key": publishableKey } : undefined,
+      cache: "no-store",
+    })
+    if (!response.ok) return null
+    return ((await response.json()) as { catalog: ActiveCatalog | null }).catalog
+  } catch {
+    return null
+  }
+}

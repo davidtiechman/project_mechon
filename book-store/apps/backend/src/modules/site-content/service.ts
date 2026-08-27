@@ -2,6 +2,7 @@ import { MedusaService } from "@medusajs/framework/utils"
 import Article from "./models/article"
 import Banner from "./models/banner"
 import Brand from "./models/brand"
+import Catalog from "./models/catalog"
 import ContentPage from "./models/content-page"
 import ContentSection from "./models/content-section"
 import FaqItem from "./models/faq-item"
@@ -15,6 +16,7 @@ class SiteContentModuleService extends MedusaService({
   Article,
   Banner,
   Brand,
+  Catalog,
   ContentPage,
   ContentSection,
   FaqItem,

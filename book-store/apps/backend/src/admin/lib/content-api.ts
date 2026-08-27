@@ -19,3 +19,16 @@ export async function uploadContentImage(file: File): Promise<string> {
   const data = await response.json()
   return data.files?.[0]?.url
 }
+
+export type UploadedContentFile = { id: string; url: string }
+
+export async function uploadContentFile(file: File): Promise<UploadedContentFile> {
+  const form = new FormData()
+  form.append("files", file)
+  const response = await fetch("/admin/uploads", { method: "POST", credentials: "include", body: form })
+  if (!response.ok) throw new Error("Upload failed")
+  const data = await response.json()
+  const uploaded = data.files?.[0]
+  if (!uploaded?.id || !uploaded?.url) throw new Error("Upload response was incomplete")
+  return uploaded
+}

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { contentApi } from "../../lib/content-api"
 
-const destinations = ["home", "pages", "brands", "articles", "banners", "navigation", "faq", "footer", "seo", "settings"]
+const destinations = ["home", "pages", "brands", "articles", "banners", "navigation", "faq", "footer", "catalog", "seo", "settings"]
 
 const SiteContentDashboard = () => {
   const { t, i18n } = useTranslation()
