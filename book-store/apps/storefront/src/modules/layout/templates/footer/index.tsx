@@ -13,8 +13,8 @@ export default async function Footer() {
 
   return (
     <footer className="bg-[#2d1c16] text-[#f4ebe0]" dir="rtl">
-      <div className="content-container py-14 small:py-20">
-        <div className="grid gap-12 border-b border-white/15 pb-12 small:grid-cols-2 medium:grid-cols-3 large:grid-cols-[1.3fr_1fr_1fr_1fr_1fr]">
+      <div className="content-container pb-2 pt-10 small:pt-14">
+        <div className="grid gap-8 border-b border-white/15 pb-8 small:grid-cols-2 medium:grid-cols-3 large:grid-cols-[1.3fr_1fr_1fr_1fr_1fr]">
           <div className="max-w-md">
             <LocalizedClientLink
               href="/"
@@ -120,11 +120,11 @@ export default async function Footer() {
             </ul>
           </div>
         </div>
-        <div className="flex flex-col gap-3 pt-7 text-xs text-[#bdb5a6] xsmall:flex-row xsmall:items-center xsmall:justify-between">
+        <div className="flex flex-col gap-2 pt-4 text-xs text-[#bdb5a6] xsmall:flex-row xsmall:items-center xsmall:justify-between">
           <span>
-            © {new Date().getFullYear()} מכון מעשה רוקח. כל הזכויות שמורות. האתר מופעל על ידי מעשה רוקח בע״מ.
+            © {new Date().getFullYear()} מכון מעשה רוקח. כל הזכויות שמורות.
           </span>
-          <span>תורה · מחקר · מורשת</span>
+          <span>תורה · תפילה · חסידות</span>
         </div>
       </div>
     </footer>
