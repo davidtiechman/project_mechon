@@ -103,7 +103,7 @@ const SideMenu = ({ regions, locales, currentLocale, catalog }: SideMenuProps) =
                         </li>
                       ))}
                       <li>
-                        {catalog ? <a href={catalog.file_url} download={catalog.file_name} onClick={close} className="inline-flex max-w-full whitespace-normal rounded-md border border-white/70 px-4 py-2 text-center text-xl hover:bg-white hover:text-[#3b352a]">קטלוג להורדה</a> : <span aria-disabled="true" className="inline-flex max-w-full cursor-not-allowed whitespace-normal rounded-md border border-white/40 px-4 py-2 text-center text-xl opacity-60">הקטלוג יעלה בקרוב</span>}
+                        {catalog ? <a href="/api/catalog/download" download={catalog.file_name} onClick={close} className="inline-flex max-w-full whitespace-normal rounded-md border border-white/70 px-4 py-2 text-center text-xl hover:bg-white hover:text-[#3b352a]">קטלוג להורדה</a> : <span aria-disabled="true" className="inline-flex max-w-full cursor-not-allowed whitespace-normal rounded-md border border-white/40 px-4 py-2 text-center text-xl opacity-60">הקטלוג יעלה בקרוב</span>}
                       </li>
                     </ul>
                     <div className="flex flex-col gap-y-6">

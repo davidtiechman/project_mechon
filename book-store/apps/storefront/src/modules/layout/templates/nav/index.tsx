@@ -66,7 +66,7 @@ export default async function Nav() {
               <LocalizedClientLink href="/#articles" className="nav-link">
                 מאמרים
               </LocalizedClientLink>
-              {catalog ? <a href={catalog.file_url} download={catalog.file_name} className="rounded-md border border-[#8a6f4d] px-3 py-2 font-medium transition-colors hover:bg-[#8a6f4d] hover:text-white">
+              {catalog ? <a href="/api/catalog/download" download={catalog.file_name} className="rounded-md border border-[#8a6f4d] px-3 py-2 font-medium transition-colors hover:bg-[#8a6f4d] hover:text-white">
                 קטלוג להורדה
               </a> : <span aria-disabled="true" title="הקטלוג יעלה בקרוב" className="cursor-not-allowed rounded-md border border-[#cbbba8] px-3 py-2 text-[#8d8275] opacity-70">
                 הקטלוג יעלה בקרוב
