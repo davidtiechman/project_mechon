@@ -1,5 +1,5 @@
 "use client"
-import { setAddresses } from "@lib/data/cart"
+import { selectSavedCustomerAddress, setAddresses } from "@lib/data/cart"
 import useToggleState from "@lib/hooks/use-toggle-state"
 import compareAddresses from "@lib/util/compare-addresses"
 import { CheckCircleSolid } from "@medusajs/icons"
@@ -17,6 +17,7 @@ import BillingAddress from "../billing_address"
 import ErrorMessage from "../error-message"
 import ShippingAddress from "../shipping-address"
 import { SubmitButton } from "../submit-button"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 const Addresses = ({
   cart,
@@ -80,6 +81,13 @@ const Addresses = ({
 
   const [message, formAction] = useActionState(setAddresses, null)
 
+  const handleSavedAddressSelected = async (
+    address: HttpTypes.StoreCustomerAddress
+  ) => {
+    await selectSavedCustomerAddress(address.id, sameAsBilling)
+    router.refresh()
+  }
+
   return (
     <div className="bg-white">
       <div className="flex flex-row items-center justify-between mb-6">
@@ -109,11 +117,23 @@ const Addresses = ({
           <div className="pb-8">
             {!customer && (
               <>
+                <p className="mb-3 text-center text-small-regular text-ui-fg-subtle">
+                  כבר יש לכם חשבון?{" "}
+                  <LocalizedClientLink
+                    href={`/account?return_to=${encodeURIComponent(`${pathname}?step=address`)}`}
+                    className="font-medium text-ui-fg-interactive underline"
+                  >
+                    התחברו
+                  </LocalizedClientLink>
+                </p>
                 <GoogleAuthButton
-                  label="כניסה עם Google"
+                  label="המשך עם Google"
                   preserveCheckoutDraft
                 />
                 <AuthDivider />
+                <p className="mb-6 text-center text-small-regular text-ui-fg-subtle">
+                  אפשר להמשיך כאורחים ללא הרשמה.
+                </p>
               </>
             )}
             <ShippingAddress
@@ -122,13 +142,18 @@ const Addresses = ({
               oauthDraft={oauthDraft?.values}
               checked={sameAsBilling}
               onChange={toggleSameAsBilling}
+              onSavedAddressSelected={handleSavedAddressSelected}
             />
             {!sameAsBilling && (
               <div>
                 <Heading level="h2" className="text-3xl-regular pb-6 pt-8">
                   כתובת לחיוב
                 </Heading>
-                <BillingAddress cart={cart} oauthDraft={oauthDraft?.values} />
+                <BillingAddress
+                  cart={cart}
+                  customer={customer}
+                  oauthDraft={oauthDraft?.values}
+                />
               </div>
             )}
             <SubmitButton className="mt-6" data-testid="submit-address-button">
@@ -189,6 +214,15 @@ const Addresses = ({
               </div>
             )}
           </div>
+          {!customer && (
+            <div className="mt-6 rounded-lg border border-ui-border-base bg-ui-bg-subtle p-5">
+              <Text className="mb-3 text-center text-small-regular text-ui-fg-subtle">
+                רוצים לשמור את השם, הטלפון והכתובות לפעם הבאה? ההרשמה אינה
+                נדרשת להמשך הרכישה.
+              </Text>
+              <GoogleAuthButton label="שמירת הפרטים באמצעות Google" />
+            </div>
+          )}
         </div>
       )}
       <Divider className="mt-8" />

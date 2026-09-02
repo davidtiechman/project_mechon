@@ -5,21 +5,29 @@ import CountrySelect from "../country-select"
 
 const BillingAddress = ({
   cart,
+  customer,
   oauthDraft,
 }: {
   cart: HttpTypes.StoreCart | null
+  customer: HttpTypes.StoreCustomer | null
   oauthDraft?: Record<string, string>
 }) => {
+  const defaultBillingAddress =
+    customer?.addresses?.find((address) => address.is_default_billing) ||
+    customer?.addresses?.[0]
+  const initialBillingAddress = cart?.billing_address?.address_1
+    ? cart.billing_address
+    : defaultBillingAddress
   const [formData, setFormData] = useState<Record<string, string>>({
-    "billing_address.first_name": cart?.billing_address?.first_name || "",
-    "billing_address.last_name": cart?.billing_address?.last_name || "",
-    "billing_address.address_1": cart?.billing_address?.address_1 || "",
-    "billing_address.company": cart?.billing_address?.company || "",
-    "billing_address.postal_code": cart?.billing_address?.postal_code || "",
-    "billing_address.city": cart?.billing_address?.city || "",
-    "billing_address.country_code": cart?.billing_address?.country_code || "",
-    "billing_address.province": cart?.billing_address?.province || "",
-    "billing_address.phone": cart?.billing_address?.phone || "",
+    "billing_address.first_name": initialBillingAddress?.first_name || customer?.first_name || "",
+    "billing_address.last_name": initialBillingAddress?.last_name || customer?.last_name || "",
+    "billing_address.address_1": initialBillingAddress?.address_1 || "",
+    "billing_address.company": initialBillingAddress?.company || "",
+    "billing_address.postal_code": initialBillingAddress?.postal_code || "",
+    "billing_address.city": initialBillingAddress?.city || "",
+    "billing_address.country_code": initialBillingAddress?.country_code || "",
+    "billing_address.province": initialBillingAddress?.province || "",
+    "billing_address.phone": initialBillingAddress?.phone || customer?.phone || "",
   })
 
   useEffect(() => {

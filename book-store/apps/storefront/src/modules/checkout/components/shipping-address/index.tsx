@@ -3,7 +3,7 @@ import Checkbox from "@modules/common/components/checkbox"
 import { Container } from "@modules/common/components/ui"
 import Input from "@modules/common/components/input"
 import { mapKeys } from "lodash"
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import AddressSelect from "../address-select"
 import CountrySelect from "../country-select"
 import type { IsraeliCity, IsraeliStreet } from "@lib/israel-addresses"
@@ -20,40 +20,64 @@ const ShippingAddress = ({
   checked,
   onChange,
   oauthDraft,
+  onSavedAddressSelected,
 }: {
   customer: HttpTypes.StoreCustomer | null
   cart: HttpTypes.StoreCart | null
   checked: boolean
   onChange: () => void
   oauthDraft?: Record<string, string>
+  onSavedAddressSelected?: (
+    address: HttpTypes.StoreCustomerAddress
+  ) => Promise<void>
 }) => {
-  const addressMetadata = (cart?.shipping_address?.metadata || {}) as Record<
+  const defaultCustomerAddress =
+    customer?.addresses?.find((address) => address.is_default_shipping) ||
+    customer?.addresses?.[0]
+  const initialAddress = cart?.shipping_address?.address_1
+    ? cart.shipping_address
+    : defaultCustomerAddress
+  const addressMetadata = (initialAddress?.metadata || {}) as Record<
     string,
     unknown
   >
+  const splitAddress = (address?: HttpTypes.StoreCartAddress | HttpTypes.StoreCustomerAddress) => {
+    const metadata = (address?.metadata || {}) as Record<string, unknown>
+    if (metadata.street || metadata.house_number) {
+      return {
+        street: String(metadata.street || address?.address_1 || ""),
+        houseNumber: String(metadata.house_number || ""),
+      }
+    }
+
+    const raw = String(address?.address_1 || "").trim()
+    const match = raw.match(/^(.*?)[,\s]+(\d+[\p{L}\d\/-]*)$/u)
+    return match
+      ? { street: match[1].trim(), houseNumber: match[2].trim() }
+      : { street: raw, houseNumber: "" }
+  }
+  const initialStreet = splitAddress(initialAddress)
   const [formData, setFormData] = useState<Record<string, string>>({
     "shipping_address.first_name":
-      cart?.shipping_address?.first_name || customer?.first_name || "",
+      initialAddress?.first_name || customer?.first_name || "",
     "shipping_address.last_name":
-      cart?.shipping_address?.last_name || customer?.last_name || "",
+      initialAddress?.last_name || customer?.last_name || "",
     "shipping_address.street":
-      String(addressMetadata.street || "") ||
-      cart?.shipping_address?.address_1 ||
-      "",
-    "shipping_address.house_number": String(addressMetadata.house_number || ""),
+      initialStreet.street,
+    "shipping_address.house_number": initialStreet.houseNumber,
     "shipping_address.apartment": String(addressMetadata.apartment || ""),
     "shipping_address.floor": String(addressMetadata.floor || ""),
     "shipping_address.delivery_notes": String(
       addressMetadata.delivery_notes || "",
     ),
-    "shipping_address.postal_code": cart?.shipping_address?.postal_code || "",
-    "shipping_address.city": cart?.shipping_address?.city || "",
+    "shipping_address.postal_code": initialAddress?.postal_code || "",
+    "shipping_address.city": initialAddress?.city || "",
     "shipping_address.country_code":
-      cart?.shipping_address?.country_code ||
+      initialAddress?.country_code ||
       cart?.region?.countries?.[0]?.iso_2 ||
       "",
-    "shipping_address.province": cart?.shipping_address?.province || "",
-    "shipping_address.phone": cart?.shipping_address?.phone || "",
+    "shipping_address.province": initialAddress?.province || "",
+    "shipping_address.phone": initialAddress?.phone || customer?.phone || "",
     email: cart?.email || "",
   })
   const [cities, setCities] = useState<IsraeliCity[]>([])
@@ -62,6 +86,8 @@ const ShippingAddress = ({
   const [streetCode, setStreetCode] = useState("")
   const [streetsLoading, setStreetsLoading] = useState(false)
   const [manualStreet, setManualStreet] = useState(false)
+  const cityInputRef = useRef<HTMLInputElement>(null)
+  const streetInputRef = useRef<HTMLInputElement>(null)
 
   const countriesInRegion = useMemo(
     () => cart?.region?.countries?.map((c) => c.iso_2),
@@ -82,10 +108,11 @@ const ShippingAddress = ({
   )
 
   const setFormAddress = (
-    address?: HttpTypes.StoreCartAddress,
+    address?: HttpTypes.StoreCartAddress | HttpTypes.StoreCustomerAddress,
     email?: string,
   ) => {
     if (address) {
+      const parts = splitAddress(address)
       setFormData((prevState: Record<string, string>) => ({
         ...prevState,
         "shipping_address.first_name":
@@ -93,9 +120,9 @@ const ShippingAddress = ({
         "shipping_address.last_name":
           address?.last_name || customer?.last_name || "",
         "shipping_address.street":
-          String(address?.metadata?.street || "") || address?.address_1 || "",
+          parts.street,
         "shipping_address.house_number": String(
-          address?.metadata?.house_number || "",
+          parts.houseNumber,
         ),
         "shipping_address.apartment": String(
           address?.metadata?.apartment || "",
@@ -108,7 +135,7 @@ const ShippingAddress = ({
         "shipping_address.city": address?.city || "",
         "shipping_address.country_code": address?.country_code || "",
         "shipping_address.province": address?.province || "",
-        "shipping_address.phone": address?.phone || "",
+        "shipping_address.phone": address?.phone || customer?.phone || "",
       }))
     }
 
@@ -278,7 +305,12 @@ const ShippingAddress = ({
                 key.replace("shipping_address.", ""),
               ) as unknown as HttpTypes.StoreCartAddress
             }
-            onSelect={setFormAddress}
+            onSelect={async (address) => {
+              setFormAddress(address, customer.email)
+              cityInputRef.current?.setCustomValidity("")
+              streetInputRef.current?.setCustomValidity("")
+              if (address) await onSavedAddressSelected?.(address)
+            }}
           />
         </Container>
       )}
@@ -303,6 +335,7 @@ const ShippingAddress = ({
         />
         <div>
           <Input
+            ref={cityInputRef}
             label="עיר"
             name="shipping_address.city"
             list={selectedCountry === "il" ? "israeli-cities" : undefined}
@@ -331,6 +364,7 @@ const ShippingAddress = ({
         </div>
         <div className="flex flex-col gap-1">
           <Input
+            ref={streetInputRef}
             label={streetsLoading ? "טוען רחובות..." : "רחוב"}
             name="shipping_address.street"
             list={

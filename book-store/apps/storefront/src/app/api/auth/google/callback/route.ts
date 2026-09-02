@@ -2,6 +2,7 @@ import Medusa, { FetchError } from "@medusajs/js-sdk"
 import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { getCacheTag } from "@lib/data/cookies"
+import { safeReturnPath } from "@lib/util/safe-return-path"
 
 const RETURN_COOKIE = "_google_oauth_return_to"
 
@@ -11,6 +12,7 @@ type GoogleTokenPayload = {
     email?: string
     given_name?: string
     family_name?: string
+    email_verified?: boolean
   }
 }
 
@@ -19,11 +21,6 @@ const decodeTokenPayload = (token: string): GoogleTokenPayload => {
   if (!payload) throw new Error("Invalid authentication token")
   return JSON.parse(Buffer.from(payload, "base64url").toString("utf8"))
 }
-
-const safeReturnPath = (value: string | undefined) =>
-  value?.startsWith("/") && !value.startsWith("//") && value.length <= 2048
-    ? value
-    : "/il/account"
 
 const authHeaders = (token: string) => ({
   authorization: `Bearer ${token}`,
@@ -58,6 +55,9 @@ export async function GET(request: NextRequest) {
     )
     let token = callback.token
     const payload = decodeTokenPayload(token)
+    if (payload.user_metadata?.email_verified === false) {
+      throw new Error("Google did not verify the email address")
+    }
 
     if (!payload.actor_id) {
       try {
@@ -125,6 +125,34 @@ export async function GET(request: NextRequest) {
       await sdk.store.cart
         .transferCart(cartId, {}, authHeaders(token))
         .catch(() => undefined)
+      await sdk.client
+        .fetch("/store/customers/me/checkout-profile", {
+          method: "POST",
+          headers: authHeaders(token),
+          body: { source_type: "cart", source_id: cartId },
+          cache: "no-store",
+        })
+        .catch(() => undefined)
+    }
+
+    const confirmedOrder = returnTo.match(/\/order\/([^/?#]+)\/confirmed/)
+    if (confirmedOrder?.[1]) {
+      const orderId = decodeURIComponent(confirmedOrder[1])
+      const synced = await sdk.client
+        .fetch("/store/customers/me/checkout-profile", {
+          method: "POST",
+          headers: authHeaders(token),
+          body: { source_type: "order", source_id: orderId },
+          cache: "no-store",
+        })
+        .then(() => true)
+        .catch(() => false)
+
+      if (synced) {
+        await sdk.store.order
+          .requestTransfer(orderId, {}, {}, authHeaders(token))
+          .catch(() => undefined)
+      }
     }
 
     const customerCacheTag = await getCacheTag("customers")

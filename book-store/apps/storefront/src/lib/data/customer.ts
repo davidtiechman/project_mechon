@@ -77,7 +77,7 @@ export const retrieveCustomer =
       .fetch<{ customer: HttpTypes.StoreCustomer }>(`/store/customers/me`, {
         method: "GET",
         query: {
-          fields: "*orders",
+          fields: "*orders,*addresses",
         },
         headers,
         next,
@@ -101,6 +101,29 @@ export const updateCustomer = async (body: HttpTypes.StoreUpdateCustomer) => {
   revalidateTag(cacheTag)
 
   return updateRes
+}
+
+export async function syncCheckoutProfile(
+  sourceType: "cart" | "order",
+  sourceId: string
+) {
+  const headers = await getAuthHeaders()
+  if (!("authorization" in headers)) return null
+
+  const result = await sdk.client.fetch<{
+    success: boolean
+    addresses_created: number
+    addresses_reused: number
+  }>("/store/customers/me/checkout-profile", {
+    method: "POST",
+    headers,
+    body: { source_type: sourceType, source_id: sourceId },
+    cache: "no-store",
+  })
+
+  const customerCacheTag = await getCacheTag("customers")
+  if (customerCacheTag) revalidateTag(customerCacheTag)
+  return result
 }
 
 export async function signup(

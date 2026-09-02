@@ -6,10 +6,13 @@ import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import Input from "@modules/common/components/input"
 import { useActionState, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
+import { safeReturnPath } from "@lib/util/safe-return-path"
 
 export default function EmailOtp({ setCurrentView }: { setCurrentView: (view: LOGIN_VIEW) => void }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnTo = safeReturnPath(searchParams.get("return_to"), "/il/account")
   const [requestState, requestAction] = useActionState(requestEmailOtp, null)
   const [loginState, loginAction] = useActionState(loginWithEmailOtp, null)
   const [email, setEmail] = useState("")
@@ -27,8 +30,8 @@ export default function EmailOtp({ setCurrentView }: { setCurrentView: (view: LO
     return () => window.clearInterval(timer)
   }, [remaining])
   useEffect(() => {
-    if (loginState?.state === "success") router.refresh()
-  }, [loginState, router])
+    if (loginState?.state === "success") router.replace(returnTo)
+  }, [loginState, returnTo, router])
 
   const codeSent = requestState?.state === "code_sent"
   return <div className="max-w-sm w-full flex flex-col items-center">

@@ -30,11 +30,19 @@ const getVerifiedGoogleEmailStep = createStep(
       (identity) => identity.provider === "google"
     )
     const email = googleIdentity?.user_metadata?.email
+    const emailVerified = googleIdentity?.user_metadata?.email_verified
 
     if (typeof email !== "string" || !email) {
       throw new MedusaError(
         MedusaError.Types.INVALID_DATA,
         "Couldn't determine the verified Google identity email."
+      )
+    }
+
+    if (emailVerified === false) {
+      throw new MedusaError(
+        MedusaError.Types.UNAUTHORIZED,
+        "Google did not verify this email address."
       )
     }
 

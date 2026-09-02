@@ -3,7 +3,9 @@ import { LOGIN_VIEW } from "@modules/account/templates/login-template"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import Input from "@modules/common/components/input"
-import { useActionState } from "react"
+import { useActionState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { safeReturnPath } from "@lib/util/safe-return-path"
 import AuthDivider from "../auth-divider"
 import GoogleAuthButton from "../google-auth-button"
 
@@ -13,6 +15,13 @@ type Props = {
 
 const Login = ({ setCurrentView }: Props) => {
   const [message, formAction] = useActionState(login, null)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnTo = safeReturnPath(searchParams.get("return_to"), "/il/account")
+
+  useEffect(() => {
+    if (message?.state === "success") router.replace(returnTo)
+  }, [message, returnTo, router])
 
   return (
     <div
@@ -35,6 +44,7 @@ const Login = ({ setCurrentView }: Props) => {
       <GoogleAuthButton label="כניסה באמצעות Google" />
       <AuthDivider />
       <form className="w-full" action={formAction}>
+        <input type="hidden" name="return_to" value={returnTo} />
         <div className="flex flex-col w-full gap-y-2">
           <Input
             label="דוא״ל"

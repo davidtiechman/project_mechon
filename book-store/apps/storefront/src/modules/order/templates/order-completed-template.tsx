@@ -9,6 +9,8 @@ import OrderDetails from "@modules/order/components/order-details"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import PaymentDetails from "@modules/order/components/payment-details"
 import { HttpTypes } from "@medusajs/types"
+import { retrieveCustomer } from "@lib/data/customer"
+import GoogleAuthButton from "@modules/account/components/google-auth-button"
 
 type OrderCompletedTemplateProps = {
   order: HttpTypes.StoreOrder
@@ -18,6 +20,7 @@ export default async function OrderCompletedTemplate({
   order,
 }: OrderCompletedTemplateProps) {
   const cookies = await nextCookies()
+  const customer = await retrieveCustomer()
 
   const isOnboarding = cookies.get("_medusa_onboarding")?.value === "true"
 
@@ -37,6 +40,15 @@ export default async function OrderCompletedTemplate({
             <span>ההזמנה התקבלה בהצלחה.</span>
           </Heading>
           <OrderDetails order={order} />
+          {!customer && (
+            <div className="rounded-lg border border-ui-border-base bg-ui-bg-subtle p-5">
+              <p className="mb-3 text-center text-small-regular text-ui-fg-subtle">
+                רוצים לשמור את פרטי ההזמנה והכתובת לפעם הבאה? אפשר לפתוח או
+                לקשר חשבון באמצעות Google. ההזמנה כבר הושלמה ואינה תלויה בכך.
+              </p>
+              <GoogleAuthButton label="שמירת הפרטים באמצעות Google" />
+            </div>
+          )}
           <Heading level="h2" className="flex flex-row text-3xl-regular">
             סיכום ההזמנה
           </Heading>

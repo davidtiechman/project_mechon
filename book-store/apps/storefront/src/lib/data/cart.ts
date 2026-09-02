@@ -440,6 +440,22 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
       }
     }
     await updateCart(data)
+
+    const authHeaders = await getAuthHeaders()
+    if ("authorization" in authHeaders) {
+      await sdk.client
+        .fetch("/store/customers/me/checkout-profile", {
+          method: "POST",
+          headers: authHeaders,
+          body: { source_type: "cart", source_id: cartId },
+          cache: "no-store",
+        })
+        .then(async () => {
+          const customerCacheTag = await getCacheTag("customers")
+          if (customerCacheTag) revalidateTag(customerCacheTag)
+        })
+        .catch(() => undefined)
+    }
   } catch (e: any) {
     return e.message
   }
@@ -447,6 +463,45 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
   redirect(
     `/${String(formData.get("shipping_address.country_code")).toLowerCase()}/checkout?step=delivery`,
   )
+}
+
+export async function selectSavedCustomerAddress(
+  addressId: string,
+  sameAsBilling: boolean
+) {
+  const headers = await getAuthHeaders()
+  if (!("authorization" in headers)) {
+    throw new Error("יש להתחבר כדי לבחור כתובת שמורה")
+  }
+
+  const { customer } = await sdk.store.customer.retrieve(
+    { fields: "*addresses" },
+    headers
+  )
+  const address = customer.addresses?.find((item) => item.id === addressId)
+  if (!address) throw new Error("הכתובת השמורה לא נמצאה")
+
+  const cartAddress = {
+    first_name: address.first_name,
+    last_name: address.last_name,
+    company: address.company,
+    address_1: address.address_1,
+    address_2: address.address_2,
+    city: address.city,
+    postal_code: address.postal_code,
+    province: address.province,
+    country_code: address.country_code,
+    phone: address.phone || customer.phone,
+    metadata: address.metadata,
+  }
+
+  await updateCart({
+    email: customer.email,
+    shipping_address: cartAddress,
+    ...(sameAsBilling ? { billing_address: cartAddress } : {}),
+  })
+
+  return { success: true }
 }
 
 /**

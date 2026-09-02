@@ -1,6 +1,8 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { safeReturnPath } from "@lib/util/safe-return-path"
 import Input from "@modules/common/components/input"
 import { LOGIN_VIEW } from "@modules/account/templates/login-template"
 import ErrorMessage from "@modules/checkout/components/error-message"
@@ -16,6 +18,13 @@ type Props = {
 
 const Register = ({ setCurrentView }: Props) => {
   const [message, formAction] = useActionState(signup, null)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnTo = safeReturnPath(searchParams.get("return_to"), "/il/account")
+
+  useEffect(() => {
+    if (message?.state === "success") router.replace(returnTo)
+  }, [message, returnTo, router])
 
   return (
     <div

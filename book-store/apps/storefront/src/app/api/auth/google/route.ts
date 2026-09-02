@@ -1,12 +1,8 @@
 import Medusa from "@medusajs/js-sdk"
 import { NextRequest, NextResponse } from "next/server"
+import { safeReturnPath } from "@lib/util/safe-return-path"
 
 const RETURN_COOKIE = "_google_oauth_return_to"
-
-const safeReturnPath = (value: string | null) =>
-  value?.startsWith("/") && !value.startsWith("//") && value.length <= 2048
-    ? value
-    : "/il/account"
 
 export async function GET(request: NextRequest) {
   const sdk = new Medusa({

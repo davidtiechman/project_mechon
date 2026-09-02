@@ -2,6 +2,7 @@
 
 import { usePathname, useSearchParams } from "next/navigation"
 import Google from "@modules/common/icons/google"
+import { safeReturnPath } from "@lib/util/safe-return-path"
 
 const CHECKOUT_DRAFT_KEY = "checkout_google_oauth_draft"
 
@@ -18,7 +19,10 @@ const GoogleAuthButton = ({
   const startGoogleLogin = () => {
     const nextParams = new URLSearchParams(searchParams.toString())
     nextParams.delete("google_auth_error")
-    const returnTo = `${pathname}${nextParams.size ? `?${nextParams}` : ""}`
+    const requestedReturnTo = searchParams.get("return_to")
+    nextParams.delete("return_to")
+    const currentPath = `${pathname}${nextParams.size ? `?${nextParams}` : ""}`
+    const returnTo = safeReturnPath(requestedReturnTo, currentPath)
 
     if (preserveCheckoutDraft) {
       const form = document.querySelector<HTMLFormElement>(

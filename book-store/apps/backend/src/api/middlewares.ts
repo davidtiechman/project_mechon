@@ -16,6 +16,17 @@ export default defineMiddlewares({
       ],
     },
     {
+      matcher: "/store/customers/me/checkout-profile",
+      method: "POST",
+      middlewares: [
+        authenticate("customer", ["bearer"]),
+        validateAndTransformBody(z.object({
+          source_type: z.enum(["cart", "order"]),
+          source_id: z.string().min(1),
+        })),
+      ],
+    },
+    {
       matcher: "/store/customers/me/password",
       method: "POST",
       middlewares: [validateAndTransformBody(z.object({

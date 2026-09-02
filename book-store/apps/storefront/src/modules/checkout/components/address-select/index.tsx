@@ -11,9 +11,9 @@ type AddressSelectProps = {
   addresses: HttpTypes.StoreCustomerAddress[]
   addressInput: HttpTypes.StoreCartAddress | null
   onSelect: (
-    address: HttpTypes.StoreCartAddress | undefined,
+    address: HttpTypes.StoreCustomerAddress | undefined,
     email?: string
-  ) => void
+  ) => void | Promise<void>
 }
 
 const AddressSelect = ({
@@ -21,10 +21,10 @@ const AddressSelect = ({
   addressInput,
   onSelect,
 }: AddressSelectProps) => {
-  const handleSelect = (id: string) => {
+  const handleSelect = async (id: string) => {
     const savedAddress = addresses.find((a) => a.id === id)
     if (savedAddress) {
-      onSelect(savedAddress as HttpTypes.StoreCartAddress)
+      await onSelect(savedAddress)
     }
   }
 
