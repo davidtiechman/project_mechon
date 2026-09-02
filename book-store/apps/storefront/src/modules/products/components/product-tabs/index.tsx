@@ -62,13 +62,13 @@ const ProductInfoTab = ({ product }: ProductTabsProps) => {
         <div className="flex flex-col gap-y-4">
           <div>
             <span className="font-semibold">משקל</span>
-            <p>{product.weight ? `${product.weight} g` : "-"}</p>
+            <p>{product.weight ? `${product.weight} גרם` : "-"}</p>
           </div>
           <div>
             <span className="font-semibold">מידות</span>
             <p>
               {product.length && product.width && product.height
-                ? `${product.length}L x ${product.width}W x ${product.height}H`
+                ? `${product.length} × ${product.width} × ${product.height}`
                 : "-"}
             </p>
           </div>
@@ -87,8 +87,8 @@ const ShippingInfoTab = () => {
           <div>
             <span className="font-semibold">משלוח מהיר</span>
             <p className="max-w-sm">
-              Your package will arrive in 3-5 business days at your pick up
-              location or in the comfort of your home.
+              ההזמנה תגיע בתוך 3–5 ימי עסקים לנקודת האיסוף שבחרתם או עד
+              הבית, בהתאם לשיטת המשלוח.
             </p>
           </div>
         </div>
@@ -97,8 +97,7 @@ const ShippingInfoTab = () => {
           <div>
             <span className="font-semibold">החלפה פשוטה</span>
             <p className="max-w-sm">
-              Is the fit not quite right? No worries - we&apos;ll exchange your
-              product for a new one.
+              ניתן להחליף את המוצר בקלות בהתאם למדיניות ההחלפות שלנו.
             </p>
           </div>
         </div>
@@ -107,9 +106,8 @@ const ShippingInfoTab = () => {
           <div>
             <span className="font-semibold">החזרה קלה</span>
             <p className="max-w-sm">
-              Just return your product and we&apos;ll refund your money. No
-              questions asked – we&apos;ll do our best to make sure your return
-              is hassle-free.
+              ניתן להחזיר את המוצר ולקבל החזר כספי בהתאם למדיניות הביטולים
+              וההחזרות שלנו.
             </p>
           </div>
         </div>

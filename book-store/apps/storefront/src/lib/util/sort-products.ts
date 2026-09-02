@@ -1,8 +1,45 @@
 import { HttpTypes } from "@medusajs/types"
-import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
+import type { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 
-interface MinPricedProduct extends HttpTypes.StoreProduct {
-  _minPrice?: number
+export const getProductSortPrice = (
+  product: HttpTypes.StoreProduct
+): number | null => {
+  const prices = (product.variants || [])
+    .map((variant) => variant.calculated_price?.calculated_amount)
+    .filter(
+      (price): price is number =>
+        typeof price === "number" && Number.isFinite(price) && price >= 0
+    )
+
+  return prices.length ? Math.min(...prices) : null
+}
+
+const compareIds = (
+  a: HttpTypes.StoreProduct,
+  b: HttpTypes.StoreProduct
+) => a.id.localeCompare(b.id)
+
+const getCreatedAt = (product: HttpTypes.StoreProduct) => {
+  const timestamp = product.created_at
+    ? new Date(product.created_at).getTime()
+    : 0
+
+  return Number.isFinite(timestamp) ? timestamp : 0
+}
+
+const comparePrices = (
+  a: HttpTypes.StoreProduct,
+  b: HttpTypes.StoreProduct,
+  direction: "asc" | "desc"
+) => {
+  const aPrice = getProductSortPrice(a)
+  const bPrice = getProductSortPrice(b)
+
+  if (aPrice === null && bPrice === null) return 0
+  if (aPrice === null) return 1
+  if (bPrice === null) return -1
+
+  return direction === "asc" ? aPrice - bPrice : bPrice - aPrice
 }
 
 /**
@@ -15,36 +52,24 @@ export function sortProducts(
   products: HttpTypes.StoreProduct[],
   sortBy: SortOptions
 ): HttpTypes.StoreProduct[] {
-  const sortedProducts = products as MinPricedProduct[]
+  return [...products].sort((a, b) => {
+    const createdDiff = getCreatedAt(b) - getCreatedAt(a)
+    const priceAscDiff = comparePrices(a, b, "asc")
 
-  if (["price_asc", "price_desc"].includes(sortBy)) {
-    // Precompute the minimum price for each product
-    sortedProducts.forEach((product) => {
-      if (product.variants && product.variants.length > 0) {
-        product._minPrice = Math.min(
-          ...product.variants.map(
-            (variant) => variant?.calculated_price?.calculated_amount || 0
-          )
-        )
-      } else {
-        product._minPrice = Infinity
-      }
-    })
+    if (sortBy === "created_at") {
+      return createdDiff || priceAscDiff || compareIds(a, b)
+    }
 
-    // Sort products based on the precomputed minimum prices
-    sortedProducts.sort((a, b) => {
-      const diff = a._minPrice! - b._minPrice!
-      return sortBy === "price_asc" ? diff : -diff
-    })
-  }
+    if (sortBy === "created_at_asc") {
+      return -createdDiff || priceAscDiff || compareIds(a, b)
+    }
 
-  if (sortBy === "created_at") {
-    sortedProducts.sort((a, b) => {
-      return (
-        new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime()
-      )
-    })
-  }
+    const priceDiff = comparePrices(
+      a,
+      b,
+      sortBy === "price_asc" ? "asc" : "desc"
+    )
 
-  return sortedProducts
+    return priceDiff || createdDiff || compareIds(a, b)
+  })
 }

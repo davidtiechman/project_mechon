@@ -6,7 +6,7 @@ import Thumbnail from "../thumbnail"
 import PreviewPrice from "./price"
 import CardAddToCart from "./card-add-to-cart"
 
-export default async function ProductPreview({
+export default function ProductPreview({
   product,
   isFeatured,
   region: _region,

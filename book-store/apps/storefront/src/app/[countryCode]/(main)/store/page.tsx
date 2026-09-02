@@ -18,6 +18,7 @@ export async function generateMetadata({ params }: Pick<Params, "params">): Prom
 type StorePageSearchParams = Record<string, string | string[] | undefined> & {
   sortBy?: SortOptions
   page?: string
+  search?: string
   optionValueIds?: string | string[]
 }
 
@@ -31,7 +32,7 @@ type Params = {
 export default async function StorePage(props: Params) {
   const params = await props.params;
   const searchParams = await props.searchParams;
-  const { sortBy, page } = searchParams
+  const { sortBy, page, search } = searchParams
   const optionValueIds = parseOptionValueIds(searchParams)
 
   return (
@@ -40,6 +41,7 @@ export default async function StorePage(props: Params) {
       page={page}
       countryCode={params.countryCode}
       optionValueIds={optionValueIds}
+      search={typeof search === "string" ? search : ""}
     />
   )
 }

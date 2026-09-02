@@ -1,0 +1,4 @@
+export const STORE_PRODUCT_FETCH_LIMIT = 100
+export const PRODUCTS_PER_PAGE = 12
+export const DEFAULT_STORE_SEARCH_DEBOUNCE_MS = 350
+

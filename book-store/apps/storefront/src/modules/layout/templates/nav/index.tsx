@@ -10,14 +10,17 @@ import SideMenu from "@modules/layout/components/side-menu"
 import Image from "next/image"
 import InstituteProjectsMenu from "@modules/layout/components/institute-projects-menu"
 import { getActiveCatalog, listContent } from "@lib/data/site-content"
+import { getYearCycleMenu } from "@lib/data/categories"
+import YearCycleMenu from "@modules/layout/components/year-cycle-menu"
 
 export default async function Nav() {
-  const [regions, locales, currentLocale, brands, catalog] = await Promise.all([
+  const [regions, locales, currentLocale, brands, catalog, yearCycleMenu] = await Promise.all([
     listRegions().then((regions: StoreRegion[]) => regions),
     listLocales(),
     getLocale(),
     listContent("brands"),
     getActiveCatalog(),
+    getYearCycleMenu(),
   ])
 
   return (
@@ -60,6 +63,7 @@ export default async function Nav() {
                     : undefined
                 }
               />
+              {yearCycleMenu && <YearCycleMenu menu={yearCycleMenu} />}
               <LocalizedClientLink href="/#about" className="nav-link">
                 אודות
               </LocalizedClientLink>
@@ -82,6 +86,7 @@ export default async function Nav() {
                   locales={locales}
                   currentLocale={currentLocale}
                   catalog={catalog}
+                  yearCycleMenu={yearCycleMenu}
                 />
               </div>
             </div>

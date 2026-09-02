@@ -4,8 +4,7 @@ import { OptionValueIds } from "@lib/util/product-option-filters"
 import ProductPreview from "@modules/products/components/product-preview"
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
-
-const PRODUCT_LIMIT = 12
+import { PRODUCTS_PER_PAGE } from "@lib/constants/store"
 
 type PaginatedProductsParams = {
   limit: number
@@ -33,7 +32,7 @@ export default async function PaginatedProducts({
   optionValueIds?: OptionValueIds
 }) {
   const queryParams: PaginatedProductsParams = {
-    limit: 12,
+    limit: PRODUCTS_PER_PAGE,
   }
 
   if (collectionId) {
@@ -68,7 +67,7 @@ export default async function PaginatedProducts({
     optionValueIds,
   })
 
-  const totalPages = Math.ceil(count / PRODUCT_LIMIT)
+  const totalPages = Math.ceil(count / PRODUCTS_PER_PAGE)
 
   return (
     <>

@@ -7,6 +7,10 @@ import { HttpTypes } from "@medusajs/types"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import { getAuthHeaders, getCacheOptions } from "./cookies"
 import { getRegion, retrieveRegion } from "./regions"
+import {
+  PRODUCTS_PER_PAGE,
+  STORE_PRODUCT_FETCH_LIMIT,
+} from "@lib/constants/store"
 
 type ProductListQueryParams = (HttpTypes.FindParams &
   HttpTypes.StoreProductListParams) & {
@@ -33,7 +37,7 @@ export const listProducts = async ({
     throw new Error("Country code or region ID is required")
   }
 
-  const limit = queryParams?.limit || 12
+  const limit = queryParams?.limit || PRODUCTS_PER_PAGE
   const _pageParam = Math.max(pageParam, 1)
   const offset = _pageParam === 1 ? 0 : (_pageParam - 1) * limit
 
@@ -120,7 +124,7 @@ export const listProductsWithSort = async ({
   nextPage: number | null
   queryParams?: ProductListQueryParams
 }> => {
-  const limit = queryParams?.limit || 12
+  const limit = queryParams?.limit || PRODUCTS_PER_PAGE
   const optionFilters = Array.from(
     new Set((optionValueIds || []).filter(Boolean))
   )
@@ -132,7 +136,7 @@ export const listProductsWithSort = async ({
     queryParams: {
       ...queryParams,
       ...(optionFilters.length ? { option_value_id: optionFilters } : {}),
-      limit: 100,
+      limit: STORE_PRODUCT_FETCH_LIMIT,
     },
     countryCode,
   })

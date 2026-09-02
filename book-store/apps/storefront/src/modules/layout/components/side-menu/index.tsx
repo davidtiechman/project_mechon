@@ -12,6 +12,7 @@ import LanguageSelect from "../language-select"
 import { Locale } from "@lib/data/locales"
 import { instituteProjects } from "@lib/data/institute-projects"
 import { ActiveCatalog } from "@lib/data/site-content"
+import type { YearCycleMenuNode } from "@lib/data/categories"
 
 
 const SideMenuItems = {
@@ -26,9 +27,42 @@ type SideMenuProps = {
   locales: Locale[] | null
   currentLocale: string | null
   catalog: ActiveCatalog | null
+  yearCycleMenu: YearCycleMenuNode | null
 }
 
-const SideMenu = ({ regions, locales, currentLocale, catalog }: SideMenuProps) => {
+const MobileMenuBranch = ({
+  node,
+  close,
+}: {
+  node: YearCycleMenuNode
+  close: () => void
+}) => (
+  <li className="border-r border-white/30 pr-3">
+    <details>
+      <summary className="cursor-pointer list-none py-1 text-xl font-medium marker:hidden">
+        {node.name}
+      </summary>
+      <ul className="mt-2 space-y-3 pr-3">
+        {node.children.map((child) => (
+          <MobileMenuBranch key={child.id} node={child} close={close} />
+        ))}
+        {node.products.map((product) => (
+          <li key={product.id}>
+            <LocalizedClientLink
+              href={`/products/${product.handle}`}
+              className="block text-lg text-white/85 hover:text-white"
+              onClick={close}
+            >
+              {product.title}
+            </LocalizedClientLink>
+          </li>
+        ))}
+      </ul>
+    </details>
+  </li>
+)
+
+const SideMenu = ({ regions, locales, currentLocale, catalog, yearCycleMenu }: SideMenuProps) => {
   const countryToggleState = useToggleState()
   const languageToggleState = useToggleState()
 
@@ -102,6 +136,35 @@ const SideMenu = ({ regions, locales, currentLocale, catalog }: SideMenuProps) =
                           </LocalizedClientLink>
                         </li>
                       ))}
+                      {yearCycleMenu && (
+                        <li className="w-full">
+                          <details>
+                            <summary className="cursor-pointer list-none text-3xl leading-10 marker:hidden">
+                              {yearCycleMenu.name}
+                            </summary>
+                            <ul className="mt-4 space-y-4 pr-2">
+                              {yearCycleMenu.children.map((child) => (
+                                <MobileMenuBranch
+                                  key={child.id}
+                                  node={child}
+                                  close={close}
+                                />
+                              ))}
+                              {yearCycleMenu.products.map((product) => (
+                                <li key={product.id}>
+                                  <LocalizedClientLink
+                                    href={`/products/${product.handle}`}
+                                    className="block text-lg text-white/85 hover:text-white"
+                                    onClick={close}
+                                  >
+                                    {product.title}
+                                  </LocalizedClientLink>
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
+                        </li>
+                      )}
                       <li>
                         {catalog ? <a href="/api/catalog/download" download={catalog.file_name} onClick={close} className="inline-flex max-w-full whitespace-normal rounded-md border border-white/70 px-4 py-2 text-center text-xl hover:bg-white hover:text-[#3b352a]">קטלוג להורדה</a> : <span aria-disabled="true" className="inline-flex max-w-full cursor-not-allowed whitespace-normal rounded-md border border-white/40 px-4 py-2 text-center text-xl opacity-60">הקטלוג יעלה בקרוב</span>}
                       </li>
