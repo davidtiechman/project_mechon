@@ -155,11 +155,11 @@ const getProfileCompletion = (customer: HttpTypes.StoreCustomer | null) => {
     count++
   }
 
-  const billingAddress = customer.addresses?.find(
-    (addr) => addr.is_default_billing
+  const savedAddress = customer.addresses?.find(
+    (addr) => addr.address_1 && addr.city && addr.country_code
   )
 
-  if (billingAddress) {
+  if (savedAddress) {
     count++
   }
 

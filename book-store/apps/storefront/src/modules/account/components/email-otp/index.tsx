@@ -13,6 +13,8 @@ export default function EmailOtp({ setCurrentView }: { setCurrentView: (view: LO
   const router = useRouter()
   const searchParams = useSearchParams()
   const returnTo = safeReturnPath(searchParams.get("return_to"), "/il/account")
+  const sourceType = searchParams.get("checkout_source_type")
+  const sourceId = searchParams.get("checkout_source_id") || ""
   const [requestState, requestAction] = useActionState(requestEmailOtp, null)
   const [loginState, loginAction] = useActionState(loginWithEmailOtp, null)
   const [email, setEmail] = useState("")
@@ -44,6 +46,8 @@ export default function EmailOtp({ setCurrentView }: { setCurrentView: (view: LO
       <p role="status" aria-live="polite" className="text-center mb-4">אם קיים חשבון עבור כתובת המייל הזו, נשלח אליו קוד כניסה. הקוד תקף ל־10 דקות.</p>
       <form action={loginAction} className="w-full">
         <input type="hidden" name="email" value={email} />
+        <input type="hidden" name="checkout_source_type" value={sourceType === "cart" || sourceType === "order" ? sourceType : ""} />
+        <input type="hidden" name="checkout_source_id" value={sourceId} />
         <Input label="קוד בן 6 ספרות" name="code" inputMode="numeric" pattern="[0-9]{6}" autoComplete="one-time-code" required />
         <ErrorMessage error={loginState?.state === "error" ? loginState.error : null} />
         <SubmitButton className="w-full mt-6">כניסה לחשבון</SubmitButton>

@@ -11,6 +11,7 @@ import PaymentDetails from "@modules/order/components/payment-details"
 import { HttpTypes } from "@medusajs/types"
 import { retrieveCustomer } from "@lib/data/customer"
 import GoogleAuthButton from "@modules/account/components/google-auth-button"
+import SaveCheckoutDetailsButton from "@modules/account/components/save-checkout-details-button"
 
 type OrderCompletedTemplateProps = {
   order: HttpTypes.StoreOrder
@@ -23,6 +24,26 @@ export default async function OrderCompletedTemplate({
   const customer = await retrieveCustomer()
 
   const isOnboarding = cookies.get("_medusa_onboarding")?.value === "true"
+  const shippingMetadata = (order.shipping_address?.metadata || {}) as Record<
+    string,
+    unknown
+  >
+  const checkoutDraftValues: Record<string, string> = {
+    email: order.email || "",
+    "shipping_address.first_name": order.shipping_address?.first_name || "",
+    "shipping_address.last_name": order.shipping_address?.last_name || "",
+    "shipping_address.phone": order.shipping_address?.phone || "",
+    "shipping_address.street": String(
+      shippingMetadata.street || order.shipping_address?.address_1 || ""
+    ),
+    "shipping_address.house_number": String(shippingMetadata.house_number || ""),
+    "shipping_address.apartment": String(shippingMetadata.apartment || ""),
+    "shipping_address.floor": String(shippingMetadata.floor || ""),
+    "shipping_address.city": order.shipping_address?.city || "",
+    "shipping_address.postal_code": order.shipping_address?.postal_code || "",
+    "shipping_address.country_code": order.shipping_address?.country_code || "",
+  }
+  const returnTo = `/${order.shipping_address?.country_code?.toLowerCase() || "il"}/order/${order.id}/confirmed`
 
   return (
     <div className="py-6 min-h-[calc(100vh-64px)]">
@@ -43,10 +64,18 @@ export default async function OrderCompletedTemplate({
           {!customer && (
             <div className="rounded-lg border border-ui-border-base bg-ui-bg-subtle p-5">
               <p className="mb-3 text-center text-small-regular text-ui-fg-subtle">
-                רוצים לשמור את פרטי ההזמנה והכתובת לפעם הבאה? אפשר לפתוח או
-                לקשר חשבון באמצעות Google. ההזמנה כבר הושלמה ואינה תלויה בכך.
+                רוצים לחסוך את מילוי הפרטים בהזמנה הבאה?
               </p>
-              <GoogleAuthButton label="שמירת הפרטים באמצעות Google" />
+              <div className="grid gap-3 small:grid-cols-2">
+                <SaveCheckoutDetailsButton
+                  values={checkoutDraftValues}
+                  sameAsBilling={true}
+                  sourceType="order"
+                  sourceId={order.id}
+                  returnTo={returnTo}
+                />
+                <GoogleAuthButton label="שמור עם Google" />
+              </div>
             </div>
           )}
           <Heading level="h2" className="flex flex-row text-3xl-regular">

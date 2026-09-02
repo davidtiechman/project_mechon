@@ -18,6 +18,7 @@ import ErrorMessage from "../error-message"
 import ShippingAddress from "../shipping-address"
 import { SubmitButton } from "../submit-button"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import SaveCheckoutDetailsButton from "@modules/account/components/save-checkout-details-button"
 
 const Addresses = ({
   cart,
@@ -80,6 +81,35 @@ const Addresses = ({
   }
 
   const [message, formAction] = useActionState(setAddresses, null)
+  const shippingMetadata = (cart?.shipping_address?.metadata || {}) as Record<
+    string,
+    unknown
+  >
+  const checkoutDraftValues: Record<string, string> = {
+    email: cart?.email || "",
+    "shipping_address.first_name": cart?.shipping_address?.first_name || "",
+    "shipping_address.last_name": cart?.shipping_address?.last_name || "",
+    "shipping_address.phone": cart?.shipping_address?.phone || "",
+    "shipping_address.street": String(
+      shippingMetadata.street || cart?.shipping_address?.address_1 || ""
+    ),
+    "shipping_address.house_number": String(shippingMetadata.house_number || ""),
+    "shipping_address.apartment": String(shippingMetadata.apartment || ""),
+    "shipping_address.floor": String(shippingMetadata.floor || ""),
+    "shipping_address.delivery_notes": String(shippingMetadata.delivery_notes || ""),
+    "shipping_address.city": cart?.shipping_address?.city || "",
+    "shipping_address.postal_code": cart?.shipping_address?.postal_code || "",
+    "shipping_address.country_code": cart?.shipping_address?.country_code || "",
+    "shipping_address.province": cart?.shipping_address?.province || "",
+    "billing_address.first_name": cart?.billing_address?.first_name || "",
+    "billing_address.last_name": cart?.billing_address?.last_name || "",
+    "billing_address.phone": cart?.billing_address?.phone || "",
+    "billing_address.address_1": cart?.billing_address?.address_1 || "",
+    "billing_address.city": cart?.billing_address?.city || "",
+    "billing_address.postal_code": cart?.billing_address?.postal_code || "",
+    "billing_address.country_code": cart?.billing_address?.country_code || "",
+    "billing_address.province": cart?.billing_address?.province || "",
+  }
 
   const handleSavedAddressSelected = async (
     address: HttpTypes.StoreCustomerAddress
@@ -217,10 +247,18 @@ const Addresses = ({
           {!customer && (
             <div className="mt-6 rounded-lg border border-ui-border-base bg-ui-bg-subtle p-5">
               <Text className="mb-3 text-center text-small-regular text-ui-fg-subtle">
-                רוצים לשמור את השם, הטלפון והכתובות לפעם הבאה? ההרשמה אינה
-                נדרשת להמשך הרכישה.
+                רוצים לחסוך את מילוי הפרטים בהזמנה הבאה?
               </Text>
-              <GoogleAuthButton label="שמירת הפרטים באמצעות Google" />
+              <div className="grid gap-3 small:grid-cols-2">
+                <SaveCheckoutDetailsButton
+                  values={checkoutDraftValues}
+                  sameAsBilling={sameAsBilling}
+                  sourceType="cart"
+                  sourceId={cart?.id || ""}
+                  returnTo={`${pathname}?step=delivery`}
+                />
+                <GoogleAuthButton label="שמור עם Google" />
+              </div>
             </div>
           )}
         </div>

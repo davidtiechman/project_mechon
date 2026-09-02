@@ -18,6 +18,8 @@ const Login = ({ setCurrentView }: Props) => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const returnTo = safeReturnPath(searchParams.get("return_to"), "/il/account")
+  const sourceType = searchParams.get("checkout_source_type")
+  const sourceId = searchParams.get("checkout_source_id") || ""
 
   useEffect(() => {
     if (message?.state === "success") router.replace(returnTo)
@@ -45,6 +47,12 @@ const Login = ({ setCurrentView }: Props) => {
       <AuthDivider />
       <form className="w-full" action={formAction}>
         <input type="hidden" name="return_to" value={returnTo} />
+        <input
+          type="hidden"
+          name="checkout_source_type"
+          value={sourceType === "cart" || sourceType === "order" ? sourceType : ""}
+        />
+        <input type="hidden" name="checkout_source_id" value={sourceId} />
         <div className="flex flex-col w-full gap-y-2">
           <Input
             label="דוא״ל"

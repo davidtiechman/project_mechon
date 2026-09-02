@@ -136,6 +136,12 @@ export async function signup(
     first_name: formData.get("first_name") as string,
     last_name: formData.get("last_name") as string,
     phone: formData.get("phone") as string,
+    checkout_source_type:
+      formData.get("checkout_source_type") === "cart" ||
+      formData.get("checkout_source_type") === "order"
+        ? (formData.get("checkout_source_type") as "cart" | "order")
+        : undefined,
+    checkout_source_id: String(formData.get("checkout_source_id") || "") || undefined,
   }
 
   try {
@@ -163,7 +169,12 @@ export async function signup(
 
   // Continue by logging in. The login response tells us whether the backend
   // requires email verification — we don't need a storefront-side flag.
-  return completeLogin(customerForm.email, password)
+  return completeLogin(
+    customerForm.email,
+    password,
+    customerForm.checkout_source_type,
+    customerForm.checkout_source_id
+  )
 }
 
 export async function login(
@@ -172,8 +183,15 @@ export async function login(
 ): Promise<CustomerAuthState> {
   const email = formData.get("email") as string
   const password = formData.get("password") as string
+  const sourceType = formData.get("checkout_source_type")
+  const sourceId = String(formData.get("checkout_source_id") || "")
 
-  return completeLogin(email, password)
+  return completeLogin(
+    email,
+    password,
+    sourceType === "cart" || sourceType === "order" ? sourceType : undefined,
+    sourceId || undefined
+  )
 }
 
 export async function requestEmailOtp(
@@ -198,6 +216,8 @@ export async function loginWithEmailOtp(
 ): Promise<OtpAuthState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase()
   const code = String(formData.get("code") ?? "")
+  const sourceType = formData.get("checkout_source_type")
+  const sourceId = String(formData.get("checkout_source_id") || "")
   try {
     const result = await sdk.auth.login("customer", "emailotp", { email, code })
     if (typeof result !== "string") {
@@ -206,7 +226,11 @@ export async function loginWithEmailOtp(
     await setAuthToken(result)
     const customerCacheTag = await getCacheTag("customers")
     revalidateTag(customerCacheTag)
-    await transferCart()
+    await reconcileCheckoutAfterAuthentication(
+      result,
+      sourceType === "cart" || sourceType === "order" ? sourceType : undefined,
+      sourceId || undefined
+    )
     return { state: "success" }
   } catch (error) {
     return { state: "error", error: authErrorMessage(error) }
@@ -261,7 +285,9 @@ export async function getCustomerPasswordStatus(): Promise<{
 // email verification is enabled.
 async function completeLogin(
   email: string,
-  password: string
+  password: string,
+  sourceType?: "cart" | "order",
+  sourceId?: string
 ): Promise<CustomerAuthState> {
   let result: Awaited<ReturnType<typeof sdk.auth.login>>
 
@@ -314,8 +340,13 @@ async function completeLogin(
     .then(() => true)
     .catch(() => false)
 
+  const pendingCandidate = await getPendingCustomer()
+  const pending =
+    pendingCandidate?.email.trim().toLowerCase() === email.trim().toLowerCase()
+      ? pendingCandidate
+      : null
+
   if (!customerExists) {
-    const pending = await getPendingCustomer()
 
     try {
       await sdk.store.customer.create(
@@ -337,7 +368,6 @@ async function completeLogin(
       return { state: "error", error: String(error) }
     }
 
-    await removePendingCustomer()
   }
 
   await setAuthToken(token)
@@ -346,12 +376,61 @@ async function completeLogin(
   revalidateTag(customerCacheTag)
 
   try {
-    await transferCart()
+    await reconcileCheckoutAfterAuthentication(
+      token,
+      sourceType || pending?.checkout_source_type,
+      sourceId || pending?.checkout_source_id
+    )
+    await removePendingCustomer()
   } catch (error) {
     return { state: "error", error: String(error) }
   }
 
   return { state: "success" }
+}
+
+async function reconcileCheckoutAfterAuthentication(
+  token: string,
+  sourceType?: "cart" | "order",
+  sourceId?: string
+) {
+  const headers = { authorization: `Bearer ${token}` }
+  const cartId = await getCartId()
+
+  if (cartId) {
+    await sdk.store.cart.transferCart(cartId, {}, headers)
+    await sdk.client
+      .fetch("/store/customers/me/checkout-profile", {
+        method: "POST",
+        headers,
+        body: { source_type: "cart", source_id: cartId },
+        cache: "no-store",
+      })
+      .catch(() => undefined)
+    const cartCacheTag = await getCacheTag("carts")
+    if (cartCacheTag) revalidateTag(cartCacheTag)
+  }
+
+  if (sourceType === "order" && sourceId) {
+    const synced = await sdk.client
+      .fetch("/store/customers/me/checkout-profile", {
+        method: "POST",
+        headers,
+        body: { source_type: "order", source_id: sourceId },
+        cache: "no-store",
+      })
+      .then(() => true)
+      .catch(() => false)
+
+    if (synced) {
+      await sdk.store.order
+        .requestTransfer(sourceId, {}, {}, headers)
+        .catch(() => undefined)
+    }
+  }
+
+  const customerCacheTag = await getCacheTag("customers")
+  if (customerCacheTag) revalidateTag(customerCacheTag)
 }
 
 // Confirms a customer's email using the token from the verification link.

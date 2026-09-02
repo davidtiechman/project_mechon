@@ -501,6 +501,24 @@ export async function selectSavedCustomerAddress(
     ...(sameAsBilling ? { billing_address: cartAddress } : {}),
   })
 
+  if (sameAsBilling) {
+    const cartId = await getCartId()
+    if (cartId) {
+      await sdk.client
+        .fetch("/store/customers/me/checkout-profile", {
+          method: "POST",
+          headers,
+          body: { source_type: "cart", source_id: cartId },
+          cache: "no-store",
+        })
+        .then(async () => {
+          const customerCacheTag = await getCacheTag("customers")
+          if (customerCacheTag) revalidateTag(customerCacheTag)
+        })
+        .catch(() => undefined)
+    }
+  }
+
   return { success: true }
 }
 

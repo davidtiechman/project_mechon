@@ -71,6 +71,8 @@ export type PendingCustomer = {
   first_name?: string
   last_name?: string
   phone?: string
+  checkout_source_type?: "cart" | "order"
+  checkout_source_id?: string
 }
 
 // During the email verification flow the customer record isn't created until

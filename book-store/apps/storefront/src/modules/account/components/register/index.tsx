@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect } from "react"
+import { useActionState, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { safeReturnPath } from "@lib/util/safe-return-path"
 import Input from "@modules/common/components/input"
@@ -10,7 +10,7 @@ import { SubmitButton } from "@modules/checkout/components/submit-button"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { signup } from "@lib/data/customer"
 import AuthDivider from "../auth-divider"
-import GoogleAuthButton from "../google-auth-button"
+import GoogleAuthButton, { CHECKOUT_DRAFT_KEY } from "../google-auth-button"
 
 type Props = {
   setCurrentView: (view: LOGIN_VIEW) => void
@@ -21,9 +21,28 @@ const Register = ({ setCurrentView }: Props) => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const returnTo = safeReturnPath(searchParams.get("return_to"), "/il/account")
+  const sourceType = searchParams.get("checkout_source_type")
+  const sourceId = searchParams.get("checkout_source_id") || ""
+  const [checkoutValues, setCheckoutValues] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    if (message?.state === "success") router.replace(returnTo)
+    try {
+      const raw = sessionStorage.getItem(CHECKOUT_DRAFT_KEY)
+      if (!raw) return
+      const draft = JSON.parse(raw) as { values?: Record<string, string> }
+      if (draft.values && typeof draft.values === "object") {
+        setCheckoutValues(draft.values)
+      }
+    } catch {
+      sessionStorage.removeItem(CHECKOUT_DRAFT_KEY)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (message?.state === "success") {
+      sessionStorage.removeItem(CHECKOUT_DRAFT_KEY)
+      router.replace(returnTo)
+    }
   }, [message, returnTo, router])
 
   return (
@@ -48,13 +67,25 @@ const Register = ({ setCurrentView }: Props) => {
       )}
       <GoogleAuthButton />
       <AuthDivider />
-      <form className="w-full flex flex-col" action={formAction}>
+      <form
+        key={`${checkoutValues.email || ""}-${checkoutValues["shipping_address.first_name"] || ""}`}
+        className="w-full flex flex-col"
+        action={formAction}
+      >
+        <input type="hidden" name="return_to" value={returnTo} />
+        <input
+          type="hidden"
+          name="checkout_source_type"
+          value={sourceType === "cart" || sourceType === "order" ? sourceType : ""}
+        />
+        <input type="hidden" name="checkout_source_id" value={sourceId} />
         <div className="flex flex-col w-full gap-y-2">
           <Input
             label="שם פרטי"
             name="first_name"
             required
             autoComplete="given-name"
+            defaultValue={checkoutValues["shipping_address.first_name"] || ""}
             data-testid="first-name-input"
           />
           <Input
@@ -62,6 +93,7 @@ const Register = ({ setCurrentView }: Props) => {
             name="last_name"
             required
             autoComplete="family-name"
+            defaultValue={checkoutValues["shipping_address.last_name"] || ""}
             data-testid="last-name-input"
           />
           <Input
@@ -70,6 +102,7 @@ const Register = ({ setCurrentView }: Props) => {
             required
             type="email"
             autoComplete="email"
+            defaultValue={checkoutValues.email || ""}
             data-testid="email-input"
           />
           <Input
@@ -77,6 +110,7 @@ const Register = ({ setCurrentView }: Props) => {
             name="phone"
             type="tel"
             autoComplete="tel"
+            defaultValue={checkoutValues["shipping_address.phone"] || ""}
             data-testid="phone-input"
           />
           <Input
