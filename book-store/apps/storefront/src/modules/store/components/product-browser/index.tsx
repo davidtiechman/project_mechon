@@ -102,10 +102,6 @@ export default function ProductBrowser({
     const timer = window.setTimeout(() => {
       setDebouncedSearch(searchInput)
       setPage(1)
-      updateBrowserUrl(
-        { search: searchInput.trim() || null, page: null },
-        "replace"
-      )
     }, SEARCH_DEBOUNCE_MS)
 
     return () => window.clearTimeout(timer)
