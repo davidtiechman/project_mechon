@@ -1,6 +1,9 @@
 "use client"
 
-import { DEFAULT_STORE_SEARCH_DEBOUNCE_MS } from "@lib/constants/store"
+import {
+  DEFAULT_STORE_SEARCH_DEBOUNCE_MS,
+  MIN_STORE_SEARCH_LENGTH,
+} from "@lib/constants/store"
 import {
   OPTION_VALUE_QUERY_KEY,
   type OptionValueIds,
@@ -18,7 +21,7 @@ const rawDebounce =
   debounceEnvValue?.trim() === "" ? Number.NaN : Number(debounceEnvValue)
 const SEARCH_DEBOUNCE_MS =
   Number.isFinite(rawDebounce) && rawDebounce >= 0
-    ? rawDebounce
+    ? Math.max(rawDebounce, DEFAULT_STORE_SEARCH_DEBOUNCE_MS)
     : DEFAULT_STORE_SEARCH_DEBOUNCE_MS
 
 const validSorts: SortOptions[] = [
@@ -124,7 +127,11 @@ export default function ProductBrowser({
   }, [])
 
   const filteredAndSortedProducts = useMemo(() => {
-    const search = normalizeSearchText(debouncedSearch)
+    const normalizedSearch = normalizeSearchText(debouncedSearch)
+    const search =
+      normalizedSearch.length >= MIN_STORE_SEARCH_LENGTH
+        ? normalizedSearch
+        : ""
     const filtered = search
       ? allProducts.filter((product) => getSearchableText(product).includes(search))
       : allProducts
