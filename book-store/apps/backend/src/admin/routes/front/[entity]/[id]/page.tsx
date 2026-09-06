@@ -24,7 +24,15 @@ function MediaUploadControl({ value, onChange, t }: { value: string; onChange: (
 
     setUploading(true)
     try {
-      const uploaded = await uploadContentFile(file)
+      const extension = isPdf
+        ? "pdf"
+        : file.name.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "image"
+      const safeFile = new File(
+        [file],
+        `advertisement-${Date.now()}.${extension}`,
+        { type: file.type }
+      )
+      const uploaded = await uploadContentFile(safeFile)
       onChange(uploaded.url)
       toast.success(t("siteContent.uploadSuccess"))
     } catch {

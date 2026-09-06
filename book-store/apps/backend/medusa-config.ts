@@ -128,6 +128,9 @@ module.exports = defineConfig({
                     region: process.env.S3_REGION,
                     bucket: process.env.S3_BUCKET,
                     endpoint: process.env.S3_ENDPOINT,
+                    // Supabase Storage uses bucket policies and does not support
+                    // per-object S3 ACL headers such as `public-read`.
+                    acl: false,
                     additional_client_config: { forcePathStyle: true },
                   },
                 },
