@@ -10,11 +10,12 @@ import { entities, Field } from "../../../../lib/content-entities"
 function FieldControl({ field, value, onChange, rtl, t }: { field: Field; value: any; onChange: (value: any) => void; rtl: boolean; t: (key: string) => string }) {
   if (field.type === "rich") return <RichTextEditor value={value || ""} onChange={onChange} rtl={rtl} />
   if (field.type === "textarea" || field.type === "json") return <Textarea rows={field.type === "json" ? 8 : 4} value={typeof value === "object" ? JSON.stringify(value, null, 2) : value || ""} onChange={(event) => onChange(event.target.value)} />
-  if (field.type === "boolean") return <Switch checked={value !== false} onCheckedChange={onChange} />
+  if (field.type === "boolean") return <Switch checked={value ?? ["active", "show_timer"].includes(field.name)} onCheckedChange={onChange} />
   if (field.type === "image") return <div className="flex flex-col gap-2"><Input value={value || ""} onChange={(event) => onChange(event.target.value)} /><Input type="file" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (file) onChange(await uploadContentImage(file)) }} /></div>
   if (field.type === "products") return <ProductPicker value={value || []} onChange={onChange} />
   if (field.type === "status") return <Select value={value || "draft"} onValueChange={onChange}><Select.Trigger><Select.Value /></Select.Trigger><Select.Content><Select.Item value="draft">{t("siteContent.draft")}</Select.Item><Select.Item value="published">{t("siteContent.published")}</Select.Item><Select.Item value="archived">{t("siteContent.archived")}</Select.Item></Select.Content></Select>
   if (field.type === "placement") return <Select value={value || "global"} onValueChange={onChange}><Select.Trigger><Select.Value /></Select.Trigger><Select.Content><Select.Item value="global">Global</Select.Item><Select.Item value="homepage_top">Homepage top</Select.Item><Select.Item value="homepage_middle">Homepage middle</Select.Item><Select.Item value="products">Products</Select.Item><Select.Item value="articles">Articles</Select.Item></Select.Content></Select>
+  if (field.type === "frequency") return <Select value={value || "once_session"} onValueChange={onChange}><Select.Trigger><Select.Value /></Select.Trigger><Select.Content><Select.Item value="always">{t("siteContent.frequency.always")}</Select.Item><Select.Item value="once_session">{t("siteContent.frequency.once_session")}</Select.Item><Select.Item value="once_ever">{t("siteContent.frequency.once_ever")}</Select.Item></Select.Content></Select>
   if (field.type === "datetime") return <Input type="datetime-local" value={value ? new Date(value).toISOString().slice(0, 16) : ""} onChange={(event) => onChange(event.target.value ? new Date(event.target.value).toISOString() : null)} />
   return <Input type={field.type === "number" ? "number" : "text"} required={field.required} value={value ?? ""} onChange={(event) => onChange(field.type === "number" ? Number(event.target.value) : event.target.value)} />
 }
@@ -40,7 +41,7 @@ const ContentEditorPage = () => {
     if (!definition || id === "new") return
     Promise.all([contentApi<{ item: any }>(`/${definition.api}/${id}`), entity === "brands" ? contentApi<{ products: any[] }>(`/brands/${id}/products`) : Promise.resolve({ products: [] })]).then(([{ item }, related]) => setForm({ ...item, products: related.products.map((product) => product.id) })).catch(() => toast.error(t("siteContent.loadError"))).finally(() => setLoading(false))
   }, [definition, id, t])
-  const initial = useMemo(() => entity === "home" ? { owner_type: "home", owner_id: "home", type: "text" } : entity === "seo" ? { key: "seo" } : entity === "navigation" ? { menu_id: "main" } : entity === "banners" ? { placement: "global" } : {}, [entity])
+  const initial = useMemo(() => entity === "home" ? { owner_type: "home", owner_id: "home", type: "text" } : entity === "seo" ? { key: "seo" } : entity === "navigation" ? { menu_id: "main" } : entity === "banners" ? { placement: "global" } : entity === "advertisements" ? { display_frequency: "once_session", show_delay_seconds: 0, auto_close_seconds: 6, show_timer: true, open_new_tab: false, active: true } : {}, [entity])
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setSaving(true)
     try {

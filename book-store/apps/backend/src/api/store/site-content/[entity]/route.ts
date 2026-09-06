@@ -7,14 +7,15 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const service = req.scope.resolve(SITE_CONTENT_MODULE) as any
   const { filters, config } = listConfig(entity, req.query as Record<string, unknown>)
   if (["pages", "brands", "articles"].includes(entity)) filters.status = "published"
-  if (["sections", "banners", "navigation-menus", "navigation-items", "faq", "footer-sections", "footer-links"].includes(entity)) filters.active = true
+  if (["sections", "banners", "advertisements", "navigation-menus", "navigation-items", "faq", "footer-sections", "footer-links"].includes(entity)) filters.active = true
   const [listedItems, count] = await service[contentEntities[entity].list](filters, config)
   const now = Date.now()
-  const items = entity === "banners"
-    ? listedItems.filter((banner: any) =>
-        (!banner.start_at || new Date(banner.start_at).getTime() <= now) &&
-        (!banner.end_at || new Date(banner.end_at).getTime() >= now)
+  const isScheduledContent = entity === "banners" || entity === "advertisements"
+  const items = isScheduledContent
+    ? listedItems.filter((item: any) =>
+        (!item.start_at || new Date(item.start_at).getTime() <= now) &&
+        (!item.end_at || new Date(item.end_at).getTime() >= now)
       )
     : listedItems
-  res.json({ items, count: entity === "banners" ? items.length : count })
+  res.json({ items, count: isScheduledContent ? items.length : count })
 }

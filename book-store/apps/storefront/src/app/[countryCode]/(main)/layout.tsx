@@ -8,8 +8,9 @@ import CartMismatchBanner from "@modules/layout/components/cart-mismatch-banner"
 import Footer from "@modules/layout/templates/footer"
 import Nav from "@modules/layout/templates/nav"
 import FreeShippingPriceNudge from "@modules/shipping/components/free-shipping-price-nudge"
-import { getBanners } from "@lib/data/site-content"
+import { getAdvertisements, getBanners } from "@lib/data/site-content"
 import ContentBanner from "@modules/content/components/content-banner"
+import AdvertisementPopup from "@modules/content/components/advertisement-popup"
 import { isIndexableLocale, privatePageRobots } from "@lib/util/seo"
 
 const layoutMetadata: Metadata = {
@@ -30,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ countryCo
 }
 
 export default async function PageLayout(props: { children: React.ReactNode }) {
-  const [customer, cart, globalBanners] = await Promise.all([retrieveCustomer(), retrieveCart(), getBanners("global")])
+  const [customer, cart, globalBanners, advertisements] = await Promise.all([retrieveCustomer(), retrieveCart(), getBanners("global"), getAdvertisements()])
   let shippingOptions: StoreCartShippingOption[] = []
 
   if (cart) {
@@ -41,6 +42,7 @@ export default async function PageLayout(props: { children: React.ReactNode }) {
 
   return (
     <>
+      <AdvertisementPopup advertisements={advertisements} />
       {globalBanners.map((banner) => <ContentBanner banner={banner} key={banner.id} />)}
       <Nav />
       {customer && cart && (

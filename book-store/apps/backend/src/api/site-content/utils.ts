@@ -3,6 +3,7 @@ import sanitizeHtml from "sanitize-html"
 import { z } from "zod"
 
 export const contentEntities = {
+  advertisements: { list: "listAndCountAdvertisements", retrieve: "retrieveAdvertisement", create: "createAdvertisements", update: "updateAdvertisements", remove: "deleteAdvertisements" },
   pages: { list: "listAndCountContentPages", retrieve: "retrieveContentPage", create: "createContentPages", update: "updateContentPages", remove: "deleteContentPages" },
   sections: { list: "listAndCountContentSections", retrieve: "retrieveContentSection", create: "createContentSections", update: "updateContentSections", remove: "deleteContentSections" },
   brands: { list: "listAndCountBrands", retrieve: "retrieveBrand", create: "createBrands", update: "updateBrands", remove: "deleteBrands" },
@@ -28,6 +29,12 @@ const commonSchema = z.object({
 }).passthrough()
 
 const schemas: Partial<Record<ContentEntity, z.ZodType>> = {
+  advertisements: commonSchema.extend({
+    internal_name: z.string().trim().min(1),
+    show_delay_seconds: z.coerce.number().int().min(0).max(60).optional(),
+    auto_close_seconds: z.coerce.number().int().min(0).max(300).optional(),
+    display_frequency: z.enum(["always", "once_session", "once_ever"]),
+  }),
   pages: commonSchema.extend({ title: z.string().trim().min(1), slug: z.string().trim().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/) }),
   brands: commonSchema.extend({ name: z.string().trim().min(1), slug: z.string().trim().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/) }),
   articles: commonSchema.extend({ title: z.string().trim().min(1), slug: z.string().trim().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/) }),
@@ -71,7 +78,7 @@ export function listConfig(entity: ContentEntity, query: Record<string, unknown>
   const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 100)
   const offset = Math.max(Number(query.offset) || 0, 0)
   const filters: Record<string, unknown> = {}
-  for (const key of ["status", "active", "placement", "owner_type", "owner_id", "menu_id", "section_id", "handle", "slug"]) {
+  for (const key of ["status", "active", "placement", "owner_type", "owner_id", "menu_id", "section_id", "handle", "slug", "display_frequency"]) {
     if (query[key] !== undefined) filters[key] = query[key]
   }
   const order = entity === "articles"

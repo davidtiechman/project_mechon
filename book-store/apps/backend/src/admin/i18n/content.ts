@@ -25,9 +25,10 @@ export const siteContentEn = {
     image_alt: "Image alternative text", hero_image: "Hero image", mobile_image: "Mobile image",
     featured_image: "Featured image", logo: "Logo", placement: "Placement", button_text: "Button text",
     button_url: "Button URL", label: "Label", url: "URL", handle: "Handle", key: "Setting key",
-    value: "Value (JSON)", seo: "SEO (JSON)", products: "Products", short_description: "Short description", desktop_image: "Desktop image", start_at: "Start showing", end_at: "Stop showing", group: "Group", type: "Section type", owner_id: "Owner ID",
+    value: "Value (JSON)", seo: "SEO (JSON)", products: "Products", short_description: "Short description", desktop_image: "Desktop image", start_at: "Start showing", end_at: "Stop showing", group: "Group", type: "Section type", owner_id: "Owner ID", body: "Advertisement text", open_new_tab: "Open link in a new tab", show_delay_seconds: "Delay before showing (seconds)", auto_close_seconds: "Close automatically after (seconds, 0 = never)", show_timer: "Show countdown", display_frequency: "Display frequency",
   },
-  sections: { home: "Home Page", pages: "Pages", brands: "Brands / Series", articles: "Articles", banners: "Banners", navigation: "Navigation", faq: "FAQ", footer: "Footer", seo: "SEO", settings: "Settings" },
+  sections: { home: "Home Page", pages: "Pages", brands: "Brands / Series", articles: "Articles", advertisements: "Advertisements", banners: "Banners", navigation: "Navigation", faq: "FAQ", footer: "Footer", seo: "SEO", settings: "Settings" },
+  frequency: { always: "Every visit", once_session: "Once per browsing session", once_ever: "Once on this device" },
   metrics: { pages: "Pages", brands: "Brands", articles: "Articles", drafts: "Drafts" },
 }
 
@@ -58,9 +59,10 @@ export const siteContentHe = {
     image_alt: "טקסט חלופי לתמונה", hero_image: "תמונת כותרת", mobile_image: "תמונה לנייד",
     featured_image: "תמונה ראשית", logo: "לוגו", placement: "מיקום", button_text: "טקסט הכפתור",
     button_url: "כתובת הכפתור", label: "תווית", url: "כתובת", handle: "מזהה", key: "מפתח הגדרה",
-    value: "ערך (JSON)", seo: "SEO (JSON)", products: "מוצרים", short_description: "תיאור קצר", desktop_image: "תמונה למחשב", start_at: "התחלת הצגה", end_at: "סיום הצגה", group: "קבוצה", type: "סוג מקטע", owner_id: "מזהה בעלים",
+    value: "ערך (JSON)", seo: "SEO (JSON)", products: "מוצרים", short_description: "תיאור קצר", desktop_image: "תמונה למחשב", start_at: "התחלת הצגה", end_at: "סיום הצגה", group: "קבוצה", type: "סוג מקטע", owner_id: "מזהה בעלים", body: "טקסט המודעה", open_new_tab: "פתיחת הקישור בחלון חדש", show_delay_seconds: "השהיה לפני הצגה (שניות)", auto_close_seconds: "סגירה אוטומטית לאחר (שניות, 0 = ללא)", show_timer: "הצגת טיימר", display_frequency: "תדירות הצגה",
   },
-  sections: { home: "דף הבית", pages: "דפים", brands: "מותגים / סדרות", articles: "מאמרים", banners: "באנרים", navigation: "תפריטים", faq: "שאלות ותשובות", footer: "פוטר", seo: "SEO", settings: "הגדרות" },
+  sections: { home: "דף הבית", pages: "דפים", brands: "מותגים / סדרות", articles: "מאמרים", advertisements: "מודעות קופצות", banners: "באנרים", navigation: "תפריטים", faq: "שאלות ותשובות", footer: "פוטר", seo: "SEO", settings: "הגדרות" },
+  frequency: { always: "בכל ביקור", once_session: "פעם אחת בכל ביקור", once_ever: "פעם אחת בלבד במכשיר" },
   metrics: { pages: "דפים", brands: "מותגים", articles: "מאמרים", drafts: "טיוטות" },
 }
 

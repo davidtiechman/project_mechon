@@ -28,6 +28,9 @@ const brands = [
   },
 ];
 
+const privacyStorageDisclosure =
+  "<h2>אחסון מקומי לצורך מודעות</h2><p>לצורך מניעת הצגה חוזרת של מודעות, האתר שומר בדפדפן סימון טכני ב־sessionStorage או ב־localStorage. הסימון אינו כולל שם, כתובת, פרטי קשר או מידע מזהה אחר, ואינו נשמר באמצעות Cookie.</p>";
+
 const legalPages = [
   ["terms", "תקנון ותנאי רכישה", "[יש להחליף בתוכן משפטי מאושר]"],
   ["privacy", "מדיניות פרטיות", "[יש להחליף במדיניות פרטיות מאושרת]"],
@@ -83,7 +86,7 @@ export default async function seedSiteContent({
         slug,
         title,
         excerpt: "תוכן זמני להשלמה ואישור",
-        content: `<p>${placeholder}</p>`,
+        content: `<p>${placeholder}</p>${slug === "privacy" ? privacyStorageDisclosure : ""}`,
         status: "published",
         published_at: new Date(),
         sort_order,

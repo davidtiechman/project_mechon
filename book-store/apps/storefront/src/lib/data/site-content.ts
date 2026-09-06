@@ -18,12 +18,14 @@ async function getContent<T>(path: string): Promise<T | null> {
 
 export type SeoFields = { seo_title?: string; seo_description?: string; canonical_url?: string; og_title?: string; og_description?: string; og_image?: string }
 export type ContentBanner = { id: string; title?: string; subtitle?: string; desktop_image?: string; mobile_image?: string; image_alt?: string; button_text?: string; button_url?: string; open_new_tab?: boolean; placement: "homepage_top" | "homepage_middle" | "products" | "articles" | "global"; sort_order?: number }
+export type ContentAdvertisement = { id: string; title?: string; body?: string; desktop_image?: string; mobile_image?: string; image_alt?: string; button_text?: string; button_url?: string; open_new_tab?: boolean; show_delay_seconds: number; auto_close_seconds: number; show_timer: boolean; display_frequency: "always" | "once_session" | "once_ever"; sort_order?: number }
 export type ContentItem = { id: string; title?: string; name?: string; slug?: string; excerpt?: string; short_description?: string; content?: string; status?: string; featured_image?: string; hero_image?: string; image_alt?: string; author?: string; published_at?: string; seo?: SeoFields; products?: Array<{ id: string; handle: string; title: string; thumbnail?: string }> }
 export type HomeContent = { sections: Array<Record<string, any>>; articles: ContentItem[]; brands: ContentItem[]; banners: ContentBanner[] }
 export type ActiveCatalog = { file_url: string; file_name: string; updated_at: string }
 
 export const getHomeContent = () => getContent<HomeContent>("/home")
 export const getBanners = async (placement: ContentBanner["placement"]) => (await getContent<{ items: ContentBanner[] }>(`/banners?placement=${placement}&limit=20`))?.items || []
+export const getAdvertisements = async () => (await getContent<{ items: ContentAdvertisement[] }>("/advertisements?limit=20"))?.items || []
 export const listContent = async (entity: "pages" | "brands" | "articles") => (await getContent<{ items: ContentItem[] }>(`/${entity}?limit=100`))?.items || []
 export const getContentItem = async (entity: "pages" | "brands" | "articles", slug: string) => (await getContent<{ item: ContentItem }>(`/${entity}/${encodeURIComponent(slug)}`))?.item || null
 export async function getActiveCatalog(): Promise<ActiveCatalog | null> {
