@@ -80,6 +80,24 @@ const getSearchableText = (product: HttpTypes.StoreProduct) =>
     .join(" ")
     .toLocaleLowerCase("he")
 
+const getMatchingProductIds = (
+  products: HttpTypes.StoreProduct[],
+  searchValue: string
+) => {
+  const search = normalizeSearchText(searchValue)
+
+  if (search.length < MIN_STORE_SEARCH_LENGTH) {
+    return products.map((product) => product.id)
+  }
+
+  return products
+    .filter((product) => getSearchableText(product).includes(search))
+    .map((product) => product.id)
+}
+
+const haveSameProductIds = (left: string[], right: string[]) =>
+  left.length === right.length && left.every((id, index) => id === right[index])
+
 const updateBrowserUrl = (
   changes: Record<string, string | null>,
   mode: "push" | "replace"
@@ -122,6 +140,7 @@ export default function ProductBrowser({
   const pathname = usePathname()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const searchTimerRef = useRef<number | null>(null)
+  const appliedSearchRef = useRef(initialSearch)
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch)
   const [sortBy, setSortBy] = useState<SortOptions>(normalizeSort(initialSort))
   const [page, setPage] = useState(Math.max(initialPage, 1))
@@ -142,7 +161,19 @@ export default function ProductBrowser({
 
     searchTimerRef.current = window.setTimeout(() => {
       const keepFocus = document.activeElement === searchInputRef.current
+      const currentProductIds = getMatchingProductIds(
+        allProducts,
+        appliedSearchRef.current
+      )
+      const nextProductIds = getMatchingProductIds(allProducts, value)
 
+      if (haveSameProductIds(currentProductIds, nextProductIds)) {
+        appliedSearchRef.current = value
+        searchTimerRef.current = null
+        return
+      }
+
+      appliedSearchRef.current = value
       setDebouncedSearch(value)
       setPage(1)
 
@@ -155,7 +186,7 @@ export default function ProductBrowser({
       }
       searchTimerRef.current = null
     }, SEARCH_DEBOUNCE_MS)
-  }, [])
+  }, [allProducts])
 
   useEffect(
     () => () => {
@@ -175,6 +206,7 @@ export default function ProductBrowser({
       if (searchInputRef.current) {
         searchInputRef.current.value = restoredSearch
       }
+      appliedSearchRef.current = restoredSearch
       setDebouncedSearch(restoredSearch)
       setSortBy(normalizeSort(params.get("sortBy")))
       setPage(Number.isFinite(restoredPage) && restoredPage > 0 ? restoredPage : 1)
