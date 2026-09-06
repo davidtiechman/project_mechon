@@ -95,6 +95,11 @@ export default function AdvertisementPopup({
   const desktopImage = resolveMediaUrl(advertisement.desktop_image)
   const mobileImage = resolveMediaUrl(advertisement.mobile_image) || desktopImage
   const desktopIsPdf = isPdfUrl(desktopImage)
+  const hasTextContent = Boolean(
+    advertisement.title ||
+      advertisement.body ||
+      (advertisement.button_text && advertisement.button_url)
+  )
   const action = advertisement.button_text && advertisement.button_url ? (
     /^https?:\/\//.test(advertisement.button_url) ? (
       <a
@@ -128,7 +133,11 @@ export default function AdvertisementPopup({
         aria-modal="true"
         aria-labelledby={advertisement.title ? "advertisement-title" : undefined}
         aria-label={advertisement.title ? undefined : "מודעה"}
-        className="relative max-h-[92dvh] w-full max-w-3xl overflow-auto rounded-2xl bg-[#fffaf5] shadow-2xl"
+        className={`relative max-h-[92dvh] w-full overflow-auto rounded-2xl bg-[#fffaf5] shadow-2xl ${
+          desktopImage && !desktopIsPdf && !hasTextContent
+            ? "max-w-lg"
+            : "max-w-3xl"
+        }`}
         dir="rtl"
       >
         <button
@@ -141,7 +150,11 @@ export default function AdvertisementPopup({
           <span aria-hidden="true">×</span>
         </button>
 
-        <div className={`grid ${desktopIsPdf ? "" : "md:grid-cols-2"}`}>
+        <div
+          className={`grid ${
+            !desktopIsPdf && hasTextContent ? "md:grid-cols-2" : ""
+          }`}
+        >
           {desktopImage && desktopIsPdf && (
             <div className="bg-[#eee4da] p-3 pt-16 small:p-5 small:pt-16">
               <object
@@ -160,16 +173,25 @@ export default function AdvertisementPopup({
             </div>
           )}
           {desktopImage && !desktopIsPdf && (
-            <picture className="block min-h-52 bg-[#eee4da] md:min-h-[430px]">
+            <picture
+              className={`block bg-[#eee4da] ${
+                hasTextContent ? "min-h-52 md:min-h-[430px]" : ""
+              }`}
+            >
               {mobileImage && <source media="(max-width: 767px)" srcSet={mobileImage} />}
               <img
                 src={desktopImage}
                 alt={advertisement.image_alt || ""}
-                className="h-full max-h-[45dvh] w-full object-cover md:max-h-none"
+                className={`h-full w-full ${
+                  hasTextContent
+                    ? "max-h-[45dvh] object-cover md:max-h-none"
+                    : "max-h-[88dvh] object-contain"
+                }`}
               />
             </picture>
           )}
-          <div className={`flex flex-col justify-center p-6 text-center small:p-9 ${desktopImage && !desktopIsPdf ? "" : "md:col-span-2"}`}>
+          {hasTextContent && (
+          <div className={`flex flex-col justify-center p-6 text-center small:p-9 ${desktopImage ? "" : "md:col-span-2"}`}>
             {advertisement.title && (
               <h2 id="advertisement-title" className="text-2xl font-bold text-[#3f3025] small:text-3xl">
                 {advertisement.title}
@@ -187,7 +209,18 @@ export default function AdvertisementPopup({
               </p>
             )}
           </div>
+          )}
         </div>
+        {!hasTextContent &&
+          advertisement.show_timer &&
+          advertisement.auto_close_seconds > 0 && (
+            <p
+              className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-sm font-medium text-white shadow-lg"
+              aria-live="polite"
+            >
+              המודעה תיסגר בעוד {remainingSeconds} שניות
+            </p>
+          )}
       </section>
     </div>
   )
