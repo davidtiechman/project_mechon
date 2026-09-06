@@ -8,6 +8,15 @@ import { useEffect, useRef, useState } from "react"
 const storageKey = (advertisement: ContentAdvertisement) =>
   `site-advertisement:${advertisement.id}:seen`
 
+const isPdfUrl = (url?: string) => {
+  if (!url) return false
+  try {
+    return new URL(url, "http://localhost").pathname.toLowerCase().endsWith(".pdf")
+  } catch {
+    return url.split(/[?#]/)[0].toLowerCase().endsWith(".pdf")
+  }
+}
+
 function wasAlreadyShown(advertisement: ContentAdvertisement) {
   try {
     if (advertisement.display_frequency === "once_session") {
@@ -85,6 +94,7 @@ export default function AdvertisementPopup({
 
   const desktopImage = resolveMediaUrl(advertisement.desktop_image)
   const mobileImage = resolveMediaUrl(advertisement.mobile_image) || desktopImage
+  const desktopIsPdf = isPdfUrl(desktopImage)
   const action = advertisement.button_text && advertisement.button_url ? (
     /^https?:\/\//.test(advertisement.button_url) ? (
       <a
@@ -131,8 +141,25 @@ export default function AdvertisementPopup({
           <span aria-hidden="true">×</span>
         </button>
 
-        <div className="grid md:grid-cols-2">
-          {desktopImage && (
+        <div className={`grid ${desktopIsPdf ? "" : "md:grid-cols-2"}`}>
+          {desktopImage && desktopIsPdf && (
+            <div className="bg-[#eee4da] p-3 pt-16 small:p-5 small:pt-16">
+              <object
+                data={`${desktopImage}#toolbar=0&navpanes=0`}
+                type="application/pdf"
+                aria-label={advertisement.image_alt || advertisement.title || "קובץ המודעה"}
+                className="h-[55dvh] min-h-[360px] w-full rounded-lg bg-white"
+              >
+                <a className="flex h-full items-center justify-center text-[#6b5339] underline" href={desktopImage} target="_blank" rel="noopener noreferrer">
+                  פתיחת קובץ המודעה
+                </a>
+              </object>
+              <a className="mt-3 block text-center text-sm font-medium text-[#6b5339] underline underline-offset-4" href={desktopImage} target="_blank" rel="noopener noreferrer">
+                פתיחת ה־PDF בחלון חדש
+              </a>
+            </div>
+          )}
+          {desktopImage && !desktopIsPdf && (
             <picture className="block min-h-52 bg-[#eee4da] md:min-h-[430px]">
               {mobileImage && <source media="(max-width: 767px)" srcSet={mobileImage} />}
               <img
@@ -142,7 +169,7 @@ export default function AdvertisementPopup({
               />
             </picture>
           )}
-          <div className={`flex flex-col justify-center p-6 text-center small:p-9 ${desktopImage ? "" : "md:col-span-2"}`}>
+          <div className={`flex flex-col justify-center p-6 text-center small:p-9 ${desktopImage && !desktopIsPdf ? "" : "md:col-span-2"}`}>
             {advertisement.title && (
               <h2 id="advertisement-title" className="text-2xl font-bold text-[#3f3025] small:text-3xl">
                 {advertisement.title}
