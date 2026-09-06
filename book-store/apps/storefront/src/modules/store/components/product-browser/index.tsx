@@ -14,7 +14,15 @@ import ProductPreview from "@modules/products/components/product-preview"
 import OptionsPicker from "@modules/store/components/refinement-list/options-picker"
 import type { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import { usePathname, useRouter } from "next/navigation"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import {
+  forwardRef,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 
 const debounceEnvValue = process.env.NEXT_PUBLIC_STORE_SEARCH_DEBOUNCE_MS
 const rawDebounce =
@@ -38,6 +46,26 @@ const normalizeSort = (value: string | null): SortOptions =>
 
 const normalizeSearchText = (value: string) =>
   value.trim().toLocaleLowerCase("he")
+
+const StoreSearchInput = memo(
+  forwardRef<
+    HTMLInputElement,
+    { initialSearch: string; onSearchChange: (value: string) => void }
+  >(function StoreSearchInput({ initialSearch, onSearchChange }, ref) {
+    return (
+      <input
+        id="store-search"
+        type="search"
+        ref={ref}
+        defaultValue={initialSearch}
+        onChange={(event) => onSearchChange(event.currentTarget.value)}
+        placeholder="הקלידו שם ספר"
+        autoComplete="off"
+        className="h-11 w-full rounded-md border border-[#d6c8ba] bg-white px-3 text-right outline-none transition focus:border-[#8a6f4d] focus:ring-2 focus:ring-[#8a6f4d]/20"
+      />
+    )
+  })
+)
 
 const getSearchableText = (product: HttpTypes.StoreProduct) =>
   [
@@ -92,23 +120,51 @@ export default function ProductBrowser({
 }) {
   const router = useRouter()
   const pathname = usePathname()
-  const [searchInput, setSearchInput] = useState(initialSearch)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const searchTimerRef = useRef<number | null>(null)
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch)
   const [sortBy, setSortBy] = useState<SortOptions>(normalizeSort(initialSort))
   const [page, setPage] = useState(Math.max(initialPage, 1))
 
-  useEffect(() => {
-    if (searchInput === debouncedSearch) {
+  const changeSearch = useCallback((value: string) => {
+    if (searchTimerRef.current !== null) {
+      window.clearTimeout(searchTimerRef.current)
+    }
+
+    const normalizedValue = normalizeSearchText(value)
+    if (
+      normalizedValue.length > 0 &&
+      normalizedValue.length < MIN_STORE_SEARCH_LENGTH
+    ) {
+      searchTimerRef.current = null
       return
     }
 
-    const timer = window.setTimeout(() => {
-      setDebouncedSearch(searchInput)
-      setPage(1)
-    }, SEARCH_DEBOUNCE_MS)
+    searchTimerRef.current = window.setTimeout(() => {
+      const keepFocus = document.activeElement === searchInputRef.current
 
-    return () => window.clearTimeout(timer)
-  }, [debouncedSearch, searchInput])
+      setDebouncedSearch(value)
+      setPage(1)
+
+      if (keepFocus) {
+        window.requestAnimationFrame(() => {
+          if (document.activeElement === document.body) {
+            searchInputRef.current?.focus({ preventScroll: true })
+          }
+        })
+      }
+      searchTimerRef.current = null
+    }, SEARCH_DEBOUNCE_MS)
+  }, [])
+
+  useEffect(
+    () => () => {
+      if (searchTimerRef.current !== null) {
+        window.clearTimeout(searchTimerRef.current)
+      }
+    },
+    []
+  )
 
   useEffect(() => {
     const handlePopState = () => {
@@ -116,7 +172,9 @@ export default function ProductBrowser({
       const restoredSearch = params.get("search") || ""
       const restoredPage = Number.parseInt(params.get("page") || "1", 10)
 
-      setSearchInput(restoredSearch)
+      if (searchInputRef.current) {
+        searchInputRef.current.value = restoredSearch
+      }
       setDebouncedSearch(restoredSearch)
       setSortBy(normalizeSort(params.get("sortBy")))
       setPage(Number.isFinite(restoredPage) && restoredPage > 0 ? restoredPage : 1)
@@ -190,14 +248,10 @@ export default function ProductBrowser({
           <label htmlFor="store-search" className="mb-2 block text-sm font-medium text-[#51463a]">
             חיפוש ספרים
           </label>
-          <input
-            id="store-search"
-            type="search"
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="הקלידו שם ספר"
-            autoComplete="off"
-            className="h-11 w-full rounded-md border border-[#d6c8ba] bg-white px-3 text-right outline-none transition focus:border-[#8a6f4d] focus:ring-2 focus:ring-[#8a6f4d]/20"
+          <StoreSearchInput
+            ref={searchInputRef}
+            initialSearch={initialSearch}
+            onSearchChange={changeSearch}
           />
         </div>
         <div>
