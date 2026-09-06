@@ -17,7 +17,9 @@ export async function uploadContentImage(file: File): Promise<string> {
   const response = await fetch("/admin/uploads", { method: "POST", credentials: "include", body: form })
   if (!response.ok) throw new Error("Upload failed")
   const data = await response.json()
-  return data.files?.[0]?.url
+  const url = data.files?.[0]?.url
+  if (!url) throw new Error("Upload response was incomplete")
+  return url
 }
 
 export type UploadedContentFile = { id: string; url: string }

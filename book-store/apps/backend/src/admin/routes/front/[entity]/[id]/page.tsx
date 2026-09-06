@@ -1,18 +1,52 @@
 import { Button, Container, Heading, Input, Label, Select, Switch, Text, Textarea, toast } from "@medusajs/ui"
-import { FormEvent, useEffect, useMemo, useState } from "react"
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { RichTextEditor } from "../../../../components/rich-text-editor"
 import { contentApi } from "../../../../lib/content-api"
-import { uploadContentImage } from "../../../../lib/content-api"
+import { uploadContentFile, uploadContentImage } from "../../../../lib/content-api"
 import { entities, Field } from "../../../../lib/content-entities"
+
+function MediaUploadControl({ value, onChange, t }: { value: string; onChange: (value: string) => void; t: (key: string) => string }) {
+  const [uploading, setUploading] = useState(false)
+
+  const upload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file) return
+
+    const isImage = file.type.startsWith("image/")
+    const isPdf = file.type === "application/pdf" && file.name.toLowerCase().endsWith(".pdf")
+    if (!isImage && !isPdf) {
+      toast.error(t("siteContent.uploadTypeError"))
+      return
+    }
+
+    setUploading(true)
+    try {
+      const uploaded = await uploadContentFile(file)
+      onChange(uploaded.url)
+      toast.success(t("siteContent.uploadSuccess"))
+    } catch {
+      toast.error(t("siteContent.uploadError"))
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return <div className="flex flex-col gap-2">
+    <Input value={value || ""} onChange={(event) => onChange(event.target.value)} placeholder={t("siteContent.mediaUrlPlaceholder")} />
+    <Input type="file" accept="image/*,application/pdf,.pdf" disabled={uploading} onChange={upload} />
+    <Text size="small" className="text-ui-fg-subtle">{uploading ? t("siteContent.uploading") : t("siteContent.mediaHint")}</Text>
+  </div>
+}
 
 function FieldControl({ field, value, onChange, rtl, t }: { field: Field; value: any; onChange: (value: any) => void; rtl: boolean; t: (key: string) => string }) {
   if (field.type === "rich") return <RichTextEditor value={value || ""} onChange={onChange} rtl={rtl} />
   if (field.type === "textarea" || field.type === "json") return <Textarea rows={field.type === "json" ? 8 : 4} value={typeof value === "object" ? JSON.stringify(value, null, 2) : value || ""} onChange={(event) => onChange(event.target.value)} />
   if (field.type === "boolean") return <Switch checked={value ?? ["active", "show_timer"].includes(field.name)} onCheckedChange={onChange} />
   if (field.type === "image") return <div className="flex flex-col gap-2"><Input value={value || ""} onChange={(event) => onChange(event.target.value)} /><Input type="file" accept="image/*" onChange={async (event) => { const file = event.target.files?.[0]; if (file) onChange(await uploadContentImage(file)) }} /></div>
-  if (field.type === "media") return <div className="flex flex-col gap-2"><Input value={value || ""} onChange={(event) => onChange(event.target.value)} /><Input type="file" accept="image/*,application/pdf" onChange={async (event) => { const file = event.target.files?.[0]; if (file) onChange(await uploadContentImage(file)) }} /><Text size="small" className="text-ui-fg-subtle">{t("siteContent.mediaHint")}</Text></div>
+  if (field.type === "media") return <MediaUploadControl value={value || ""} onChange={onChange} t={t} />
   if (field.type === "products") return <ProductPicker value={value || []} onChange={onChange} />
   if (field.type === "status") return <Select value={value || "draft"} onValueChange={onChange}><Select.Trigger><Select.Value /></Select.Trigger><Select.Content><Select.Item value="draft">{t("siteContent.draft")}</Select.Item><Select.Item value="published">{t("siteContent.published")}</Select.Item><Select.Item value="archived">{t("siteContent.archived")}</Select.Item></Select.Content></Select>
   if (field.type === "placement") return <Select value={value || "global"} onValueChange={onChange}><Select.Trigger><Select.Value /></Select.Trigger><Select.Content><Select.Item value="global">Global</Select.Item><Select.Item value="homepage_top">Homepage top</Select.Item><Select.Item value="homepage_middle">Homepage middle</Select.Item><Select.Item value="products">Products</Select.Item><Select.Item value="articles">Articles</Select.Item></Select.Content></Select>
