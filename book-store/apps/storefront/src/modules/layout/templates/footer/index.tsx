@@ -103,8 +103,9 @@ export default async function Footer() {
               <span className="block">מעשה רוקח בע״מ</span>
               <span className="block">ח.פ. 514692946</span>
               <span className="block">דובר שלום 7 מיקוד: 9447607 ירושלים</span>
-              <span className="block">[טלפון]</span>
-              <span className="block">[אימייל]</span>
+              <a className="block hover:text-white" href="tel:025386591">טלפון: 02-5386591</a>
+              <span className="block">פקס: 02-5386379</span>
+              <a className="block hover:text-white" href="mailto:5386591@gmail.com">דוא״ל: 5386591@gmail.com</a>
             </address>
           </div>
           <div>

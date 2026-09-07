@@ -28,7 +28,7 @@ export default async function Nav() {
       <header className="relative h-[76px] mx-auto border-b border-[#e0d2c5] bg-[#faf6f1]/95 backdrop-blur-md">
         <nav
           aria-label="ניווט ראשי"
-          className="content-container flex items-center justify-between w-full h-full text-sm text-[#3b352a]"
+          className="content-container flex items-center justify-between w-full h-full text-base text-[#3b352a]"
         >
           <div className="flex items-center gap-8 h-full">
             <LocalizedClientLink

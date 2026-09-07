@@ -59,14 +59,8 @@ module.exports = {
       },
       fontFamily: {
         sans: [
-          "var(--font-heebo)",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Segoe UI",
-          "Roboto",
-          "Helvetica Neue",
-          "Ubuntu",
-          "sans-serif",
+          "Sd Hadasa Local",
+          "serif",
         ],
       },
       keyframes: {

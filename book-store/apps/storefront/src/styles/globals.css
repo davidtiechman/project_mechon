@@ -2,8 +2,23 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+@font-face {
+  font-family: "Sd Hadasa Local";
+  src: local("Sd-Hadasa Reguler"), local("Sd-Hadasa");
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Sd Hadasa Local";
+  src: local("Sd-Hadasa Bold"), local("Sd-Hadasa");
+  font-style: normal;
+  font-weight: 700;
+}
+
 :root {
   color-scheme: light;
+  font-size: 125%;
   scroll-behavior: smooth;
 }
 
@@ -114,7 +129,7 @@ body {
   background-position: center;
   background-attachment: fixed;
   color: #262117;
-  font-family: var(--font-heebo), Arial, sans-serif;
+  font-family: "Sd Hadasa Local", serif;
 }
 
 ::selection {
@@ -227,7 +242,7 @@ body {
 
   .brand-monogram {
     @apply grid h-10 w-10 place-items-center rounded-full border border-[#b98a5a] bg-[#42291f] text-base font-semibold text-[#f8f2e6];
-    font-family: var(--font-heebo), Arial, sans-serif;
+    font-family: "Sd Hadasa Local", serif;
   }
 
   .brand-emblem {
@@ -244,7 +259,7 @@ body {
   }
 
   .nav-link {
-    @apply relative flex h-full items-center text-[15px] font-semibold transition-colors hover:text-[#9a7130];
+    @apply relative flex h-full items-center text-[17px] font-semibold transition-colors hover:text-[#9a7130];
   }
 
   .nav-link::after {
@@ -265,7 +280,7 @@ body {
 
   .hero-section h1 {
     @apply mt-5 text-5xl font-normal leading-[1.08] xsmall:text-6xl small:text-7xl;
-    font-family: var(--font-heebo), Arial, sans-serif;
+    font-family: "Sd Hadasa Local", serif;
   }
 
   .hero-section h1 em {
@@ -321,7 +336,7 @@ body {
   .section-heading h2,
   .about-copy h2 {
     @apply mt-2 text-3xl font-normal leading-tight text-[#262117] xsmall:text-4xl;
-    font-family: var(--font-heebo), Arial, sans-serif;
+    font-family: "Sd Hadasa Local", serif;
   }
 
   .text-link {
@@ -338,7 +353,7 @@ body {
 
   .category-card h3 {
     @apply mt-10 text-2xl text-[#4a2d21];
-    font-family: var(--font-heebo), Arial, sans-serif;
+    font-family: "Sd Hadasa Local", serif;
   }
 
   .category-number {
@@ -359,7 +374,7 @@ body {
   }
 
   .about-seal span { @apply text-2xl; }
-  .about-seal strong { @apply text-5xl font-normal; font-family: var(--font-heebo), Arial, sans-serif; }
+  .about-seal strong { @apply text-5xl font-normal; font-family: "Sd Hadasa Local", serif; }
   .about-seal small { @apply mt-5 text-[10px] tracking-[0.2em] text-[#756d5e]; }
 
   .about-copy p {
@@ -375,7 +390,7 @@ body {
   }
 
   .article-card time { @apply text-xs text-[#8a682d]; }
-  .article-card h3 { @apply mt-5 text-xl text-[#4a2d21]; font-family: var(--font-heebo), Arial, sans-serif; }
+  .article-card h3 { @apply mt-5 text-xl text-[#4a2d21]; font-family: "Sd Hadasa Local", serif; }
   .article-card p { @apply mt-3 leading-7 text-[#6d6558]; }
 
   .footer-heading {

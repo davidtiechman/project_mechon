@@ -5,6 +5,7 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import { useEffect, useState } from "react"
 
 const STORAGE_KEY = "mechon_accessibility_preferences"
+const BASE_TEXT_SCALE = 1.25
 const MIN_TEXT_SCALE = 0.9
 const MAX_TEXT_SCALE = 1.3
 const TEXT_STEP = 0.1
@@ -25,7 +26,7 @@ const defaultPreferences: AccessibilityPreferences = {
 
 function applyPreferences(preferences: AccessibilityPreferences) {
   const root = document.documentElement
-  root.style.fontSize = `${Math.round(preferences.textScale * 100)}%`
+  root.style.fontSize = `${Math.round(preferences.textScale * BASE_TEXT_SCALE * 1000) / 10}%`
   root.dataset.a11yContrast = String(preferences.highContrast)
   root.dataset.a11yLinks = String(preferences.highlightLinks)
   root.dataset.a11yMotion = String(preferences.reduceMotion)
