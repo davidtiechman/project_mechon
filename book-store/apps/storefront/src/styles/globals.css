@@ -228,6 +228,11 @@ body {
     @apply flex items-center gap-3 shrink-0;
   }
 
+  .main-navigation,
+  .main-navigation * {
+    font-family: "Sd Hadasa Local", serif;
+  }
+
   .brand-lockup > span:last-child {
     @apply flex flex-col;
   }
