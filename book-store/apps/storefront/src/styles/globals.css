@@ -4,14 +4,14 @@
 
 @font-face {
   font-family: "Sd Hadasa Local";
-  src: local("Sd-Hadasa Reguler"), local("Sd-Hadasa");
+  src: local("Sd-HadasaReguler"), local("Sd-Hadasa Reguler");
   font-style: normal;
   font-weight: 400;
 }
 
 @font-face {
   font-family: "Sd Hadasa Local";
-  src: local("Sd-Hadasa Bold"), local("Sd-Hadasa");
+  src: local("Sd-HadasaBold-Bold"), local("Sd-Hadasa Bold Bold");
   font-style: normal;
   font-weight: 700;
 }
