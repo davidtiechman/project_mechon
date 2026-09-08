@@ -29,7 +29,8 @@ const getPageItem = async (slug: string) => {
   const fallback = legalPages[slug]
   if (!fallback) return null
 
-  if (process.env.NODE_ENV === "development") return fallback
+  // Contact details and the form are available even without a CMS page.
+  if (slug === "contact" || process.env.NODE_ENV === "development") return fallback
 
   return {
     ...fallback,
