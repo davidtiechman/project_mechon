@@ -4,16 +4,24 @@
 
 @font-face {
   font-family: "Sd Hadasa Local";
-  src: local("Sd-HadasaReguler"), local("Sd-Hadasa Reguler");
+  src:
+    local("Sd-HadasaReguler"),
+    local("Sd-Hadasa Reguler"),
+    url("/fonts/sd-hadasa-regular.ttf") format("truetype");
   font-style: normal;
   font-weight: 400;
+  font-display: swap;
 }
 
 @font-face {
   font-family: "Sd Hadasa Local";
-  src: local("Sd-HadasaBold-Bold"), local("Sd-Hadasa Bold Bold");
+  src:
+    local("Sd-HadasaBold-Bold"),
+    local("Sd-Hadasa Bold Bold"),
+    url("/fonts/sd-hadasa-bold.ttf") format("truetype");
   font-style: normal;
   font-weight: 700;
+  font-display: swap;
 }
 
 :root {
@@ -186,7 +194,7 @@ body {
 
 @layer components {
   .new-product-ribbon {
-    @apply absolute inset-x-0 top-[32%] z-20 flex -translate-y-1/2 items-center justify-center overflow-hidden py-3 text-sm font-bold tracking-[0.38em] text-[#4a2d21] shadow-sm;
+    @apply absolute inset-x-0 top-[32%] z-20 flex -translate-y-1/2 items-center justify-center overflow-hidden py-3 text-lg font-bold tracking-[0.24em] text-[#4a2d21] shadow-sm;
     background: rgba(255, 248, 238, 0.66);
     border-block: 1px solid rgba(74, 45, 33, 0.18);
     backdrop-filter: blur(3px);
@@ -233,16 +241,20 @@ body {
     font-family: "Sd Hadasa Local", serif;
   }
 
+  .main-navigation {
+    max-width: 1800px;
+  }
+
   .brand-lockup > span:last-child {
     @apply flex flex-col;
   }
 
   .brand-lockup strong {
-    @apply text-[15px] leading-5 font-bold tracking-wide text-[#4a2d21];
+    @apply text-xl leading-6 font-bold tracking-wide text-[#4a2d21];
   }
 
   .brand-lockup small {
-    @apply text-xs leading-4 tracking-[0.06em] text-[#756d5e];
+    @apply text-base leading-5 tracking-[0.04em] text-[#756d5e];
   }
 
   .brand-monogram {
@@ -264,7 +276,7 @@ body {
   }
 
   .nav-link {
-    @apply relative flex h-full items-center text-[17px] font-semibold transition-colors hover:text-[#9a7130];
+    @apply relative flex h-full items-center whitespace-nowrap text-[24px] font-semibold transition-colors hover:text-[#9a7130];
   }
 
   .nav-link::after {
@@ -297,11 +309,11 @@ body {
   }
 
   .eyebrow {
-    @apply inline-block text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8a682d];
+    @apply inline-block text-lg font-semibold uppercase tracking-[0.12em] text-[#8a682d];
   }
 
   .brand-button {
-    @apply items-center justify-center rounded-sm bg-[#4a2d21] px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#8a5a3c];
+    @apply items-center justify-center rounded-sm bg-[#4a2d21] px-7 py-3.5 text-lg font-semibold text-white transition-colors hover:bg-[#8a5a3c];
   }
 
   .brand-button-light {
@@ -309,7 +321,7 @@ body {
   }
 
   .hero-secondary-link {
-    @apply inline-flex items-center gap-2 border-b border-[#d8bf86]/70 px-2 py-3 text-sm text-[#f8f2e6] transition-colors hover:text-[#d8bf86];
+    @apply inline-flex items-center gap-2 border-b border-[#d8bf86]/70 px-2 py-3 text-lg text-[#f8f2e6] transition-colors hover:text-[#d8bf86];
   }
 
   .hero-mark {
@@ -345,7 +357,7 @@ body {
   }
 
   .text-link {
-    @apply shrink-0 border-b border-[#9a7130] pb-1 text-sm text-[#745420] transition-colors hover:text-[#183c34];
+    @apply shrink-0 border-b border-[#9a7130] pb-1 text-lg text-[#745420] transition-colors hover:text-[#183c34];
   }
 
   .empty-home-state {
@@ -362,7 +374,7 @@ body {
   }
 
   .category-number {
-    @apply text-xs tracking-widest text-[#9a7130];
+    @apply text-base tracking-widest text-[#9a7130];
   }
 
   .category-arrow {
@@ -380,7 +392,7 @@ body {
 
   .about-seal span { @apply text-2xl; }
   .about-seal strong { @apply text-5xl font-normal; font-family: "Sd Hadasa Local", serif; }
-  .about-seal small { @apply mt-5 text-[10px] tracking-[0.2em] text-[#756d5e]; }
+  .about-seal small { @apply mt-5 text-base tracking-[0.12em] text-[#756d5e]; }
 
   .about-copy p {
     @apply my-7 max-w-2xl text-base leading-8 text-[#5f584b];
@@ -391,19 +403,19 @@ body {
   }
 
   .article-index {
-    @apply absolute left-0 top-6 text-xs text-[#a1937a];
+    @apply absolute left-0 top-6 text-base text-[#a1937a];
   }
 
-  .article-card time { @apply text-xs text-[#8a682d]; }
+  .article-card time { @apply text-base text-[#8a682d]; }
   .article-card h3 { @apply mt-5 text-xl text-[#4a2d21]; font-family: "Sd Hadasa Local", serif; }
   .article-card p { @apply mt-3 leading-7 text-[#6d6558]; }
 
   .footer-heading {
-    @apply mb-5 text-sm font-semibold text-[#d8bf86];
+    @apply mb-5 text-lg font-semibold text-[#d8bf86];
   }
 
   .footer-links {
-    @apply flex flex-col gap-3 text-sm text-[#d8d0c0];
+    @apply flex flex-col gap-3 text-base text-[#d8d0c0];
   }
 
   .footer-links a {
@@ -415,23 +427,23 @@ body {
   }
 
   .text-xsmall-regular {
-    @apply text-xs leading-4 font-normal;
+    @apply text-sm leading-5 font-normal;
   }
 
   .text-small-regular {
-    @apply text-xs leading-5 font-normal;
+    @apply text-base leading-6 font-normal;
   }
 
   .text-small-semi {
-    @apply text-xs leading-5 font-semibold;
+    @apply text-base leading-6 font-semibold;
   }
 
   .text-base-regular {
-    @apply text-sm leading-6 font-normal;
+    @apply text-lg leading-7 font-normal;
   }
 
   .text-base-semi {
-    @apply text-sm leading-6 font-semibold;
+    @apply text-lg leading-7 font-semibold;
   }
 
   .text-large-regular {

@@ -4,10 +4,10 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 export default function ContentBanner({ banner }: { banner: ContentBannerType }) {
   const body = <div className="content-container flex min-h-12 flex-col items-center justify-center gap-2 py-3 text-center small:flex-row small:gap-5">
     <div>
-      {banner.title && <strong className="block text-base">{banner.title}</strong>}
-      {banner.subtitle && <span className="text-sm opacity-90">{banner.subtitle}</span>}
+      {banner.title && <strong className="block text-xl">{banner.title}</strong>}
+      {banner.subtitle && <span className="text-lg opacity-90">{banner.subtitle}</span>}
     </div>
-    {banner.button_text && banner.button_url && <span className="rounded border border-current px-3 py-1 text-sm font-medium">{banner.button_text}</span>}
+    {banner.button_text && banner.button_url && <span className="rounded border border-current px-3 py-1 text-base font-medium">{banner.button_text}</span>}
   </div>
 
   const className = `block overflow-hidden bg-[#4a2d21] text-[#fff8ed] ${banner.desktop_image ? "bg-cover bg-center" : ""}`

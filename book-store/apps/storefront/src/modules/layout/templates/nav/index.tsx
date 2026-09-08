@@ -25,12 +25,12 @@ export default async function Nav() {
 
   return (
     <div className="sticky top-0 inset-x-0 z-50 group" dir="rtl">
-      <header className="relative h-[76px] mx-auto border-b border-[#e0d2c5] bg-[#faf6f1]/95 backdrop-blur-md">
+      <header className="relative h-[88px] mx-auto border-b border-[#e0d2c5] bg-[#faf6f1]/95 backdrop-blur-md">
         <nav
           aria-label="ניווט ראשי"
-          className="main-navigation content-container flex items-center justify-between w-full h-full text-base text-[#3b352a]"
+          className="main-navigation content-container flex items-center justify-between w-full h-full whitespace-nowrap text-[24px] text-[#3b352a]"
         >
-          <div className="flex items-center gap-8 h-full">
+          <div className="flex items-center gap-5 h-full">
             <LocalizedClientLink
               href="/"
               className="brand-lockup"
@@ -49,7 +49,7 @@ export default async function Nav() {
                 <small>ספרי קודש ומחקר תורני</small>
               </span>
             </LocalizedClientLink>
-            <div className="hidden large:flex items-center gap-4 h-full">
+            <div className="hidden large:flex items-center gap-3 h-full">
               <LocalizedClientLink href="/store" className="nav-link">
                 חנות הספרים
               </LocalizedClientLink>
@@ -70,9 +70,9 @@ export default async function Nav() {
               <LocalizedClientLink href="/#articles" className="nav-link">
                 מאמרים
               </LocalizedClientLink>
-              {catalog ? <a href="/api/catalog/download" download={catalog.file_name} className="rounded-md border border-[#8a6f4d] px-3 py-2 font-medium transition-colors hover:bg-[#8a6f4d] hover:text-white">
+              {catalog ? <a href="/api/catalog/download" download={catalog.file_name} className="whitespace-nowrap rounded-md border border-[#8a6f4d] px-3 py-2 font-medium transition-colors hover:bg-[#8a6f4d] hover:text-white">
                 קטלוג להורדה
-              </a> : <span aria-disabled="true" title="הקטלוג יעלה בקרוב" className="cursor-not-allowed rounded-md border border-[#cbbba8] px-3 py-2 text-[#8d8275] opacity-70">
+              </a> : <span aria-disabled="true" title="הקטלוג יעלה בקרוב" className="cursor-not-allowed whitespace-nowrap rounded-md border border-[#cbbba8] px-3 py-2 text-[#8d8275] opacity-70">
                 הקטלוג יעלה בקרוב
               </span>}
             </div>

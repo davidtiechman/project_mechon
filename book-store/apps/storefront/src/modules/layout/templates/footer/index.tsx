@@ -121,7 +121,7 @@ export default async function Footer() {
             </ul>
           </div>
         </div>
-        <div className="flex flex-col gap-2 pt-4 text-xs text-[#bdb5a6] xsmall:flex-row xsmall:items-center xsmall:justify-between">
+        <div className="flex flex-col gap-2 pt-4 text-base text-[#bdb5a6] xsmall:flex-row xsmall:items-center xsmall:justify-between">
           <span>
             © {new Date().getFullYear()} מכון מעשה רוקח. כל הזכויות שמורות.
           </span>
