@@ -69,7 +69,10 @@ export default async function Page({ params }: Props) {
   const item = await getPageItem(slug)
   if (!item) notFound()
   return (
-    <ContentPageTemplate item={item}>
+    <ContentPageTemplate
+      compactHeader={slug === "contact"}
+      item={slug === "contact" ? { ...item, content: undefined } : item}
+    >
       {slug === "shipping" && (
         <nav
           aria-label="מידע קשור"

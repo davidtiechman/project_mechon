@@ -37,7 +37,7 @@ export default function ContactForm() {
   return (
     <section
       aria-labelledby="contact-form-title"
-      className="content-container max-w-4xl pb-16"
+      className="content-container max-w-4xl pt-6 pb-16"
     >
       <h2 id="contact-form-title" className="mb-6 text-2xl text-[#4a2d21]">
         שליחת פנייה

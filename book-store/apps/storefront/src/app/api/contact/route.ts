@@ -40,30 +40,30 @@ export async function POST(request: NextRequest) {
   if (parsed.data.website)
     return NextResponse.json({ message: "הפנייה התקבלה" })
 
-  const webhook = process.env.CONTACT_FORM_WEBHOOK_URL
-  if (!webhook)
-    return NextResponse.json(
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000"}/store/contact`,
       {
-        message:
-          "טופס יצירת הקשר טרם חובר. אפשר לפנות אלינו בפרטים המופיעים בעמוד.",
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-publishable-api-key": process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "",
+        },
+        body: JSON.stringify(parsed.data),
+        signal: AbortSignal.timeout(15_000),
       },
-      { status: 503 },
     )
-
-  const response = await fetch(webhook, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      ...parsed.data,
-      website: undefined,
-      source: "website-contact-form",
-    }),
-    signal: AbortSignal.timeout(8_000),
-  })
-  if (!response.ok)
+    if (!response.ok) {
+      return NextResponse.json(
+        { message: "לא ניתן לשלוח את הפנייה כרגע. אפשר לפנות בפרטים המופיעים בעמוד." },
+        { status: 502 },
+      )
+    }
+    return NextResponse.json({ message: "הפנייה נשלחה" })
+  } catch {
     return NextResponse.json(
-      { message: "לא ניתן לשלוח את הפנייה כרגע" },
+      { message: "לא ניתן לשלוח את הפנייה כרגע. נסו שוב מאוחר יותר." },
       { status: 502 },
     )
-  return NextResponse.json({ message: "הפנייה נשלחה" })
+  }
 }

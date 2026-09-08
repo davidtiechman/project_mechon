@@ -44,7 +44,7 @@ export const legalPages: Record<string, ContentItem> = {
   contact: {
     id: "fallback-contact",
     slug: "contact",
-    status: "draft",
+    status: "published",
     title: "צור קשר",
     excerpt: "נשמח לקבל את פנייתכם.",
     content: `<h2>פרטי קשר</h2><p>מכון מעשה רוקח מופעל על ידי מעשה רוקח בע"מ · ח.פ. 514692946 · טלפון: <a href="tel:025386591">02-5386591</a> · פקס: 02-5386379 · דוא״ל: <a href="mailto:5386591@gmail.com">5386591@gmail.com</a> · דובר שלום 7 מיקוד: 9447607 ירושלים</p>`,

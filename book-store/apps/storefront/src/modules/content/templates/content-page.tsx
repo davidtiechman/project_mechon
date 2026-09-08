@@ -9,11 +9,13 @@ export default function ContentPageTemplate({
   products,
   region,
   children,
+  compactHeader = false,
 }: {
   item: ContentItem
   products?: HttpTypes.StoreProduct[]
   region?: HttpTypes.StoreRegion
   children?: ReactNode
+  compactHeader?: boolean
 }) {
   const content = item.content
     ?.replace(/<h1(\s[^>]*)?>/gi, "<h2$1>")
@@ -26,12 +28,12 @@ export default function ContentPageTemplate({
   return (
     <div dir="rtl" className="min-h-[60vh] bg-[#faf6f1]">
       <header className="border-b border-[#ddcec0] bg-[#f8f1ea]">
-        <div className="content-container py-14 text-right small:py-16">
+        <div className={`content-container text-right ${compactHeader ? "py-4 small:py-5" : "py-14 small:py-16"}`}>
           <h1 className="text-4xl font-normal text-[#4a2d21] small:text-5xl">
             {item.title || item.name}
           </h1>
           {(item.excerpt || item.short_description) && (
-            <p className="mt-5 max-w-3xl text-lg leading-8 text-[#62594d]">
+            <p className={`${compactHeader ? "mt-2" : "mt-5"} max-w-3xl text-lg leading-8 text-[#62594d]`}>
               {item.excerpt || item.short_description}
             </p>
           )}
