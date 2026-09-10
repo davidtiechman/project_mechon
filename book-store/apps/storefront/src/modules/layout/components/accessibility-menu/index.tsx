@@ -196,7 +196,7 @@ export default function AccessibilityMenu() {
               </button>
 
               <LocalizedClientLink
-                href="/pages/accessibility"
+                href="/pages/privacy-accessibility#accessibility"
                 onClick={() => setIsOpen(false)}
                 className="accessibility-menu-row underline underline-offset-4"
               >

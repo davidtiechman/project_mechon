@@ -27,7 +27,7 @@ class FetchError extends Error {
 }
 const token = (actor_id) => `header.${Buffer.from(JSON.stringify({ actor_id, user_metadata: { given_name: "Test", email: "test@example.com", email_verified: true } })).toString("base64url")}.signature`
 
-function setup({ unlinked = false, noCustomer = false, profileFailure = false, authFailure = false, refreshFailure = false } = {}) {
+function setup({ unlinked = false, noCustomer = false, profileFailure = false, authFailure = false, refreshFailure = false, marketingVersion, marketingFailure = false } = {}) {
   const calls = []
   const sdk = {
     client: { async fetch(url) {
@@ -35,6 +35,7 @@ function setup({ unlinked = false, noCustomer = false, profileFailure = false, a
       if (url.endsWith("/callback")) { if (authFailure) throw new FetchError(401); return { token: token(unlinked ? undefined : "cus_1") } }
       if (url === "/auth/link-customer-google") { if (noCustomer) throw new FetchError(404); return {} }
       if (url === "/auth/token/refresh") { if (refreshFailure) throw new FetchError(500); return { token: token("cus_1") } }
+      if (url === "/store/customers/me/marketing-consent") { if (marketingFailure) throw new FetchError(503); return { success: true } }
       throw new Error(`Unexpected request ${url}`)
     } },
     store: { customer: {
@@ -55,7 +56,7 @@ function setup({ unlinked = false, noCustomer = false, profileFailure = false, a
   })
   return { calls, run: (query = "code=test&state=test", returnTo = "/il/account") => route.GET({
     nextUrl: new URL(`https://shop.example/api/auth/google/callback?${query}`),
-    cookies: { get(name) { return name === "_google_oauth_return_to" ? { value: returnTo } : undefined } },
+    cookies: { get(name) { return name === "_google_oauth_return_to" ? { value: returnTo } : name === "_google_oauth_marketing" && marketingVersion ? { value: marketingVersion } : undefined } },
   }) }
 }
 
@@ -68,6 +69,18 @@ test("successful callback saves a redirect-compatible secure session and preserv
   assert.equal(cookie.httpOnly, true)
   assert.equal(cookie.secure, true)
   assert.equal(cookie.path, "/")
+})
+
+test("Google only persists marketing consent with an explicit pending opt-in", async () => {
+  const without = setup()
+  await without.run()
+  assert.equal(without.calls.includes('/store/customers/me/marketing-consent'), false)
+  for (const marketingFailure of [false, true]) {
+    const withConsent = setup({ marketingVersion: '2026-09-10-v1', marketingFailure })
+    const result = await withConsent.run()
+    assert.ok(withConsent.calls.includes('/store/customers/me/marketing-consent'))
+    assert.ok(result.savedCookies.has('_medusa_jwt'))
+  }
 })
 
 test("profile update failure does not discard a successful login", async () => {

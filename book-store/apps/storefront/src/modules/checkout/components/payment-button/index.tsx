@@ -5,16 +5,20 @@ import { placeOrder } from "@lib/data/cart"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@modules/common/components/ui"
 import { useElements, useStripe } from "@stripe/react-stripe-js"
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import ErrorMessage from "../error-message"
 
 type PaymentButtonProps = {
   cart: HttpTypes.StoreCart
   "data-testid": string
+  beforePayment: () => Promise<boolean>
+  onSubmittingChange: (submitting: boolean) => void
 }
 
 const PaymentButton: React.FC<PaymentButtonProps> = ({
   cart,
+  beforePayment,
+  onSubmittingChange,
   "data-testid": dataTestId,
 }) => {
   const notReady =
@@ -32,67 +36,75 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
         <StripePaymentButton
           notReady={notReady}
           cart={cart}
+          beforePayment={beforePayment}
+          onSubmittingChange={onSubmittingChange}
           data-testid={dataTestId}
         />
       )
     case isManual(paymentSession?.provider_id):
       return (
-        <ManualTestPaymentButton notReady={notReady} data-testid={dataTestId} />
+        <ManualTestPaymentButton notReady={notReady} beforePayment={beforePayment} onSubmittingChange={onSubmittingChange} />
       )
     default:
       return <Button disabled>יש לבחור אמצעי תשלום</Button>
   }
 }
 
+type ConsentProps = Pick<PaymentButtonProps, "beforePayment" | "onSubmittingChange">
+
+function usePaymentAction({ beforePayment, onSubmittingChange }: ConsentProps, action: () => Promise<void>) {
+  const [submitting, setSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const locked = useRef(false)
+  const handlePayment = async () => {
+    if (locked.current) return
+    locked.current = true
+    setSubmitting(true)
+    onSubmittingChange(true)
+    setErrorMessage(null)
+    try {
+      if (await beforePayment()) await action()
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "לא ניתן להשלים את ההזמנה כרגע.")
+    } finally {
+      locked.current = false
+      setSubmitting(false)
+      onSubmittingChange(false)
+    }
+  }
+  return { submitting, errorMessage, handlePayment }
+}
+
+async function completeOrder() {
+  await placeOrder()
+  // Success navigates to the confirmation page; a returned cart means completion failed.
+  throw new Error("לא ניתן להשלים את ההזמנה כרגע. יש לבדוק את פרטי התשלום ולנסות שוב.")
+}
+
 const StripePaymentButton = ({
   cart,
   notReady,
+  beforePayment,
+  onSubmittingChange,
   "data-testid": dataTestId,
-}: {
+}: ConsentProps & {
   cart: HttpTypes.StoreCart
   notReady: boolean
   "data-testid"?: string
 }) => {
-  const [submitting, setSubmitting] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-
-  const onPaymentCompleted = async () => {
-    await placeOrder()
-      .catch((err) => {
-        setErrorMessage(err.message)
-      })
-      .finally(() => {
-        setSubmitting(false)
-      })
-  }
-
   const stripe = useStripe()
   const elements = useElements()
   const card = elements?.getElement("card")
-
-  const session = cart.payment_collection?.payment_sessions?.find(
-    (s) => s.status === "pending",
-  )
-
-  const disabled = !stripe || !elements ? true : false
-
-  const handlePayment = async () => {
-    setSubmitting(true)
-
-    if (!stripe || !elements || !card || !cart) {
-      setSubmitting(false)
-      return
-    }
-
-    await stripe
-      .confirmCardPayment(session?.data.client_secret as string, {
+  const session = cart.payment_collection?.payment_sessions?.find((s) => s.status === "pending")
+  const { submitting, errorMessage, handlePayment } = usePaymentAction(
+    { beforePayment, onSubmittingChange },
+    async () => {
+      if (!stripe || !elements || !card) throw new Error("יש לבדוק את פרטי התשלום.")
+      const { error, paymentIntent } = await stripe.confirmCardPayment(session?.data.client_secret as string, {
         payment_method: {
-          card: card,
+          card,
           billing_details: {
-            name:
-              cart.billing_address?.first_name +
-              " " +
-              cart.billing_address?.last_name,
+            name: cart.billing_address?.first_name + " " + cart.billing_address?.last_name,
             address: {
               city: cart.billing_address?.city ?? undefined,
               country: cart.billing_address?.country_code ?? undefined,
@@ -106,86 +118,36 @@ const StripePaymentButton = ({
           },
         },
       })
-      .then(({ error, paymentIntent }) => {
-        if (error) {
-          const pi = error.payment_intent
-
-          if (
-            (pi && pi.status === "requires_capture") ||
-            (pi && pi.status === "succeeded")
-          ) {
-            onPaymentCompleted()
-          }
-
-          setErrorMessage(error.message || null)
-          return
-        }
-
-        if (
-          (paymentIntent && paymentIntent.status === "requires_capture") ||
-          paymentIntent.status === "succeeded"
-        ) {
-          return onPaymentCompleted()
-        }
-
-        return
-      })
-  }
-
+      const intent = paymentIntent || error?.payment_intent
+      if (intent?.status === "requires_capture" || intent?.status === "succeeded") {
+        await completeOrder()
+      } else {
+        throw new Error(error?.message || "לא ניתן לאשר את התשלום. יש לנסות שוב.")
+      }
+    },
+  )
   return (
     <>
-      <Button
-        disabled={disabled || notReady}
-        onClick={handlePayment}
-        size="large"
-        isLoading={submitting}
-        data-testid={dataTestId}
-      >
+      <Button disabled={!stripe || !elements || notReady || submitting} onClick={handlePayment}
+        size="large" isLoading={submitting} data-testid={dataTestId}>
         ביצוע ההזמנה
       </Button>
-      <ErrorMessage
-        error={errorMessage}
-        data-testid="stripe-payment-error-message"
-      />
+      <ErrorMessage error={errorMessage} data-testid="stripe-payment-error-message" />
     </>
   )
 }
 
-const ManualTestPaymentButton = ({ notReady }: { notReady: boolean }) => {
-  const [submitting, setSubmitting] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-
-  const onPaymentCompleted = async () => {
-    await placeOrder()
-      .catch((err) => {
-        setErrorMessage(err.message)
-      })
-      .finally(() => {
-        setSubmitting(false)
-      })
-  }
-
-  const handlePayment = () => {
-    setSubmitting(true)
-
-    onPaymentCompleted()
-  }
-
+const ManualTestPaymentButton = ({ notReady, beforePayment, onSubmittingChange }: ConsentProps & { notReady: boolean }) => {
+  const { submitting, errorMessage, handlePayment } = usePaymentAction(
+    { beforePayment, onSubmittingChange }, completeOrder,
+  )
   return (
     <>
-      <Button
-        disabled={notReady}
-        isLoading={submitting}
-        onClick={handlePayment}
-        size="large"
-        data-testid="submit-order-button"
-      >
+      <Button disabled={notReady || submitting} isLoading={submitting} onClick={handlePayment}
+        size="large" data-testid="submit-order-button">
         ביצוע ההזמנה
       </Button>
-      <ErrorMessage
-        error={errorMessage}
-        data-testid="manual-payment-error-message"
-      />
+      <ErrorMessage error={errorMessage} data-testid="manual-payment-error-message" />
     </>
   )
 }

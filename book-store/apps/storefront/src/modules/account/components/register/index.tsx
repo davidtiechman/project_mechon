@@ -11,6 +11,7 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import { signup } from "@lib/data/customer"
 import AuthDivider from "../auth-divider"
 import GoogleAuthButton, { CHECKOUT_DRAFT_KEY } from "../google-auth-button"
+import MarketingCheckbox from "../marketing-checkbox"
 
 type Props = {
   setCurrentView: (view: LOGIN_VIEW) => void
@@ -24,6 +25,7 @@ const Register = ({ setCurrentView }: Props) => {
   const sourceType = searchParams.get("checkout_source_type")
   const sourceId = searchParams.get("checkout_source_id") || ""
   const [checkoutValues, setCheckoutValues] = useState<Record<string, string>>({})
+  const [marketingAccepted, setMarketingAccepted] = useState(false)
 
   useEffect(() => {
     try {
@@ -65,9 +67,11 @@ const Register = ({ setCurrentView }: Props) => {
           בתיבת הדואר ולאחר מכן להתחבר לחשבון.
         </div>
       )}
-      <GoogleAuthButton />
+      <MarketingCheckbox checked={marketingAccepted} onChange={setMarketingAccepted} name="marketing_consent" form="registration-form" />
+      <GoogleAuthButton marketingConsent={marketingAccepted} />
       <AuthDivider />
       <form
+        id="registration-form"
         key={`${checkoutValues.email || ""}-${checkoutValues["shipping_address.first_name"] || ""}`}
         className="w-full flex flex-col"
         action={formAction}
@@ -129,14 +133,14 @@ const Register = ({ setCurrentView }: Props) => {
         <span className="text-center text-ui-fg-base text-small-regular mt-6">
           בפתיחת חשבון הנך מסכים/ה ל
           <LocalizedClientLink
-            href="/pages/privacy"
+            href="/pages/privacy-accessibility#privacy"
             className="underline"
           >
             מדיניות הפרטיות
           </LocalizedClientLink>{" "}
           ול
           <LocalizedClientLink
-            href="/pages/terms"
+            href="/pages/terms-of-purchase"
             className="underline"
           >
             תנאי השימוש

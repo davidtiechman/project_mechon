@@ -16,7 +16,7 @@ export function RichTextEditor({ value, onChange, rtl }: { value: string; onChan
   const action = (label: string, handler: () => void, active = false) => <Button type="button" size="small" variant={active ? "primary" : "secondary"} onClick={handler}>{label}</Button>
   const editLink = () => {
     const currentUrl = editor.getAttributes("link").href || ""
-    const url = window.prompt("כתובת הקישור (לדוגמה: /il/pages/shipping)", currentUrl)
+    const url = window.prompt("כתובת הקישור (לדוגמה: /il/pages/shipping-returns)", currentUrl)
     if (url === null) return
     if (!url.trim()) {
       editor.chain().focus().extendMarkRange("link").unsetLink().run()

@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
     destination.searchParams.set("google_auth_error", "cancelled")
     const response = NextResponse.redirect(destination)
     response.cookies.delete(RETURN_COOKIE)
+    response.cookies.delete("_google_oauth_marketing")
     return response
   }
 
@@ -121,6 +122,18 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const marketingVersion = request.cookies.get("_google_oauth_marketing")?.value
+    if (marketingVersion) {
+      try {
+        await sdk.client.fetch("/store/customers/me/marketing-consent", {
+          method: "POST", headers: authHeaders(token),
+          body: { accepted: true, version: marketingVersion, source: "registration" }, cache: "no-store",
+        })
+      } catch {
+        console.warn("Google registration: marketing preference was not saved")
+      }
+    }
+
     const cartId = request.cookies.get("_medusa_cart_id")?.value
     if (cartId) {
       await sdk.store.cart
@@ -172,11 +185,13 @@ export async function GET(request: NextRequest) {
       path: "/",
     })
     response.cookies.delete(RETURN_COOKIE)
+    response.cookies.delete("_google_oauth_marketing")
     return response
   } catch {
     destination.searchParams.set("google_auth_error", "failed")
     const response = NextResponse.redirect(destination)
     response.cookies.delete(RETURN_COOKIE)
+    response.cookies.delete("_google_oauth_marketing")
     return response
   }
 }

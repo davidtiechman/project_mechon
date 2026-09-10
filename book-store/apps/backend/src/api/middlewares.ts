@@ -1,8 +1,24 @@
-import { authenticate, defineMiddlewares, validateAndTransformBody } from "@medusajs/framework/http"
+import { authenticate, defineMiddlewares, validateAndTransformBody, type MedusaRequest, type MedusaResponse, type MedusaNextFunction } from "@medusajs/framework/http"
 import { z } from "@medusajs/framework/zod"
+
+function protectMarketingMetadata(req: MedusaRequest, res: MedusaResponse, next: MedusaNextFunction) {
+  const metadata = (req.body as { metadata?: Record<string, unknown> })?.metadata
+  if (metadata && Object.prototype.hasOwnProperty.call(metadata, "marketing_consent")) {
+    return res.status(400).json({ message: "יש לעדכן את בחירת הדיוור דרך הגדרות הדיוור." })
+  }
+  next()
+}
 
 export default defineMiddlewares({
   routes: [
+    ...["/store/customers", "/store/customers/me", "/store/carts", "/store/carts/:id"].map((matcher) => ({
+      matcher, method: "POST" as const, middlewares: [protectMarketingMetadata],
+    })),
+    {
+      matcher: "/store/customers/me/marketing-consent",
+      methods: ["GET", "POST"],
+      middlewares: [authenticate("customer", ["bearer"])],
+    },
     {
       matcher: "/store/auth/email-otp/request",
       method: "POST",

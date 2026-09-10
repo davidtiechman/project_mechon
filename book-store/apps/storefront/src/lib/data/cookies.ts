@@ -67,6 +67,8 @@ export const removeAuthToken = async () => {
 }
 
 export type PendingCustomer = {
+  marketing_consent?: boolean
+  marketing_consent_version?: string
   email: string
   first_name?: string
   last_name?: string

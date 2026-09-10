@@ -2,7 +2,7 @@ import { listCollections } from "@lib/data/collections"
 import { listProducts } from "@lib/data/products"
 import { listContent } from "@lib/data/site-content"
 import { getBaseURL } from "@lib/util/env"
-import { legalPageSlugs } from "@lib/legal-content"
+import { legalPageSlugs, canonicalLegalSlug } from "@lib/legal-content"
 import { getIndexableLocales, localizedPath } from "@lib/util/seo"
 import type { MetadataRoute } from "next"
 
@@ -50,7 +50,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           collection.handle ? [`collections/${collection.handle}`] : [],
         ),
         ...pages.flatMap((item) =>
-          item.slug ? [`pages/${item.slug}`] : [],
+          item.slug ? [`pages/${canonicalLegalSlug(item.slug)}`] : [],
         ),
         ...legalPageSlugs.map((slug) => `pages/${slug}`),
         ...brands.flatMap((item) => (item.slug ? [`brands/${item.slug}`] : [])),

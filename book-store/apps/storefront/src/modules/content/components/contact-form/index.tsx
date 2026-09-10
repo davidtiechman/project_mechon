@@ -40,7 +40,7 @@ export default function ContactForm() {
       aria-labelledby="contact-form-title"
       className="content-container max-w-4xl pt-6 pb-16"
     >
-      <address className="mb-8 flex flex-col gap-2 not-italic text-[#4a2d21]">
+      <address className="mb-8 flex flex-col gap-3 text-xl font-medium leading-relaxed not-italic text-[#4a2d21] small:text-2xl">
         <a href={contactDetails.phoneHref}>טלפון: <bdi>{contactDetails.phone}</bdi></a>
         <a href={contactDetails.emailHref}>דוא״ל: <bdi>{contactDetails.email}</bdi></a>
       </address>

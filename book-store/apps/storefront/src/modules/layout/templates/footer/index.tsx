@@ -67,33 +67,23 @@ export default async function Footer() {
             <h2 className="footer-heading">מידע ושירות</h2>
             <ul className="footer-links">
               <li>
-                <LocalizedClientLink href="/pages/shipping">
-                  משלוחים ואיסוף עצמי
-                </LocalizedClientLink>
-              </li>
-              <li>
-                <LocalizedClientLink href="/pages/cancellations">
-                  ביטולים והחזרות
-                </LocalizedClientLink>
-              </li>
-              <li>
                 <LocalizedClientLink href="/pages/contact">
                   צור קשר
                 </LocalizedClientLink>
               </li>
               <li>
-                <LocalizedClientLink href="/pages/terms">
+                <LocalizedClientLink href="/pages/shipping-returns">
+                  משלוחים ואיסוף עצמי
+                </LocalizedClientLink>
+              </li>
+              <li>
+                <LocalizedClientLink href="/pages/terms-of-purchase">
                   תקנון ותנאי רכישה
                 </LocalizedClientLink>
               </li>
               <li>
-                <LocalizedClientLink href="/pages/privacy">
+                <LocalizedClientLink href="/pages/privacy-accessibility">
                   מדיניות פרטיות
-                </LocalizedClientLink>
-              </li>
-              <li>
-                <LocalizedClientLink href="/pages/accessibility">
-                  הצהרת נגישות
                 </LocalizedClientLink>
               </li>
             </ul>
@@ -101,12 +91,21 @@ export default async function Footer() {
           <div>
             <h2 className="footer-heading">פרטי התקשרות</h2>
             <address className="not-italic leading-7 text-[#d8d0c0]">
-              <span className="block">מעשה רוקח בע״מ</span>
-              <span className="block">ח.פ. 514692946</span>
+              <span className="block">מעשה רוקח בע״מ
+                ח.פ. 514692946
+              </span>
               <span className="block">דובר שלום 7 מיקוד: 9447607 ירושלים</span>
-              <a className="block hover:text-white" href={contactDetails.phoneHref}>טלפון: <bdi>{contactDetails.phone}</bdi></a>
-              <span className="block">פקס: <bdi>{contactDetails.fax}</bdi></span>
+             <span className="flex flex-wrap items-center gap-x-4">
+              <a className="hover:text-white" href={contactDetails.phoneHref}>
+                טלפון: <bdi>{contactDetails.phone}</bdi>
+              </a>
+              <span>
+                פקס: <bdi>{contactDetails.fax}</bdi>
+              </span>
+            </span>
+            <span className="block">
               <a className="block hover:text-white" href={contactDetails.emailHref}>דוא״ל: <bdi>{contactDetails.email}</bdi></a>
+            </span>
             </address>
           </div>
           <div>

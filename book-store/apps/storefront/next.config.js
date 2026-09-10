@@ -13,6 +13,24 @@ const S3_PATHNAME = process.env.MEDUSA_CLOUD_S3_PATHNAME
  */
 const nextConfig = {
   reactStrictMode: true,
+  async redirects() {
+    const destinations = {
+      terms: "terms-of-purchase",
+      shipping: "shipping-returns",
+      cancellations: "shipping-returns",
+      privacy: "privacy-accessibility",
+      accessibility: "privacy-accessibility",
+    }
+    return Object.entries(destinations).flatMap(([source, destination]) =>
+      ["", "/:countryCode([a-z]{2})"].flatMap((prefix) =>
+        ["", "/pages"].map((pages) => ({
+          source: `${prefix}${pages}/${source}`,
+          destination: `${prefix ? "/:countryCode" : ""}/pages/${destination}`,
+          statusCode: 301,
+        })),
+      ),
+    )
+  },
   logging: {
     fetches: {
       fullUrl: true,

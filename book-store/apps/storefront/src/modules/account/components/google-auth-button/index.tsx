@@ -3,20 +3,30 @@
 import { usePathname, useSearchParams } from "next/navigation"
 import Google from "@modules/common/icons/google"
 import { safeReturnPath } from "@lib/util/safe-return-path"
+import { prepareGoogleMarketingConsent } from "@lib/data/marketing-consent"
+import { MARKETING_CONSENT_VERSION } from "@lib/marketing-consent"
 
 const CHECKOUT_DRAFT_KEY = "checkout_google_oauth_draft"
 
 const GoogleAuthButton = ({
   label = "המשך עם Google",
   preserveCheckoutDraft = false,
+  marketingConsent = false,
 }: {
   label?: string
   preserveCheckoutDraft?: boolean
+  marketingConsent?: boolean
 }) => {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
-  const startGoogleLogin = () => {
+  const startGoogleLogin = async () => {
+    try {
+      await prepareGoogleMarketingConsent(marketingConsent, MARKETING_CONSENT_VERSION)
+    } catch {
+      // Optional marketing enrollment must not prevent authentication.
+      console.warn("Google registration: marketing preference could not be prepared")
+    }
     const nextParams = new URLSearchParams(searchParams.toString())
     nextParams.delete("google_auth_error")
     const requestedReturnTo = searchParams.get("return_to")

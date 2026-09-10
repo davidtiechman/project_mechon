@@ -136,6 +136,8 @@ export async function signup(
 ): Promise<CustomerAuthState> {
   const password = formData.get("password") as string
   const customerForm = {
+    marketing_consent: formData.get("marketing_consent") === "on",
+    marketing_consent_version: String(formData.get("marketing_consent_version") || ""),
     email: formData.get("email") as string,
     first_name: formData.get("first_name") as string,
     last_name: formData.get("last_name") as string,
@@ -375,6 +377,19 @@ async function completeLogin(
   }
 
   await setAuthToken(token)
+
+  if (pending && typeof pending.marketing_consent === "boolean") {
+    try {
+      await sdk.client.fetch("/store/customers/me/marketing-consent", {
+        method: "POST", headers: { authorization: `Bearer ${token}` },
+        body: { accepted: pending.marketing_consent, version: pending.marketing_consent_version, source: "registration" },
+        cache: "no-store",
+      })
+    } catch {
+      // A failed optional opt-in never prevents registration and never grants consent.
+      console.warn("Registration: marketing preference was not saved")
+    }
+  }
 
   const customerCacheTag = await getCacheTag("customers")
   revalidateTag(customerCacheTag)

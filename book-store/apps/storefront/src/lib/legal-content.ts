@@ -52,4 +52,13 @@ export const legalPages: Record<string, ContentItem> = {
   },
 }
 
-export const legalPageSlugs = Object.keys(legalPages)
+export const legalPageGroups: Record<string, { title: string; sources: string[] }> = {
+  "shipping-returns": { title: "משלוחים, ביטולים והחזרות", sources: ["shipping", "cancellations"] },
+  "privacy-accessibility": { title: "פרטיות ונגישות", sources: ["privacy", "accessibility"] },
+}
+
+export const canonicalLegalSlug = (slug: string) =>
+  slug === "terms" ? "terms-of-purchase" :
+    Object.entries(legalPageGroups).find(([, group]) => group.sources.includes(slug))?.[0] || slug
+
+export const legalPageSlugs = ["shipping-returns", "terms-of-purchase", "privacy-accessibility", "contact"]

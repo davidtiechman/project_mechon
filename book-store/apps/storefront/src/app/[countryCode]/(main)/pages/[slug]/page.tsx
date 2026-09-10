@@ -6,14 +6,16 @@ import {
   canonicalMetadata,
   metadataDescription,
 } from "@lib/util/seo"
-import { legalPages } from "@lib/legal-content"
+import { legalPages, legalPageGroups } from "@lib/legal-content"
 import { updatePublicContactRows } from "@lib/contact-details"
 import ContactForm from "@modules/content/components/contact-form"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import MarketingPrivacyNotice from "@modules/content/components/marketing-privacy-notice"
 
 type Props = { params: Promise<{ countryCode: string; slug: string }> }
 
 const legalPageTitles: Record<string, string> = {
+  "terms-of-purchase": "תקנון ותנאי רכישה",
   terms: "תקנון ותנאי רכישה",
   privacy: "מדיניות פרטיות",
   cancellations: "ביטולים והחזרות",
@@ -23,6 +25,9 @@ const legalPageTitles: Record<string, string> = {
 }
 
 const getPageItem = async (slug: string) => {
+  if (slug === "terms-of-purchase") return getPageItem("terms")
+  const group = legalPageGroups[slug]
+  if (group) return { id: slug, slug, title: group.title, status: "published" }
   const item = await getContentItem("pages", slug)
 
   if (item) return item.content
@@ -47,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { countryCode, slug } = await params
   const item = await getPageItem(slug)
   if (!item) return {}
-  const legalTitle = legalPageTitles[slug]
+  const legalTitle = legalPageGroups[slug]?.title || legalPageTitles[slug]
   return {
     title: legalTitle
       ? { absolute: `${legalTitle} | מכון מעשה רוקח` }
@@ -72,37 +77,36 @@ export default async function Page({ params }: Props) {
   const { slug } = await params
   const item = await getPageItem(slug)
   if (!item) notFound()
+  const group = legalPageGroups[slug]
+  if (group) {
+    const sections = await Promise.all(group.sources.map(getPageItem))
+    return (
+      <div dir="rtl" className="bg-[#faf6f1]">
+        <header className="content-container py-10 text-right">
+          <h1 className="text-4xl text-[#4a2d21]">{group.title}</h1>
+        </header>
+        {sections.map((section, index) => section && (
+          <section key={group.sources[index]} id={group.sources[index]}>
+            <ContentPageTemplate item={section} headingLevel="h2">
+              {group.sources[index] === "privacy" && <MarketingPrivacyNotice />}
+            </ContentPageTemplate>
+          </section>
+        ))}
+        {slug === "shipping-returns" && (
+          <nav aria-label="מידע קשור" className="content-container pb-14 text-right">
+            <LocalizedClientLink href="/pages/contact" className="underline">
+              ליצירת קשר בנושא ביטול או החזרה
+            </LocalizedClientLink>
+          </nav>
+        )}
+      </div>
+    )
+  }
   return (
     <ContentPageTemplate
       compactHeader={slug === "contact"}
       item={slug === "contact" ? { ...item, content: undefined } : item}
     >
-      {slug === "shipping" && (
-        <nav
-          aria-label="מידע קשור"
-          className="content-container max-w-4xl pb-14 text-right small:max-w-5xl large:max-w-6xl"
-        >
-          <LocalizedClientLink
-            href="/pages/cancellations"
-            className="font-medium text-[#4a2d21] underline underline-offset-4"
-          >
-            למידע על ביטולים והחזרות
-          </LocalizedClientLink>
-        </nav>
-      )}
-      {slug === "cancellations" && (
-        <nav
-          aria-label="מידע קשור"
-          className="content-container max-w-4xl pb-14 text-right small:max-w-5xl large:max-w-6xl"
-        >
-          <LocalizedClientLink
-            href="/pages/contact"
-            className="font-medium text-[#4a2d21] underline underline-offset-4"
-          >
-            ליצירת קשר בנושא ביטול או החזרה
-          </LocalizedClientLink>
-        </nav>
-      )}
       {slug === "contact" && <ContactForm />}
     </ContentPageTemplate>
   )

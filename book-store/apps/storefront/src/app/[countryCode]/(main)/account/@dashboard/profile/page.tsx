@@ -1,4 +1,5 @@
 import { Metadata } from "next"
+import Link from "next/link"
 
 import ProfilePhone from "@modules/account//components/profile-phone"
 import ProfileBillingAddress from "@modules/account/components/profile-billing-address"
@@ -32,6 +33,7 @@ export default async function Profile() {
         </p>
       </div>
       <div className="flex flex-col gap-y-8 w-full">
+        <Link href="/il/marketing-preferences" className="underline">ניהול הסכמה לדיוור פרסומי</Link>
         <ProfileName customer={customer} />
         <Divider />
         <ProfileEmail customer={customer} />
