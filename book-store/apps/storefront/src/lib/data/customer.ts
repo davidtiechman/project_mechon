@@ -56,7 +56,7 @@ async function requestVerificationEmail(email: string, token: string) {
 }
 
 export const retrieveCustomer =
-  async (): Promise<HttpTypes.StoreCustomer | null> => {
+  async ({ throwOnError = false } = {}): Promise<HttpTypes.StoreCustomer | null> => {
     const authHeaders = await getAuthHeaders()
 
     // getAuthHeaders returns an empty object for guests. Avoid calling the
@@ -81,10 +81,14 @@ export const retrieveCustomer =
         },
         headers,
         next,
-        cache: "force-cache",
+        cache: "no-store",
       })
       .then(({ customer }) => customer)
-      .catch(() => null)
+      .catch((error: unknown) => {
+        if (error instanceof FetchError && error.status === 401) return null
+        if (throwOnError) throw error
+        return null
+      })
   }
 
 export const updateCustomer = async (body: HttpTypes.StoreUpdateCustomer) => {

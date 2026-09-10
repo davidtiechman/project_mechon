@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     const query = Object.fromEntries(request.nextUrl.searchParams.entries())
     const callback = await sdk.client.fetch<{ token: string }>(
       "/auth/customer/google/callback",
-      { method: "GET", query, cache: "no-store" }
+      { method: "GET", query, cache: "no-store" },
     )
     let token = callback.token
     const payload = decodeTokenPayload(token)
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
             last_name: payload.user_metadata?.family_name,
           },
           {},
-          authHeaders(token)
+          authHeaders(token),
         )
       }
 
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
           method: "POST",
           headers: authHeaders(token),
           cache: "no-store",
-        }
+        },
       )
       token = refreshed.token
     }
@@ -98,25 +98,26 @@ export async function GET(request: NextRequest) {
       payload.user_metadata?.given_name ||
       payload.user_metadata?.family_name
     ) {
-      const { customer } = await sdk.store.customer.retrieve(
-        {},
-        authHeaders(token)
-      )
-      const missingNames = {
-        ...(!customer.first_name && payload.user_metadata.given_name
-          ? { first_name: payload.user_metadata.given_name }
-          : {}),
-        ...(!customer.last_name && payload.user_metadata.family_name
-          ? { last_name: payload.user_metadata.family_name }
-          : {}),
-      }
-
-      if (Object.keys(missingNames).length) {
-        await sdk.store.customer.update(
-          missingNames,
+      try {
+        const { customer } = await sdk.store.customer.retrieve(
           {},
-          authHeaders(token)
+          authHeaders(token),
         )
+        const missingNames = {
+          ...(!customer.first_name && payload.user_metadata.given_name
+            ? { first_name: payload.user_metadata.given_name }
+            : {}),
+          ...(!customer.last_name && payload.user_metadata.family_name
+            ? { last_name: payload.user_metadata.family_name }
+            : {}),
+        }
+
+        if (Object.keys(missingNames).length) {
+          await sdk.store.customer.update(missingNames, {}, authHeaders(token))
+        }
+      } catch {
+        // Profile enrichment must not discard a successful authentication.
+        console.warn("Google login: could not update customer names")
       }
     }
 
@@ -163,7 +164,9 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.redirect(destination)
     response.cookies.set("_medusa_jwt", token, {
       httpOnly: true,
-      sameSite: "strict",
+      // Google starts a cross-site redirect chain. Strict can hide the new
+      // session from the first account request and show the login form again.
+      sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       maxAge: 60 * 60 * 24 * 7,
       path: "/",

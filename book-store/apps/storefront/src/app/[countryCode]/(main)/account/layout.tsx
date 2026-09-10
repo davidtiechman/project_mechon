@@ -3,6 +3,7 @@ import { retrieveCustomer } from "@lib/data/customer"
 import AccountLayout from "@modules/account/templates/account-layout"
 import { privatePageRobots } from "@lib/util/seo"
 import type { Metadata } from "next"
+import AccountLoadError from "@modules/account/components/account-load-error"
 
 export const metadata: Metadata = { robots: privatePageRobots }
 
@@ -13,7 +14,16 @@ export default async function AccountPageLayout({
   dashboard?: React.ReactNode
   login?: React.ReactNode
 }) {
-  const customer = await retrieveCustomer().catch(() => null)
+  let customer
+  try {
+    customer = await retrieveCustomer({ throwOnError: true })
+  } catch {
+    return (
+      <AccountLayout customer={null}>
+        <AccountLoadError />
+      </AccountLayout>
+    )
+  }
 
   return (
     <AccountLayout customer={customer}>
