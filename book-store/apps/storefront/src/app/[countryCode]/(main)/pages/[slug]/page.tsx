@@ -7,6 +7,7 @@ import {
   metadataDescription,
 } from "@lib/util/seo"
 import { legalPages } from "@lib/legal-content"
+import { updatePublicContactRows } from "@lib/contact-details"
 import ContactForm from "@modules/content/components/contact-form"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
@@ -24,7 +25,9 @@ const legalPageTitles: Record<string, string> = {
 const getPageItem = async (slug: string) => {
   const item = await getContentItem("pages", slug)
 
-  if (item) return item
+  if (item) return legalPageTitles[slug] && item.content
+    ? { ...item, content: updatePublicContactRows(item.content) }
+    : item
 
   const fallback = legalPages[slug]
   if (!fallback) return null
