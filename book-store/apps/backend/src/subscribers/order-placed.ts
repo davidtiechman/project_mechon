@@ -16,8 +16,6 @@ export default async function orderPlacedHandler({
       fields: [
         "id", "display_id", "email", "currency_code", "total", "shipping_total",
         "items.*", "shipping_address.*", "shipping_methods.*", "customer.*",
-        "id", "display_id", "email", "customer_id", "currency_code", "total", "shipping_total",
-        "items.*", "shipping_address.*", "shipping_methods.*", "customer.*", "metadata",
       ],
       filters: { id: data.id },
     })

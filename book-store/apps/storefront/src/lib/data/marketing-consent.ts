@@ -21,19 +21,12 @@ export async function saveCheckoutMarketingConsent(accepted: boolean, version: s
   const cartId = await getCartId()
   if (!cartId) throw new Error("לא נמצאה עגלת קניות פעילה.")
   const result = await sdk.client.fetch<{ unsubscribe_token: string }>(`/store/carts/${cartId}/marketing-consent`, {
-  const result = await sdk.client.fetch<{ unsubscribe_token?: string | null }>(`/store/carts/${cartId}/marketing-consent`, {
     method: "POST", headers: await getAuthHeaders(), body: { accepted, version }, cache: "no-store",
   })
   const jar = await cookies()
   jar.set("_marketing_unsubscribe", result.unsubscribe_token, {
     httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 365,
   })
-  if (result?.unsubscribe_token) {
-    const jar = await cookies()
-    jar.set("_marketing_unsubscribe", result.unsubscribe_token, {
-      httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 365,
-    })
-  }
 }
 
 export async function getMarketingPreference() {
