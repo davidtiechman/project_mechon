@@ -165,10 +165,6 @@ body {
     @apply -translate-y-2 text-xsmall-regular;
   }
 
-  input:focus ~ label {
-    @apply left-0;
-  }
-
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,

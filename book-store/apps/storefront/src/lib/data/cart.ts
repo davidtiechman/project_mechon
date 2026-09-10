@@ -295,7 +295,7 @@ export async function applyPromotions(codes: string[]) {
     .catch(medusaError)
 }
 
-export async function applyGiftCard(code: string) {
+export async function applyGiftCard(_code: string) {
   //   const cartId = getCartId()
   //   if (!cartId) return "No cartId cookie found"
   //   try {
@@ -307,7 +307,7 @@ export async function applyGiftCard(code: string) {
   //   }
 }
 
-export async function removeDiscount(code: string) {
+export async function removeDiscount(_code: string) {
   // const cartId = getCartId()
   // if (!cartId) return "No cartId cookie found"
   // try {
@@ -319,8 +319,8 @@ export async function removeDiscount(code: string) {
 }
 
 export async function removeGiftCard(
-  codeToRemove: string,
-  giftCards: any[],
+  _codeToRemove: string,
+  _giftCards: unknown[],
   // giftCards: GiftCard[]
 ) {
   //   const cartId = getCartId()
@@ -345,8 +345,8 @@ export async function submitPromotionForm(
   const code = formData.get("code") as string
   try {
     await applyPromotions([code])
-  } catch (e: any) {
-    return e.message
+  } catch (e: unknown) {
+    return e instanceof Error ? e.message : String(e)
   }
 }
 
@@ -400,8 +400,8 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
     }
 
     const shippingAddress = {
-      first_name: formData.get("shipping_address.first_name"),
-      last_name: formData.get("shipping_address.last_name"),
+      first_name: String(formData.get("shipping_address.first_name") || ""),
+      last_name: String(formData.get("shipping_address.last_name") || ""),
       address_1: `${street} ${houseNumber}`.trim(),
       address_2: [
         apartment ? `דירה ${apartment}` : "",
@@ -414,7 +414,7 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
         countryCode === "il" ? normalizePostalCode(postalCode) : postalCode,
       city,
       country_code: countryCode,
-      province: formData.get("shipping_address.province") || null,
+      province: String(formData.get("shipping_address.province") || "") || null,
       phone: countryCode === "il" ? normalizeIsraeliPhone(phone) : phone,
       metadata: {
         street,
@@ -425,25 +425,25 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
       },
     }
 
-    const data = {
+    const data: HttpTypes.StoreUpdateCart = {
       shipping_address: shippingAddress,
       email,
-    } as any
+    }
 
     if (formData.get("same_as_billing") === "on") {
       data.billing_address = shippingAddress
     } else {
       data.billing_address = {
-        first_name: formData.get("billing_address.first_name"),
-        last_name: formData.get("billing_address.last_name"),
-        address_1: formData.get("billing_address.address_1"),
+        first_name: String(formData.get("billing_address.first_name") || ""),
+        last_name: String(formData.get("billing_address.last_name") || ""),
+        address_1: String(formData.get("billing_address.address_1") || ""),
         address_2: "",
-        company: formData.get("billing_address.company"),
-        postal_code: formData.get("billing_address.postal_code"),
-        city: formData.get("billing_address.city"),
-        country_code: formData.get("billing_address.country_code"),
-        province: formData.get("billing_address.province"),
-        phone: formData.get("billing_address.phone"),
+        company: String(formData.get("billing_address.company") || ""),
+        postal_code: String(formData.get("billing_address.postal_code") || ""),
+        city: String(formData.get("billing_address.city") || ""),
+        country_code: String(formData.get("billing_address.country_code") || ""),
+        province: String(formData.get("billing_address.province") || ""),
+        phone: String(formData.get("billing_address.phone") || ""),
       }
     }
     await updateCart(data)
@@ -463,8 +463,8 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
         })
         .catch(() => undefined)
     }
-  } catch (e: any) {
-    return e.message
+  } catch (e: unknown) {
+    return e instanceof Error ? e.message : String(e)
   }
 
   redirect(

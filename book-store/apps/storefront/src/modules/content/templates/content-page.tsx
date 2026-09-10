@@ -22,10 +22,7 @@ export default function ContentPageTemplate({
   const content = item.content
     ?.replace(/<h1(\s[^>]*)?>/gi, "<h2$1>")
     .replace(/<\/h1>/gi, "</h2>")
-  const containsPlaceholder =
-    /\[[^\]]+\]|תוכן זמני|נוסח זמני|להשלמה|יש להשלים|יש להחליף/.test(
-      `${item.excerpt || ""} ${content || ""}`,
-    )
+  const isDraft = item.status === "draft"
 
   return (
     <div dir="rtl" className="min-h-[60vh] bg-[#faf6f1]">
@@ -50,7 +47,7 @@ export default function ContentPageTemplate({
           )}
         </div>
       </header>
-      {(item.status === "draft" || containsPlaceholder) && (
+      {isDraft && (
         <aside
           role="status"
           className="content-container mt-8 max-w-4xl border-2 border-amber-700 bg-amber-50 p-5 text-right text-amber-950 small:max-w-5xl large:max-w-6xl"
@@ -61,7 +58,7 @@ export default function ContentPageTemplate({
           </span>
         </aside>
       )}
-      {content && !containsPlaceholder && (
+      {content && !isDraft && (
         <article
           className="content-page-body content-container prose prose-lg max-w-4xl py-14 text-right small:max-w-5xl small:py-10 large:max-w-6xl"
           dangerouslySetInnerHTML={{ __html: content }}

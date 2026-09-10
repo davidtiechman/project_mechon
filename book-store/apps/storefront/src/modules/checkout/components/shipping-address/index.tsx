@@ -3,7 +3,7 @@ import Checkbox from "@modules/common/components/checkbox"
 import { Container } from "@modules/common/components/ui"
 import Input from "@modules/common/components/input"
 import { mapKeys } from "lodash"
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import AddressSelect from "../address-select"
 import CountrySelect from "../country-select"
 import type { IsraeliCity, IsraeliStreet } from "@lib/israel-addresses"
@@ -13,6 +13,22 @@ import {
   isValidIsraeliPhone,
   isValidOptionalIsraeliPostalCode,
 } from "@lib/util/checkout-validation"
+
+const splitAddress = (address?: HttpTypes.StoreCartAddress | HttpTypes.StoreCustomerAddress) => {
+  const metadata = (address?.metadata || {}) as Record<string, unknown>
+  if (metadata.street || metadata.house_number) {
+    return {
+      street: String(metadata.street || address?.address_1 || ""),
+      houseNumber: String(metadata.house_number || ""),
+    }
+  }
+
+  const raw = String(address?.address_1 || "").trim()
+  const match = raw.match(/^(.*?)[,\s]+(\d+[\p{L}\d\/-]*)$/u)
+  return match
+    ? { street: match[1].trim(), houseNumber: match[2].trim() }
+    : { street: raw, houseNumber: "" }
+}
 
 const ShippingAddress = ({
   customer,
@@ -41,21 +57,6 @@ const ShippingAddress = ({
     string,
     unknown
   >
-  const splitAddress = (address?: HttpTypes.StoreCartAddress | HttpTypes.StoreCustomerAddress) => {
-    const metadata = (address?.metadata || {}) as Record<string, unknown>
-    if (metadata.street || metadata.house_number) {
-      return {
-        street: String(metadata.street || address?.address_1 || ""),
-        houseNumber: String(metadata.house_number || ""),
-      }
-    }
-
-    const raw = String(address?.address_1 || "").trim()
-    const match = raw.match(/^(.*?)[,\s]+(\d+[\p{L}\d\/-]*)$/u)
-    return match
-      ? { street: match[1].trim(), houseNumber: match[2].trim() }
-      : { street: raw, houseNumber: "" }
-  }
   const initialStreet = splitAddress(initialAddress)
   const [formData, setFormData] = useState<Record<string, string>>({
     "shipping_address.first_name":
@@ -83,6 +84,8 @@ const ShippingAddress = ({
   const [cities, setCities] = useState<IsraeliCity[]>([])
   const [streets, setStreets] = useState<IsraeliStreet[]>([])
   const [cityCode, setCityCode] = useState("")
+  const lastConfirmedCity = useRef((initialAddress?.city || "").trim())
+  const cityValue = formData["shipping_address.city"]
   const [streetCode, setStreetCode] = useState("")
   const [streetsLoading, setStreetsLoading] = useState(false)
   const [manualStreet, setManualStreet] = useState(false)
@@ -107,11 +110,14 @@ const ShippingAddress = ({
     [customer?.addresses, countriesInRegion],
   )
 
-  const setFormAddress = (
+  const setFormAddress = useCallback((
     address?: HttpTypes.StoreCartAddress | HttpTypes.StoreCustomerAddress,
     email?: string,
   ) => {
     if (address) {
+      lastConfirmedCity.current = (address.city || "").trim()
+      setCityCode("")
+      setStreetCode("")
       const parts = splitAddress(address)
       setFormData((prevState: Record<string, string>) => ({
         ...prevState,
@@ -145,7 +151,7 @@ const ShippingAddress = ({
         email: email,
       }))
     }
-  }
+  }, [customer?.first_name, customer?.last_name, customer?.phone])
 
   useEffect(() => {
     // Ensure cart is not null and has a shipping_address before setting form data
@@ -156,7 +162,7 @@ const ShippingAddress = ({
     if (cart && !cart.email && customer?.email) {
       setFormAddress(undefined, customer.email)
     }
-  }, [cart]) // Add cart as a dependency
+  }, [cart, customer?.email, setFormAddress])
 
   useEffect(() => {
     if (!oauthDraft) return
@@ -167,6 +173,9 @@ const ShippingAddress = ({
       )
     )
 
+    lastConfirmedCity.current = (shippingDraft["shipping_address.city"] || "").trim()
+    setCityCode("")
+    setStreetCode("")
     setFormData((current) => ({
       ...current,
       ...shippingDraft,
@@ -188,7 +197,7 @@ const ShippingAddress = ({
   }, [customer])
 
   useEffect(() => {
-    const query = formData["shipping_address.city"].trim()
+    const query = cityValue.trim()
     if (selectedCountry !== "il" || query.length < 1) {
       setCities([])
       return
@@ -212,16 +221,23 @@ const ShippingAddress = ({
       window.clearTimeout(timer)
       controller.abort()
     }
-  }, [formData["shipping_address.city"], selectedCountry])
+  }, [cityValue, selectedCountry])
 
   useEffect(() => {
     if (!cityCode) {
       const exactCity = cities.find(
-        (city) => city.name === formData["shipping_address.city"].trim(),
+        (city) => city.name === cityValue.trim(),
       )
-      if (exactCity) setCityCode(String(exactCity.code))
+      if (exactCity) {
+        if (lastConfirmedCity.current && lastConfirmedCity.current !== exactCity.name) {
+          setFormData((current) => ({ ...current, "shipping_address.street": "" }))
+          setStreetCode("")
+        }
+        lastConfirmedCity.current = exactCity.name
+        setCityCode(String(exactCity.code))
+      }
     }
-  }, [cities, cityCode, formData])
+  }, [cities, cityCode, cityValue])
 
   useEffect(() => {
     if (!cityCode || selectedCountry !== "il") {
@@ -272,16 +288,10 @@ const ShippingAddress = ({
 
   const handleCityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
-    const city = cities.find((candidate) => candidate.name === value)
-    setCityCode(city ? String(city.code) : "")
-    setStreetCode("")
-    setStreets([])
-    setManualStreet(false)
-    setFormData((current) => ({
-      ...current,
-      "shipping_address.city": value,
-      "shipping_address.street": "",
-    }))
+    // Editing text is not a new city selection. The exact-match effect above
+    // clears the street only after a different city has been confirmed.
+    setCityCode("")
+    setFormData((current) => ({ ...current, "shipping_address.city": value }))
   }
 
   const handleStreetChange = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.RESEND_FROM_EMAIL
   const to = process.env.CONTACT_FORM_TO_EMAIL
-  const useDirectDelivery = Boolean(webhook || apiKey || from || to)
-  if (useDirectDelivery && !webhook && !(apiKey && from && to && isValidEmail(from) && isValidEmail(to)))
+  const useDirectDelivery = Boolean(webhook || (apiKey && from && to))
+  if (useDirectDelivery && !webhook && !(isValidEmail(from!) && isValidEmail(to!)))
     return NextResponse.json(
       { message: "שירות הפניות אינו מוגדר" },
       { status: 503 },

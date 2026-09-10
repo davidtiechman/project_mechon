@@ -20,7 +20,8 @@ export type SeoFields = { seo_title?: string; seo_description?: string; canonica
 export type ContentBanner = { id: string; title?: string; subtitle?: string; desktop_image?: string; mobile_image?: string; image_alt?: string; button_text?: string; button_url?: string; open_new_tab?: boolean; placement: "homepage_top" | "homepage_middle" | "products" | "articles" | "global"; sort_order?: number }
 export type ContentAdvertisement = { id: string; title?: string; body?: string; desktop_image?: string; mobile_image?: string; image_alt?: string; button_text?: string; button_url?: string; open_new_tab?: boolean; show_delay_seconds: number; auto_close_seconds: number; show_timer: boolean; display_frequency: "always" | "once_session" | "once_ever"; sort_order?: number }
 export type ContentItem = { id: string; title?: string; name?: string; slug?: string; excerpt?: string; short_description?: string; content?: string; status?: string; featured_image?: string; hero_image?: string; image_alt?: string; author?: string; published_at?: string; seo?: SeoFields; products?: Array<{ id: string; handle: string; title: string; thumbnail?: string }> }
-export type HomeContent = { sections: Array<Record<string, any>>; articles: ContentItem[]; brands: ContentItem[]; banners: ContentBanner[] }
+export type HomeSection = { id: string; type: string; active: boolean; title?: string; subtitle?: string; content?: string; data?: { button_text?: string; button_url?: string; desktop_image?: string } }
+export type HomeContent = { sections: HomeSection[]; articles: ContentItem[]; brands: ContentItem[]; banners: ContentBanner[] }
 export type ActiveCatalog = { file_url: string; file_name: string; updated_at: string }
 
 export const getHomeContent = () => getContent<HomeContent>("/home")

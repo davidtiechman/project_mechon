@@ -4,11 +4,13 @@ import Image from "next/image"
 import { contactDetails } from "@lib/contact-details"
 
 export default async function Footer() {
-  const productCategories = await listCategories()
+  const productCategories = await listCategories({
+    fields: "id,name,handle,parent_category_id,products.id",
+  })
   const rootCategories = productCategories
     .filter(
       (category) =>
-        !category.parent_category && (category.products?.length ?? 0) > 0,
+        !category.parent_category_id && (category.products?.length ?? 0) > 0,
     )
     .slice(0, 6)
 
@@ -90,7 +92,7 @@ export default async function Footer() {
           </div>
           <div>
             <h2 className="footer-heading">פרטי התקשרות</h2>
-            <address className="not-italic leading-7 text-[#d8d0c0]">
+            <address className="footer-links not-italic">
               <span className="block">מעשה רוקח בע״מ
                 ח.פ. 514692946
               </span>

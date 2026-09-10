@@ -53,6 +53,9 @@ the storefront. Never prefix these variables with `NEXT_PUBLIC_`.
 The form sends a plain-text email with the visitor's address as `reply_to`.
 An existing `CONTACT_FORM_WEBHOOK_URL` takes precedence; unset it to use Resend.
 Provider failures and timeouts return 502, and missing configuration returns 503.
+Partial storefront Resend settings fall back to backend delivery. A complete but
+invalid direct-delivery configuration returns 503; provider errors never retry
+via another delivery path, to avoid duplicate messages.
 Success means the provider accepted the email, not that inbox delivery is confirmed.
 
 Deploy the updated storefront after setting these variables. With authorization
