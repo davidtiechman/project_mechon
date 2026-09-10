@@ -35,7 +35,8 @@
 - [ ] Payment Provider ל־Medusa והגדרת Webhooks
 - [ ] בדיקות Sandbox ולאחר מכן Production לספק הסליקה
 - [ ] מערכת חשבוניות וקבלות, API ותהליך זיכויים
-- [ ] חיבור `CONTACT_FORM_WEBHOOK_URL` ליעד מאובטח לטופס צור קשר
+- [x] הוספת מסלול שליחה דרך Resend לטופס צור קשר, עם תמיכה ב־webhook קיים
+- [ ] הגדרת `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `CONTACT_FORM_TO_EMAIL` בשירות האתר, פריסה ואימות מסירה
 - [ ] החלטה ותיעוד של יעד הפניות
 - [ ] rate limiting משותף (Redis/edge) ל־endpoint של טופס צור קשר לפני עלייה לייצור
 - [ ] מדיניות שמירה ומחיקה של פניות צור קשר

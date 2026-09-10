@@ -79,3 +79,9 @@ services:
         sync: false
       - key: IMAGE_STORAGE_URL
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+      - key: CONTACT_FORM_TO_EMAIL
+        sync: false
