@@ -4,17 +4,22 @@ import PaymentWrapper from "@modules/checkout/components/payment-wrapper"
 import CheckoutForm from "@modules/checkout/templates/checkout-form"
 import CheckoutSummary from "@modules/checkout/templates/checkout-summary"
 import { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { redirect } from "next/navigation"
 
 export const metadata: Metadata = {
   title: "השלמת הזמנה",
 }
 
-export default async function Checkout() {
+export default async function Checkout({
+  params,
+}: {
+  params: Promise<{ countryCode: string }>
+}) {
+  const { countryCode } = await params
   const cart = await retrieveCart()
 
-  if (!cart) {
-    return notFound()
+  if (!cart || !cart.items?.length || cart.completed_at) {
+    redirect(`/${countryCode}/cart`)
   }
 
   const customer = await retrieveCustomer()

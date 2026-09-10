@@ -44,16 +44,30 @@ export async function POST(request: NextRequest) {
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.RESEND_FROM_EMAIL
   const to = process.env.CONTACT_FORM_TO_EMAIL
-  if (!webhook && !(apiKey && from && to && isValidEmail(from) && isValidEmail(to)))
+  const useDirectDelivery = Boolean(webhook || apiKey || from || to)
+  if (useDirectDelivery && !webhook && !(apiKey && from && to && isValidEmail(from) && isValidEmail(to)))
     return NextResponse.json(
-      {
-        message:
-          "טופס יצירת הקשר טרם חובר. אפשר לפנות אלינו בפרטים המופיעים בעמוד.",
-      },
+      { message: "שירות הפניות אינו מוגדר" },
       { status: 503 },
     )
 
   try {
+    if (!useDirectDelivery) {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000"}/store/contact`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-publishable-api-key": process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "",
+          },
+          body: JSON.stringify(parsed.data),
+          signal: AbortSignal.timeout(15_000),
+        },
+      )
+      if (!response.ok) throw new Error("Contact delivery failed")
+      return NextResponse.json({ message: "הפנייה נשלחה" })
+    }
     const { name, phone, email, inquiry } = parsed.data
     const response = await fetch(webhook || "https://api.resend.com/emails", {
       method: "POST",

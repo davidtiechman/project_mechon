@@ -40,7 +40,12 @@ Admin: `https://mechon-backend.onrender.com/app`
 
 ## Contact form delivery
 
-On **mechon-storefront**, set the server-only `RESEND_API_KEY`,
+By default, the storefront forwards contact submissions to the backend. Configure
+`RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and `CONTACT_EMAIL` on **mechon-backend**.
+The storefront uses `NEXT_PUBLIC_MEDUSA_BACKEND_URL` and
+`NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` to reach it.
+
+For optional direct delivery on **mechon-storefront**, set the server-only `RESEND_API_KEY`,
 `RESEND_FROM_EMAIL` (a verified Resend sender), and `CONTACT_FORM_TO_EMAIL`
 (the approved recipient). Backend environment variables are not inherited by
 the storefront. Never prefix these variables with `NEXT_PUBLIC_`.

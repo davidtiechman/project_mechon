@@ -59,7 +59,14 @@ export async function retrieveCart(cartId?: string, fields?: string) {
       cache: isDevelopment ? "no-store" : "force-cache",
     })
     .then(({ cart }: { cart: HttpTypes.StoreCart }) => cart)
-    .catch(() => null)
+    .catch((error: unknown) => {
+      const status =
+        typeof error === "object" && error !== null && "status" in error
+          ? error.status
+          : "unknown"
+      console.error("[cart] Failed to retrieve cart", { status })
+      return null
+    })
 }
 
 export async function getOrSetCart(countryCode: string) {

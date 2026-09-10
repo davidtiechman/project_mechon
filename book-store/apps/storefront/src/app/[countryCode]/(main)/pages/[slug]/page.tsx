@@ -29,7 +29,8 @@ const getPageItem = async (slug: string) => {
   const fallback = legalPages[slug]
   if (!fallback) return null
 
-  if (process.env.NODE_ENV === "development") return fallback
+  // Contact details and the form are available even without a CMS page.
+  if (slug === "contact" || process.env.NODE_ENV === "development") return fallback
 
   return {
     ...fallback,
@@ -69,7 +70,10 @@ export default async function Page({ params }: Props) {
   const item = await getPageItem(slug)
   if (!item) notFound()
   return (
-    <ContentPageTemplate item={item}>
+    <ContentPageTemplate
+      compactHeader={slug === "contact"}
+      item={slug === "contact" ? { ...item, content: undefined } : item}
+    >
       {slug === "shipping" && (
         <nav
           aria-label="מידע קשור"
