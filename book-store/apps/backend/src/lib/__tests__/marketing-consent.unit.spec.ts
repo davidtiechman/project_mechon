@@ -104,7 +104,7 @@ describe("marketing consent metadata", () => {
   })
   it("links a cart without a customer before saving consent and returns a working removal token", async () => {
     const cart: any = { id: "cart_1", email: "reader@example.com", metadata: {} }
-    const carts = { retrieveCart: jest.fn(async () => cart), updateCarts: jest.fn(async () => ({})) }
+    const carts = { retrieveCart: jest.fn(async () => cart), updateCarts: jest.fn(async (..._args: any[]) => ({})) }
     updateCartRun.mockImplementation(async () => { cart.customer_id = "cus_guest" })
     const scope = { resolve: (key: string) => key === "cart" ? carts : container.resolve(key) }
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
