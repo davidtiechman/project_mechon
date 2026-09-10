@@ -31,7 +31,7 @@ const getPageItem = async (slug: string) => {
   const item = await getContentItem("pages", slug)
 
   if (item) return item.content
-    ? { ...item, content: updatePublicContactRows(item.content) }
+    ? { ...item, content: updatePublicContactRows(item.content, slug === "accessibility") }
     : item
 
   const fallback = legalPages[slug]

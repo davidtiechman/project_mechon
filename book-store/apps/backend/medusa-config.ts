@@ -133,11 +133,52 @@ module.exports = defineConfig({
                     acl: false,
                     additional_client_config: { forcePathStyle: true },
                   },
+        {
+          resolve: "@medusajs/medusa/file",
+          options: {
+            providers: [
+              {
+                resolve: "@medusajs/medusa/file-s3",
+                id: "s3",
+                options: {
+                  file_url: process.env.S3_FILE_URL,
+                  access_key_id: process.env.S3_ACCESS_KEY_ID,
+                  secret_access_key: process.env.S3_SECRET_ACCESS_KEY,
+                  region: process.env.S3_REGION,
+                  bucket: process.env.S3_BUCKET,
+                  endpoint: process.env.S3_ENDPOINT,
+                  // Supabase Storage uses bucket policies and does not support
+                  // per-object S3 ACL headers such as `public-read`.
+                  acl: false,
+                  additional_client_config: { forcePathStyle: true },
                 },
               ],
             },
+              },
+            ],
           },
         ]
+        },
+      ]
+      : []),
+    ...(process.env.STRIPE_API_KEY
+      ? [
+        {
+          resolve: "@medusajs/medusa/payment",
+          options: {
+            providers: [
+              {
+                resolve: "@medusajs/medusa/payment-stripe",
+                id: "stripe",
+                options: {
+                  apiKey: process.env.STRIPE_API_KEY,
+                  webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+                },
+              },
+            ],
+          },
+        },
+      ]
       : []),
   ],
 })

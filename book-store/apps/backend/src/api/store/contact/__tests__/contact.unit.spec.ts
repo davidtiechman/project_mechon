@@ -41,7 +41,15 @@ describe("contact form delivery", () => {
   })
   it("requires backend configuration", async () => {
     delete process.env.CONTACT_EMAIL
+    delete process.env.CONTACT_FORM_TO_EMAIL
     expect((await request()).status).toHaveBeenCalledWith(503)
     expect(send).not.toHaveBeenCalled()
+  })
+  it("prioritizes CONTACT_FORM_TO_EMAIL if provided", async () => {
+    process.env.CONTACT_FORM_TO_EMAIL = "custom-owner@example.com"
+    send.mockResolvedValue({ data: { id: "email-2" }, error: null })
+    const res = await request()
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({ to: ["custom-owner@example.com"] }))
+    expect(res.json).toHaveBeenCalledWith({ message: "הפנייה נשלחה" })
   })
 })

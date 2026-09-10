@@ -18,6 +18,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   if (parsed.data.website) return res.json({ message: "הפנייה התקבלה" })
 
   const recipient = process.env.CONTACT_EMAIL
+  const recipient = process.env.CONTACT_FORM_TO_EMAIL || process.env.CONTACT_EMAIL
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.RESEND_FROM_EMAIL
   if (!recipient || !apiKey || !from) {

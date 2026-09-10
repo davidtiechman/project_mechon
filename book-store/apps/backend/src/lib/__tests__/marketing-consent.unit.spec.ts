@@ -1,3 +1,5 @@
+const updateCartRun = jest.fn()
+jest.mock("@medusajs/medusa/core-flows", () => ({ updateCartWorkflow: () => ({ run: updateCartRun }) }))
 import { canSendMarketing, MARKETING_CONSENT_VERSION, marketingUnsubscribeToken, readMarketingConsent, revokeMarketingConsent, saveMarketingConsent, unsubscribeWithToken } from "../marketing-consent"
 import { POST as checkout } from "../../api/store/carts/[id]/marketing-consent/route"
 
@@ -7,6 +9,7 @@ describe("marketing consent metadata", () => {
   let container: any
   const originalEnabled = process.env.MARKETING_DELIVERY_ENABLED
   beforeEach(() => {
+    updateCartRun.mockReset()
     records = {
       cus_guest: { id: "cus_guest", email: "reader@example.com", phone: "0501234567", has_account: false, metadata: { other: "keep" } },
       cus_account: { id: "cus_account", email: "reader@example.com", phone: "0501234567", has_account: true, metadata: {} },
@@ -92,11 +95,40 @@ describe("marketing consent metadata", () => {
   })
   it("saves a checkout snapshot alongside mandatory terms metadata", async () => {
     const cart = { id: "cart_1", customer_id: "cus_guest", email: "reader@example.com", shipping_address: { phone: "0501234567" }, metadata: { checkout_consent: { accepted: true } } }
-    const carts = { retrieveCart: jest.fn(async () => cart), updateCarts: jest.fn(async () => ({})) }
+    const carts = { retrieveCart: jest.fn(async () => cart), updateCarts: jest.fn(async (..._args: any[]) => ({})) }
     const scope = { resolve: (key: string) => key === "cart" ? carts : container.resolve(key) }
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
     await checkout({ params: { id: cart.id }, body: { accepted: true, version: MARKETING_CONSENT_VERSION }, scope } as any, res as any)
     expect(carts.updateCarts).toHaveBeenCalledWith(cart.id, { metadata: expect.objectContaining({ checkout_consent: { accepted: true }, marketing_consent: expect.objectContaining({ status: "subscribed", source: "checkout", checkout_opt_in: true }) }) })
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true, unsubscribe_token: expect.any(String) }))
   })
+  it("links a cart without a customer before saving consent and returns a working removal token", async () => {
+    const cart: any = { id: "cart_1", email: "reader@example.com", metadata: {} }
+    const carts = { retrieveCart: jest.fn(async () => cart), updateCarts: jest.fn(async () => ({})) }
+    updateCartRun.mockImplementation(async () => { cart.customer_id = "cus_guest" })
+    const scope = { resolve: (key: string) => key === "cart" ? carts : container.resolve(key) }
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() }
+    const req: any = { params: { id: cart.id }, body: { accepted: true, version: "old" }, scope }
+    await expect(checkout(req, res as any)).rejects.toThrow()
+    expect(updateCartRun).not.toHaveBeenCalled()
+    req.body.version = MARKETING_CONSENT_VERSION
+    await checkout(req, res as any)
+    expect(updateCartRun).toHaveBeenCalledWith({ input: { id: cart.id, email: cart.email } })
+    const snapshot = carts.updateCarts.mock.calls[0][1].metadata.marketing_consent
+    expect(snapshot.consented_at).toBe(records.cus_guest.metadata.marketing_consent.consented_at)
+    expect(snapshot.version).toBe(MARKETING_CONSENT_VERSION)
+    await unsubscribeWithToken(container, res.json.mock.calls[0][0].unsubscribe_token)
+    expect(records.cus_guest.metadata.marketing_consent.status).toBe("unsubscribed")
+  })
+  it("does not report success when customer linking fails", async () => {
+    const cart = { id: "cart_1", email: "reader@example.com" }
+    const carts = { retrieveCart: jest.fn(async () => cart), updateCarts: jest.fn() }
+    updateCartRun.mockRejectedValue(new Error("temporary failure"))
+    const scope = { resolve: (key: string) => key === "cart" ? carts : container.resolve(key) }
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() }
+    await expect(checkout({ params: { id: cart.id }, body: { accepted: true, version: MARKETING_CONSENT_VERSION }, scope } as any, res as any)).rejects.toThrow("temporary failure")
+    expect(res.json).not.toHaveBeenCalled()
+    expect(carts.updateCarts).not.toHaveBeenCalled()
+  })
+
 })
