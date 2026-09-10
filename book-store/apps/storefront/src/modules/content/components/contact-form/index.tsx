@@ -3,6 +3,7 @@
 import Input from "@modules/common/components/input"
 import { Button } from "@modules/common/components/ui"
 import { FormEvent, useState } from "react"
+import { contactDetails } from "@lib/contact-details"
 
 export default function ContactForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
@@ -39,6 +40,10 @@ export default function ContactForm() {
       aria-labelledby="contact-form-title"
       className="content-container max-w-4xl pt-6 pb-16"
     >
+      <address className="mb-8 flex flex-col gap-2 not-italic text-[#4a2d21]">
+        <a href={contactDetails.phoneHref}>טלפון: <bdi>{contactDetails.phone}</bdi></a>
+        <a href={contactDetails.emailHref}>דוא״ל: <bdi>{contactDetails.email}</bdi></a>
+      </address>
       <h2 id="contact-form-title" className="mb-6 text-2xl text-[#4a2d21]">
         שליחת פנייה
       </h2>

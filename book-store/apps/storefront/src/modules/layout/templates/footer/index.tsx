@@ -1,6 +1,7 @@
 import { listCategories } from "@lib/data/categories"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import Image from "next/image"
+import { contactDetails } from "@lib/contact-details"
 
 export default async function Footer() {
   const productCategories = await listCategories()
@@ -103,9 +104,9 @@ export default async function Footer() {
               <span className="block">מעשה רוקח בע״מ</span>
               <span className="block">ח.פ. 514692946</span>
               <span className="block">דובר שלום 7 מיקוד: 9447607 ירושלים</span>
-              <a className="block hover:text-white" href="tel:025386591">טלפון: 02-5386591</a>
-              <span className="block">פקס: 02-5386379</span>
-              <a className="block hover:text-white" href="mailto:5386591@gmail.com">דוא״ל: 5386591@gmail.com</a>
+              <a className="block hover:text-white" href={contactDetails.phoneHref}>טלפון: <bdi>{contactDetails.phone}</bdi></a>
+              <span className="block">פקס: <bdi>{contactDetails.fax}</bdi></span>
+              <a className="block hover:text-white" href={contactDetails.emailHref}>דוא״ל: <bdi>{contactDetails.email}</bdi></a>
             </address>
           </div>
           <div>
