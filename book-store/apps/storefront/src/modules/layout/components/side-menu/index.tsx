@@ -18,11 +18,14 @@ import type { YearCycleMenuNode } from "@lib/data/categories"
 const SideMenuItems = {
   "דף הבית": "/",
   "חנות הספרים": "/store",
+  "אודות": "/#about",
+  "מאמרים": "/#articles",
   "החשבון שלי": "/account",
   "סל הקניות": "/cart",
 }
 
 type SideMenuProps = {
+  projects?: Array<{ slug: string; title: string }>
   regions: HttpTypes.StoreRegion[] | null
   locales: Locale[] | null
   currentLocale: string | null
@@ -62,7 +65,7 @@ const MobileMenuBranch = ({
   </li>
 )
 
-const SideMenu = ({ regions, locales, currentLocale, catalog, yearCycleMenu }: SideMenuProps) => {
+const SideMenu = ({ regions, locales, currentLocale, catalog, yearCycleMenu, projects = instituteProjects }: SideMenuProps) => {
   const countryToggleState = useToggleState()
   const languageToggleState = useToggleState()
 
@@ -125,7 +128,7 @@ const SideMenu = ({ regions, locales, currentLocale, catalog, yearCycleMenu }: S
                           </li>
                         )
                       })}
-                      {instituteProjects.map((project) => (
+                      {projects.map((project) => (
                         <li key={project.slug}>
                           <LocalizedClientLink
                             href={`/brands/${project.slug}`}

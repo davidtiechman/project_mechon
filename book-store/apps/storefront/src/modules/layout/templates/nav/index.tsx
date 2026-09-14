@@ -12,6 +12,7 @@ import InstituteProjectsMenu from "@modules/layout/components/institute-projects
 import { getActiveCatalog, listContent } from "@lib/data/site-content"
 import { getYearCycleMenu } from "@lib/data/categories"
 import YearCycleMenu from "@modules/layout/components/year-cycle-menu"
+import { instituteProjects } from "@lib/data/institute-projects"
 
 export default async function Nav() {
   const [regions, locales, currentLocale, brands, catalog, yearCycleMenu] = await Promise.all([
@@ -22,6 +23,13 @@ export default async function Nav() {
     getActiveCatalog(),
     getYearCycleMenu(),
   ])
+
+  const projects = brands.length
+    ? brands.map((brand) => ({
+        slug: brand.slug!,
+        title: brand.title || brand.name || "",
+      }))
+    : instituteProjects
 
   return (
     <div className="sticky top-0 inset-x-0 z-50 group" dir="rtl">
@@ -53,16 +61,7 @@ export default async function Nav() {
               <LocalizedClientLink href="/store" className="nav-link">
                 חנות הספרים
               </LocalizedClientLink>
-              <InstituteProjectsMenu
-                projects={
-                  brands.length
-                    ? brands.map((brand) => ({
-                        slug: brand.slug!,
-                        title: brand.title || brand.name || "",
-                      }))
-                    : undefined
-                }
-              />
+              <InstituteProjectsMenu projects={projects} />
               {yearCycleMenu && <YearCycleMenu menu={yearCycleMenu} />}
               <LocalizedClientLink href="/#about" className="nav-link">
                 אודות
@@ -82,6 +81,7 @@ export default async function Nav() {
             <div className="large:hidden h-full flex items-center">
               <div className="h-full">
                 <SideMenu
+                  projects={projects}
                   regions={regions}
                   locales={locales}
                   currentLocale={currentLocale}
