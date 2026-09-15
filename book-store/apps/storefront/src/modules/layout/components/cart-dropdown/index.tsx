@@ -3,6 +3,7 @@
 import {
   Transition,
 } from "@headlessui/react"
+import { useHoverMenu } from "@lib/hooks/use-hover-menu"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@modules/common/components/ui"
@@ -52,6 +53,11 @@ const CartDropdown = ({
     open()
   }
 
+  const cartPanelRef = useRef<HTMLDivElement>(null)
+  const hover = useHoverMenu(openAndCancel, () => {
+    if (!cartPanelRef.current?.contains(document.activeElement)) close()
+  })
+
   // Clean up the timer when the component unmounts
   useEffect(() => {
     return () => {
@@ -74,15 +80,20 @@ const CartDropdown = ({
   return (
     <div
       className="h-full z-50"
-      onMouseEnter={openAndCancel}
-      onMouseLeave={close}
+      onPointerEnter={hover.onPointerEnter}
+      onPointerLeave={hover.onPointerLeave}
+      onFocusCapture={hover.onFocusCapture}
     >
       <div className="relative h-full">
         <button
           ref={cartButtonRef}
           type="button"
           className="h-full hover:text-ui-fg-base"
-          onClick={() => cartDropdownOpen ? close() : openAndCancel()}
+          onClick={() => {
+            hover.cancel()
+            if (cartDropdownOpen) close()
+            else openAndCancel()
+          }}
           onKeyDown={(event) => {
             if (event.key === "Escape") {
               close()
@@ -106,6 +117,7 @@ const CartDropdown = ({
           leaveTo="opacity-0 translate-y-1"
         >
           <div
+            ref={cartPanelRef}
             id="nav-cart-dropdown-panel"
             aria-label="תצוגה מקדימה של סל הקניות"
             role="region"
@@ -115,7 +127,7 @@ const CartDropdown = ({
                 cartButtonRef.current?.focus()
               }
             }}
-            className="fixed left-4 top-[77px] hidden w-[min(420px,calc(100vw-2rem))] border-x border-b border-gray-200 bg-white text-ui-fg-base small:block"
+            className="fixed left-4 top-[77px] w-[min(420px,calc(100vw-2rem))] border-x border-b border-gray-200 bg-white text-ui-fg-base"
             data-testid="nav-cart-dropdown"
           >
             <div className="p-4 flex items-center justify-center">
