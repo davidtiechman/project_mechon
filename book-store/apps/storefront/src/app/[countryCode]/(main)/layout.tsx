@@ -30,7 +30,8 @@ export async function generateMetadata({ params }: { params: Promise<{ countryCo
   }
 }
 
-export default async function PageLayout(props: { children: React.ReactNode }) {
+export default async function PageLayout(props: { children: React.ReactNode; params: Promise<{ countryCode: string }> }) {
+  const { countryCode } = await props.params
   const [customer, cart, globalBanners, advertisements] = await Promise.all([retrieveCustomer(), retrieveCart(), getBanners("global"), getAdvertisements()])
   let shippingOptions: StoreCartShippingOption[] = []
 
@@ -44,7 +45,7 @@ export default async function PageLayout(props: { children: React.ReactNode }) {
     <>
       <AdvertisementPopup advertisements={advertisements} />
       {globalBanners.map((banner) => <ContentBanner banner={banner} key={banner.id} />)}
-      <Nav />
+      <Nav countryCode={countryCode} />
       {customer && cart && (
         <CartMismatchBanner customer={customer} cart={cart} />
       )}

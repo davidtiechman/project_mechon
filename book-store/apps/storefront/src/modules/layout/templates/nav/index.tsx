@@ -12,9 +12,10 @@ import InstituteProjectsMenu from "@modules/layout/components/institute-projects
 import { getActiveCatalog, listContent } from "@lib/data/site-content"
 import { getYearCycleMenu } from "@lib/data/categories"
 import YearCycleMenu from "@modules/layout/components/year-cycle-menu"
+import { getBrandProducts } from "@lib/data/brand-products"
 import { instituteProjects } from "@lib/data/institute-projects"
 
-export default async function Nav() {
+export default async function Nav({ countryCode }: { countryCode: string }) {
   const [regions, locales, currentLocale, brands, catalog, yearCycleMenu] = await Promise.all([
     listRegions().then((regions: StoreRegion[]) => regions),
     listLocales(),
@@ -24,12 +25,18 @@ export default async function Nav() {
     getYearCycleMenu(),
   ])
 
-  const projects = brands.length
-    ? brands.map((brand) => ({
-        slug: brand.slug!,
-        title: brand.title || brand.name || "",
-      }))
-    : instituteProjects
+  const projects = await Promise.all(
+    (brands.length ? brands : instituteProjects).map(async (brand) => ({
+      slug: brand.slug!,
+      title: brand.title || ("name" in brand ? brand.name : "") || "",
+      products: (await getBrandProducts(brand, countryCode)).map((product) => ({
+        id: product.id,
+        handle: product.handle!,
+        title: product.title,
+        thumbnail: product.thumbnail || undefined,
+      })),
+    }))
+  )
 
   return (
     <div className="sticky top-0 inset-x-0 z-50 group" dir="rtl">

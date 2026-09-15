@@ -6,13 +6,14 @@ import { ArrowRightMini, XMark } from "@medusajs/icons"
 import { HttpTypes } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { Text, clx } from "@modules/common/components/ui"
-import { Fragment } from "react"
+import { Fragment, useId, useState } from "react"
 import CountrySelect from "../country-select"
 import LanguageSelect from "../language-select"
 import { Locale } from "@lib/data/locales"
 import { instituteProjects } from "@lib/data/institute-projects"
 import { ActiveCatalog } from "@lib/data/site-content"
 import type { YearCycleMenuNode } from "@lib/data/categories"
+import type { ProjectMenuItem } from "../institute-projects-menu"
 
 
 const SideMenuItems = {
@@ -25,7 +26,7 @@ const SideMenuItems = {
 }
 
 type SideMenuProps = {
-  projects?: Array<{ slug: string; title: string }>
+  projects?: ProjectMenuItem[]
   regions: HttpTypes.StoreRegion[] | null
   locales: Locale[] | null
   currentLocale: string | null
@@ -64,6 +65,49 @@ const MobileMenuBranch = ({
     </details>
   </li>
 )
+
+const MobileProject = ({ project, close }: { project: ProjectMenuItem; close: () => void }) => {
+  const [open, setOpen] = useState(false)
+  const panelId = useId()
+
+  return (
+    <li className="w-full">
+      <div className="flex items-center justify-between gap-3">
+        <LocalizedClientLink href={`/brands/${project.slug}`} className="text-3xl leading-10 hover:text-ui-fg-disabled" onClick={close}>
+          {project.title}
+        </LocalizedClientLink>
+        <button
+          type="button"
+          className="rounded border border-white/50 px-3 py-1 text-xl"
+          aria-expanded={open}
+          aria-controls={panelId}
+          aria-label={`${open ? "סגירת" : "פתיחת"} ספרי ${project.title}`}
+          onClick={() => setOpen((value) => !value)}
+        >
+          <span aria-hidden="true">{open ? "−" : "+"}</span>
+        </button>
+      </div>
+      {open && (
+        <ul id={panelId} className="mt-3 space-y-2 border-r border-white/30 pr-4">
+          {(project.products || []).map((product) => (
+            <li key={product.id}>
+              <LocalizedClientLink href={`/products/${product.handle}`} onClick={close} className="block py-1 text-lg text-white/85 hover:text-white">
+                {product.title}
+              </LocalizedClientLink>
+            </li>
+          ))}
+          <li>
+            <LocalizedClientLink href={`/brands/${project.slug}`} onClick={close} className="block pt-2 text-lg font-semibold text-white">
+              {["חדשים", "ספרים חדשים"].includes(project.title.trim())
+                ? "לכל הספרים חדשים"
+                : `לכל ספרי ${project.title}`}
+            </LocalizedClientLink>
+          </li>
+        </ul>
+      )}
+    </li>
+  )
+}
 
 const SideMenu = ({ regions, locales, currentLocale, catalog, yearCycleMenu, projects = instituteProjects }: SideMenuProps) => {
   const countryToggleState = useToggleState()
@@ -128,17 +172,7 @@ const SideMenu = ({ regions, locales, currentLocale, catalog, yearCycleMenu, pro
                           </li>
                         )
                       })}
-                      {projects.map((project) => (
-                        <li key={project.slug}>
-                          <LocalizedClientLink
-                            href={`/brands/${project.slug}`}
-                            className="text-3xl leading-10 hover:text-ui-fg-disabled"
-                            onClick={close}
-                          >
-                            {project.title}
-                          </LocalizedClientLink>
-                        </li>
-                      ))}
+                      {projects.map((project) => <MobileProject key={project.slug} project={project} close={close} />)}
                       {yearCycleMenu && (
                         <li className="w-full">
                           <details>

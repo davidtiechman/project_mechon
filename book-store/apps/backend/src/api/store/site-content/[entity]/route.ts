@@ -1,4 +1,5 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { SITE_CONTENT_MODULE } from "../../../../modules/site-content"
 import { contentEntities, listConfig, resolveContentEntity } from "../../../site-content/utils"
 
@@ -17,5 +18,17 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         (!item.end_at || new Date(item.end_at).getTime() >= now)
       )
     : listedItems
+  if (entity === "brands" && items.length) {
+    const query = req.scope.resolve(ContainerRegistrationKeys.QUERY) as any
+    const { data } = await query.graph({
+      entity: "brand",
+      fields: ["id", "product.id", "product.handle", "product.title", "product.thumbnail"],
+      filters: { id: items.map((item: any) => item.id) },
+    })
+    const productsByBrand = new Map(data.map((brand: any) => [brand.id, brand.product || []]))
+    items.forEach((item: any) => {
+      item.products = productsByBrand.get(item.id) || []
+    })
+  }
   res.json({ items, count: isScheduledContent ? items.length : count })
 }
