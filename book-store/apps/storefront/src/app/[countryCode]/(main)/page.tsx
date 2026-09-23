@@ -67,7 +67,7 @@ export default async function Home(props: {
 
   return (
     <div className="min-h-screen bg-[#f6f0e9]/80 text-[#352820] backdrop-blur-[1px]">
-      <Hero eyebrow={hero?.subtitle} title={hero?.title} description={hero?.content} buttonText={hero?.data?.button_text} buttonUrl={hero?.data?.button_url} image={hero?.data?.desktop_image} />
+      <Hero countryCode={countryCode} eyebrow={hero?.subtitle} title={hero?.title} description={hero?.content} buttonText={hero?.data?.button_text} buttonUrl={hero?.data?.button_url} image={hero?.data?.desktop_image} />
       {homeContent?.banners.filter((banner) => banner.placement === "homepage_top").map((banner) => <ContentBanner banner={banner} key={banner.id} />)}
 
       <section id="new-books" className="home-section content-container">

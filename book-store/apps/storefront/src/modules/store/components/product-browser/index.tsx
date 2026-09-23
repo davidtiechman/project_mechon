@@ -5,6 +5,7 @@ import {
   type OptionValueIds,
 } from "@lib/util/product-option-filters"
 import { sortProducts } from "@lib/util/sort-products"
+import { getProductSearchText, normalizeProductSearchText } from "@lib/util/product-search"
 import { HttpTypes } from "@medusajs/types"
 import ProductPreview from "@modules/products/components/product-preview"
 import OptionsPicker from "@modules/store/components/refinement-list/options-picker"
@@ -30,9 +31,6 @@ const normalizeSort = (value: string | null): SortOptions =>
   validSorts.includes(value as SortOptions)
     ? (value as SortOptions)
     : "created_at"
-
-const normalizeSearchText = (value: string) =>
-  value.trim().toLocaleLowerCase("he")
 
 const StoreSearchInput = ({
   initialSearch,
@@ -95,19 +93,6 @@ const StoreSearchInput = ({
   )
 }
 
-const getSearchableText = (product: HttpTypes.StoreProduct) =>
-  [
-    product.title,
-    product.subtitle,
-    product.collection?.title,
-    ...(product.tags?.map((tag) => tag.value) || []),
-    ...(product.categories?.map((category) => category.name) || []),
-    ...Object.values(product.metadata || {}).map(String),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLocaleLowerCase("he")
-
 const updateBrowserUrl = (
   changes: Record<string, string | null>,
   mode: "push" | "replace"
@@ -137,6 +122,8 @@ export default function ProductBrowser({
   initialSort,
   initialPage,
   selectedOptionValueIds,
+  extraSearchTerms,
+  productsPreFiltered,
 }: {
   allProducts: HttpTypes.StoreProduct[]
   region: HttpTypes.StoreRegion
@@ -145,6 +132,8 @@ export default function ProductBrowser({
   initialSort: SortOptions
   initialPage: number
   selectedOptionValueIds: OptionValueIds
+  extraSearchTerms: Record<string, string[]>
+  productsPreFiltered: boolean
 }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -172,15 +161,19 @@ export default function ProductBrowser({
   const showMatchingProducts = useCallback(
     (value: string) => {
       currentSearchRef.current = value
-      const query = normalizeSearchText(value)
+      const query = normalizeProductSearchText(value)
+      const queryTerms = query.split(" ").filter(Boolean)
+      const isInitialServerSearch =
+        productsPreFiltered &&
+        query === normalizeProductSearchText(initialSearch)
       const items = gridRef.current?.querySelectorAll<HTMLLIElement>(
         "[data-product-search]"
       )
       let visibleCount = 0
 
       items?.forEach((item, index) => {
-        const matches = query
-          ? item.dataset.productSearch?.includes(query) === true
+        const matches = queryTerms.length && !isInitialServerSearch
+          ? queryTerms.every((term) => item.dataset.productSearch?.includes(term))
           : index >= (safePage - 1) * productsPerPage &&
             index < safePage * productsPerPage
         item.hidden = !matches
@@ -191,11 +184,14 @@ export default function ProductBrowser({
       if (emptyResultsRef.current) emptyResultsRef.current.hidden = visibleCount > 0
       if (resultCountRef.current) {
         resultCountRef.current.textContent = `${
-          query ? visibleCount : sortedProducts.length
+          queryTerms.length && !isInitialServerSearch
+            ? visibleCount
+            : sortedProducts.length
         } ספרים נמצאו`
       }
       if (paginationRef.current) {
-        paginationRef.current.hidden = Boolean(query) || totalPages <= 1
+        paginationRef.current.hidden =
+          (Boolean(query) && !isInitialServerSearch) || totalPages <= 1
       }
 
       const results = resultsRef.current
@@ -207,7 +203,7 @@ export default function ProductBrowser({
         results.style.minHeight = `${largestResultsHeightRef.current}px`
       }
     },
-    [productsPerPage, safePage, sortedProducts.length, totalPages]
+    [initialSearch, productsPerPage, productsPreFiltered, safePage, sortedProducts.length, totalPages]
   )
 
   useLayoutEffect(() => {
@@ -311,7 +307,7 @@ export default function ProductBrowser({
           {sortedProducts.map((product, index) => (
             <li
               key={product.id}
-              data-product-search={getSearchableText(product)}
+              data-product-search={getProductSearchText(product, extraSearchTerms[product.id])}
               hidden={
                 index < (safePage - 1) * productsPerPage ||
                 index >= safePage * productsPerPage

@@ -13,7 +13,9 @@ import { getActiveCatalog, listContent } from "@lib/data/site-content"
 import { getYearCycleMenu } from "@lib/data/categories"
 import YearCycleMenu from "@modules/layout/components/year-cycle-menu"
 import { getBrandProducts } from "@lib/data/brand-products"
+import { resolveMediaUrl } from "@lib/util/resolve-media-url"
 import { instituteProjects } from "@lib/data/institute-projects"
+import { HeaderProductSearch } from "@modules/search/components/global-product-search"
 
 export default async function Nav({ countryCode }: { countryCode: string }) {
   const [regions, locales, currentLocale, brands, catalog, yearCycleMenu] = await Promise.all([
@@ -33,7 +35,7 @@ export default async function Nav({ countryCode }: { countryCode: string }) {
         id: product.id,
         handle: product.handle!,
         title: product.title,
-        thumbnail: product.thumbnail || undefined,
+        thumbnail: resolveMediaUrl(product.thumbnail || product.images?.[0]?.url),
       })),
     }))
   )
@@ -45,7 +47,7 @@ export default async function Nav({ countryCode }: { countryCode: string }) {
           aria-label="ניווט ראשי"
           className="main-navigation content-container flex items-center justify-between w-full h-full whitespace-nowrap text-[24px] text-[#3b352a]"
         >
-          <div className="flex items-center gap-5 h-full">
+          <div className="flex items-center gap-1.5 h-full small:gap-5">
             <LocalizedClientLink
               href="/"
               className="brand-lockup"
@@ -85,6 +87,7 @@ export default async function Nav({ countryCode }: { countryCode: string }) {
           </div>
 
           <div className="flex items-center gap-5 h-full">
+            <HeaderProductSearch countryCode={countryCode} />
             <div className="large:hidden h-full flex items-center">
               <div className="h-full">
                 <SideMenu

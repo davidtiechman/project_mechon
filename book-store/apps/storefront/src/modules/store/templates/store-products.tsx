@@ -1,4 +1,5 @@
 import { PRODUCTS_PER_PAGE, STORE_PRODUCT_FETCH_LIMIT } from "@lib/constants/store"
+import { searchProductCatalog } from "@lib/data/product-search"
 import { listProducts } from "@lib/data/products"
 import { getRegion } from "@lib/data/regions"
 import { OptionValueIds } from "@lib/util/product-option-filters"
@@ -22,15 +23,27 @@ export default async function StoreProducts({
     new Set((optionValueIds || []).filter(Boolean))
   )
 
-  const [region, productResult] = await Promise.all([
+  const normalizedSearch = initialSearch.trim()
+  const [region, productData] = await Promise.all([
     getRegion(countryCode),
-    listProducts({
-      countryCode,
-      queryParams: {
-        limit: STORE_PRODUCT_FETCH_LIMIT,
-        ...(optionFilters.length ? { option_value_id: optionFilters } : {}),
-      },
-    }),
+    normalizedSearch
+      ? searchProductCatalog({
+          countryCode,
+          query: normalizedSearch,
+          optionValueIds: optionFilters,
+        })
+      : listProducts({
+          countryCode,
+          queryParams: {
+            limit: STORE_PRODUCT_FETCH_LIMIT,
+            ...(optionFilters.length
+              ? { option_value_id: optionFilters }
+              : {}),
+          },
+        }).then(({ response }) => ({
+          products: response.products,
+          extraSearchTerms: {},
+        })),
   ])
 
   if (!region) {
@@ -39,7 +52,9 @@ export default async function StoreProducts({
 
   return (
     <ProductBrowser
-      allProducts={productResult.response.products}
+      allProducts={productData.products}
+      extraSearchTerms={productData.extraSearchTerms}
+      productsPreFiltered={Boolean(normalizedSearch)}
       region={region}
       productsPerPage={PRODUCTS_PER_PAGE}
       initialSearch={initialSearch}
@@ -49,4 +64,3 @@ export default async function StoreProducts({
     />
   )
 }
-

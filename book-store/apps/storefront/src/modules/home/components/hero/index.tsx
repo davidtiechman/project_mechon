@@ -1,5 +1,6 @@
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import Image from "next/image"
+import { HeroProductSearch } from "@modules/search/components/global-product-search"
 
 type HeroProps = {
   eyebrow?: string
@@ -8,9 +9,10 @@ type HeroProps = {
   buttonText?: string
   buttonUrl?: string
   image?: string
+  countryCode: string
 }
 
-const Hero = ({ eyebrow, title, description, buttonText, buttonUrl, image }: HeroProps) => {
+const Hero = ({ eyebrow, title, description, buttonText, buttonUrl, image, countryCode }: HeroProps) => {
   const hasRichDescription = Boolean(description?.match(/<[^>]+>/))
 
   return (
@@ -27,6 +29,7 @@ const Hero = ({ eyebrow, title, description, buttonText, buttonUrl, image }: Her
                 "מהדירים את תורות רבותינו מבעלזא, יצירת פאר של סידור עבודת השם"}
             </p>
           )}
+          <HeroProductSearch countryCode={countryCode} />
           <div className="mt-9 flex flex-wrap gap-4">
             <LocalizedClientLink href={buttonUrl || "/store"} className="brand-button brand-button-light">
               {buttonText || "לחנות הספרים"}

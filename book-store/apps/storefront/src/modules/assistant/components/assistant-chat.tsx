@@ -125,13 +125,11 @@ export default function AssistantChat() {
                   placeholder="מה תרצו לשאול?"
                   rows={2}
                   maxLength={2000}
-                  dir="auto"
-                  aria-describedby={`${id}-hint`}
+                  dir="rtl"
                   className="max-h-28 min-h-12 min-w-0 flex-1 resize-none rounded-xl border border-[#c8b69f] bg-[#faf6f1] px-3 py-2 text-base leading-6 placeholder:text-[#75634e] focus:outline focus:outline-2 focus:outline-[#8a6f4d]"
                 />
                 <button type="submit" disabled={!draft.trim() || isTyping} className="min-h-12 shrink-0 rounded-xl bg-[#60432f] px-4 py-3 text-base font-semibold text-white hover:bg-[#4a2d21] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7b552e] disabled:cursor-not-allowed disabled:opacity-50">שליחה</button>
               </div>
-              <p id={`${id}-hint`} className="mt-2 text-xs leading-5 text-[#75634e]">Enter לשליחה · Shift+Enter לשורה חדשה</p>
             </form>
           </DialogPanel>
         </div>
