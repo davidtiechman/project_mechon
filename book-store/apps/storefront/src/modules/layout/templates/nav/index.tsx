@@ -47,7 +47,7 @@ export default async function Nav({ countryCode }: { countryCode: string }) {
           aria-label="ניווט ראשי"
           className="main-navigation content-container flex items-center justify-between w-full h-full whitespace-nowrap text-[24px] text-[#3b352a]"
         >
-          <div className="flex items-center gap-1.5 h-full small:gap-5">
+          <div className="flex min-w-0 items-center gap-1.5 h-full small:gap-5">
             <LocalizedClientLink
               href="/"
               className="brand-lockup"
@@ -66,7 +66,7 @@ export default async function Nav({ countryCode }: { countryCode: string }) {
                 <small>ספרי קודש ומחקר תורני</small>
               </span>
             </LocalizedClientLink>
-            <div className="hidden large:flex items-center gap-3 h-full">
+            <div className="hidden 2xlarge:flex items-center gap-3 h-full">
               <LocalizedClientLink href="/store" className="nav-link">
                 חנות הספרים
               </LocalizedClientLink>
@@ -86,9 +86,9 @@ export default async function Nav({ countryCode }: { countryCode: string }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-5 h-full">
+          <div className="flex shrink-0 items-center gap-2 h-full small:gap-5">
             <HeaderProductSearch countryCode={countryCode} />
-            <div className="large:hidden h-full flex items-center">
+            <div className="2xlarge:hidden h-full flex items-center">
               <div className="h-full">
                 <SideMenu
                   projects={projects}
@@ -100,7 +100,7 @@ export default async function Nav({ countryCode }: { countryCode: string }) {
                 />
               </div>
             </div>
-            <div className="hidden large:flex items-center h-full">
+            <div className="hidden 2xlarge:flex items-center h-full">
               <LocalizedClientLink
                 className="nav-link"
                 href="/account"
