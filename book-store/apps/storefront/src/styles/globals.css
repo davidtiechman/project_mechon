@@ -272,7 +272,7 @@ body {
   }
 
   .nav-link {
-    @apply relative flex h-full items-center whitespace-nowrap text-[24px] font-semibold transition-colors hover:text-[#9a7130];
+    @apply relative flex h-full items-center whitespace-nowrap text-[inherit] font-semibold transition-colors hover:text-[#9a7130];
   }
 
   .nav-link::after {

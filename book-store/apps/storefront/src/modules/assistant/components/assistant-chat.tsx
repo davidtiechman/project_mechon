@@ -46,9 +46,9 @@ export default function AssistantChat() {
             setMinimized(true)
             launcher.current?.focus()
           }}
-          className="absolute -top-8 right-0 z-10 flex h-11 w-11 items-center justify-center border-0 bg-transparent p-0 text-3xl text-[#4b3c2c] hover:text-[#7b552e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7b552e]"
+          className="absolute -top-8 right-0 z-10 flex h-11 w-11 items-center justify-center border-0 bg-transparent p-0 text-4xl font-black leading-none text-[#2b120c] transition-colors hover:text-[#8f2f20] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7b552e]"
         >
-          <span aria-hidden="true">×</span>
+          <span aria-hidden="true" className="-translate-y-px">×</span>
         </button>
       )}
       <button

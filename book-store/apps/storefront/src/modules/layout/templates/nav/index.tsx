@@ -45,28 +45,27 @@ export default async function Nav({ countryCode }: { countryCode: string }) {
       <header className="relative h-[88px] mx-auto border-b border-[#e0d2c5] bg-[#faf6f1]/95 backdrop-blur-md">
         <nav
           aria-label="ניווט ראשי"
-          className="main-navigation content-container flex items-center justify-between w-full h-full whitespace-nowrap text-[24px] text-[#3b352a]"
+          className="main-navigation content-container flex items-center w-full h-full gap-3 whitespace-nowrap text-[22px] text-[#3b352a] 2xlarge:text-[24px]"
         >
-          <div className="flex min-w-0 items-center gap-1.5 h-full small:gap-5">
-            <LocalizedClientLink
-              href="/"
-              className="brand-lockup"
-              data-testid="nav-store-link"
-            >
-              <Image
-                src="/images/institute-emblem-open-left.png"
-                alt="סמל מכון מעשה רוקח"
-                width={58}
-                height={58}
-                className="brand-emblem"
-                priority
-              />
-              <span>
-                <strong>מכון מעשה רוקח</strong>
-                <small>ספרי קודש ומחקר תורני</small>
-              </span>
-            </LocalizedClientLink>
-            <div className="hidden 2xlarge:flex items-center gap-3 h-full">
+          <LocalizedClientLink
+            href="/"
+            className="brand-lockup"
+            data-testid="nav-store-link"
+          >
+            <Image
+              src="/images/institute-emblem-open-left.png"
+              alt="סמל מכון מעשה רוקח"
+              width={58}
+              height={58}
+              className="brand-emblem"
+              priority
+            />
+            <span>
+              <strong>מכון מעשה רוקח</strong>
+              <small>ספרי קודש ומחקר תורני</small>
+            </span>
+          </LocalizedClientLink>
+          <div className="hidden min-w-0 flex-1 items-center justify-center gap-3 h-full xlarge:flex 2xlarge:gap-4">
               <LocalizedClientLink href="/store" className="nav-link">
                 חנות הספרים
               </LocalizedClientLink>
@@ -83,12 +82,11 @@ export default async function Nav({ countryCode }: { countryCode: string }) {
               </a> : <span aria-disabled="true" title="הקטלוג יעלה בקרוב" className="cursor-not-allowed whitespace-nowrap rounded-md border border-[#cbbba8] px-2.5 py-1.5 text-sm text-[#8d8275] opacity-70">
                 הקטלוג יעלה בקרוב
               </span>}
-            </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2 h-full small:gap-5">
+          <div className="mr-auto flex shrink-0 items-center gap-2 h-full 2xlarge:gap-4">
             <HeaderProductSearch countryCode={countryCode} />
-            <div className="2xlarge:hidden h-full flex items-center">
+            <div className="xlarge:hidden h-full flex items-center">
               <div className="h-full">
                 <SideMenu
                   projects={projects}
@@ -100,7 +98,7 @@ export default async function Nav({ countryCode }: { countryCode: string }) {
                 />
               </div>
             </div>
-            <div className="hidden 2xlarge:flex items-center h-full">
+            <div className="hidden xlarge:flex items-center h-full">
               <LocalizedClientLink
                 className="nav-link"
                 href="/account"
