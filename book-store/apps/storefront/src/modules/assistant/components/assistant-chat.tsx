@@ -62,12 +62,21 @@ export default function AssistantChat() {
         className="block w-full border-0 bg-transparent p-0 motion-safe:transition-transform motion-safe:hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#7b552e]"
       >
         <Image
-          src={minimized ? "/images/aharon-hayadan-avatar-v7.png" : "/images/aharon-hayadan-welcome-v7.png"}
+          src="/images/aharon-hayadan-avatar-v7.png"
           alt=""
-          width={minimized ? 1245 : 3428}
-          height={minimized ? 1263 : 3084}
-          sizes={minimized ? "(min-width: 1024px) 96px, 80px" : "(min-width: 1024px) 360px, 224px"}
-          className="block h-auto w-full object-contain"
+          width={1245}
+          height={1263}
+          sizes="(min-width: 1024px) 96px, 80px"
+          priority
+          className={`${minimized ? "block" : "hidden"} h-auto w-full object-contain`}
+        />
+        <Image
+          src="/images/aharon-hayadan-welcome-v7.png"
+          alt=""
+          width={3428}
+          height={3084}
+          sizes="(min-width: 1024px) 360px, 224px"
+          className={`${minimized ? "hidden" : "block"} h-auto w-full object-contain`}
         />
       </button>
       </div>
