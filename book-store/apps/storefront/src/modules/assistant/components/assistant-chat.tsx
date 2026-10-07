@@ -62,10 +62,10 @@ export default function AssistantChat() {
         className="block w-full border-0 bg-transparent p-0 motion-safe:transition-transform motion-safe:hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#7b552e]"
       >
         <Image
-          src={minimized ? "/images/aharon-hayadan-transparent.png" : "/images/aharon-hayadan-welcome-v8.png"}
+          src={minimized ? "/images/aharon-hayadan-transparent.png" : "/images/aharon-hayadan-welcome-v7.png"}
           alt=""
-          width={minimized ? 1168 : 1354}
-          height={minimized ? 1346 : 1161}
+          width={minimized ? 1168 : 3428}
+          height={minimized ? 1346 : 3084}
           sizes={minimized ? "(min-width: 1024px) 96px, 80px" : "(min-width: 1024px) 360px, 224px"}
           className="block h-auto w-full object-contain"
         />
