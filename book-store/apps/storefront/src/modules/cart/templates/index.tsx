@@ -16,8 +16,8 @@ const CartTemplate = ({
     <div className="py-12">
       <div className="content-container" data-testid="cart-container">
         {cart?.items?.length ? (
-          <div className="grid grid-cols-1 small:grid-cols-[1fr_360px] gap-x-40">
-            <div className="flex flex-col bg-white px-6 py-6 small:px-8 gap-y-6">
+          <div className="grid grid-cols-1 gap-8 medium:grid-cols-[minmax(0,1fr)_360px] large:gap-x-16">
+            <div className="flex min-w-0 flex-col bg-white px-3 py-6 xsmall:px-6 small:px-8 gap-y-6">
               {!customer && (
                 <>
                   <SignInPrompt />

@@ -63,17 +63,17 @@ export default function ProductPreview({
         </div>
 
         <div
-          className="flex h-[108px] flex-col justify-end bg-white px-4 py-3 text-right"
+          className="flex min-h-[108px] flex-col justify-end bg-white px-3 py-3 text-right xsmall:px-4"
           dir="rtl"
         >
           <Text
-            className="max-h-[60px] overflow-hidden text-base font-semibold leading-5 text-[#352820]"
+            className="line-clamp-3 text-base font-semibold leading-6 text-[#352820]"
             data-testid="product-title"
           >
             {product.title}
           </Text>
 
-          <div className="mt-1 flex min-h-6 items-center gap-x-2 [&_[data-testid=original-price]]:!text-base [&_[data-testid=price]]:!text-lg [&_[data-testid=price]]:!font-bold [&_[data-testid=price]]:!text-[#4a2d21]">
+          <div className="mt-1 flex min-h-6 flex-wrap items-center gap-x-2 [&_[data-testid=original-price]]:!text-base [&_[data-testid=price]]:!text-lg [&_[data-testid=price]]:!font-bold [&_[data-testid=price]]:!text-[#4a2d21]">
             {cheapestPrice && <PreviewPrice price={cheapestPrice} />}
           </div>
         </div>

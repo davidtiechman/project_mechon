@@ -1,6 +1,6 @@
 "use client"
 
-import { Popover, PopoverPanel, Transition } from "@headlessui/react"
+import { Popover, PopoverPanel, Portal, Transition } from "@headlessui/react"
 import useToggleState from "@lib/hooks/use-toggle-state"
 import { ArrowRightMini, XMark } from "@medusajs/icons"
 import { HttpTypes } from "@medusajs/types"
@@ -123,18 +123,23 @@ const SideMenu = ({ regions, locales, currentLocale, catalog, yearCycleMenu, pro
                 <Popover.Button
                   data-testid="nav-menu-button"
                   aria-label={open ? "סגירת תפריט" : "פתיחת תפריט"}
-                  className="relative h-full flex items-center transition-all ease-out duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 hover:text-ui-fg-base"
+                  className="relative flex h-full w-[44px] shrink-0 items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 hover:text-ui-fg-base xsmall:w-auto"
                 >
-                  תפריט
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-[24px] w-[24px] xsmall:hidden">
+                    <path d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                  <span className="hidden xsmall:inline">תפריט</span>
                 </Popover.Button>
               </div>
 
               {open && (
+                <Portal>
                 <div
                   className="fixed inset-0 z-[50] bg-black/0 pointer-events-auto"
                   onClick={close}
                   data-testid="side-menu-backdrop"
                 />
+                </Portal>
               )}
 
               <Transition
@@ -147,13 +152,13 @@ const SideMenu = ({ regions, locales, currentLocale, catalog, yearCycleMenu, pro
                 leaveFrom="opacity-100 backdrop-blur-2xl"
                 leaveTo="opacity-0"
               >
-                <PopoverPanel className="absolute inset-x-0 z-[51] m-2 flex h-[calc(100dvh-1rem)] w-[calc(100%-1rem)] max-w-sm flex-col text-sm text-ui-fg-on-color backdrop-blur-2xl sm:inset-x-auto sm:start-0">
+                <PopoverPanel portal className="fixed inset-x-2 top-2 z-[51] flex h-[calc(100dvh-1rem)] w-auto max-w-sm flex-col whitespace-normal break-words text-sm text-ui-fg-on-color backdrop-blur-2xl sm:end-auto sm:start-2 sm:w-[calc(100%-1rem)]">
                   <div
                     data-testid="nav-menu-popup"
                     className="flex flex-col h-full bg-[rgba(3,7,18,0.5)] rounded-rounded justify-between p-6"
                   >
-                    <div className="flex justify-end" id="xmark">
-                      <button type="button" aria-label="סגירת תפריט" data-testid="close-menu-button" onClick={close}>
+                    <div className="flex shrink-0 justify-end" id="xmark">
+                      <button type="button" className="flex h-[44px] w-[44px] items-center justify-center" aria-label="סגירת תפריט" data-testid="close-menu-button" onClick={close}>
                         <span aria-hidden="true"><XMark /></span>
                       </button>
                     </div>
@@ -206,7 +211,7 @@ const SideMenu = ({ regions, locales, currentLocale, catalog, yearCycleMenu, pro
                         {catalog ? <a href="/api/catalog/download" download={catalog.file_name} onClick={close} className="inline-flex max-w-full whitespace-normal rounded-md border border-white/70 px-4 py-2 text-center text-xl hover:bg-white hover:text-[#3b352a]">קטלוג להורדה</a> : <span aria-disabled="true" className="inline-flex max-w-full cursor-not-allowed whitespace-normal rounded-md border border-white/40 px-4 py-2 text-center text-xl opacity-60">הקטלוג יעלה בקרוב</span>}
                       </li>
                     </ul>
-                    <div className="flex flex-col gap-y-6">
+                    <div className="flex shrink-0 flex-col gap-y-3 pt-3">
                       {!!locales?.length && (
                         <div
                           className="flex justify-between"

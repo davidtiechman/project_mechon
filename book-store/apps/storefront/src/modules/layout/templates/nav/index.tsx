@@ -49,7 +49,7 @@ export default async function Nav({ countryCode }: { countryCode: string }) {
         >
           <LocalizedClientLink
             href="/"
-            className="brand-lockup"
+            className="brand-lockup nav-brand"
             data-testid="nav-store-link"
           >
             <Image

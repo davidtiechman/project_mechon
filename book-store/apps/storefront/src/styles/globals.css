@@ -209,7 +209,7 @@ body {
   }
 
   .content-container {
-    @apply max-w-[1440px] w-full mx-auto px-6;
+    @apply max-w-[1440px] w-full min-w-0 mx-auto px-4 xsmall:px-6;
   }
 
   @media (min-width: 1024px) {
@@ -242,7 +242,7 @@ body {
   }
 
   .brand-lockup > span:last-child {
-    @apply flex flex-col;
+    @apply flex min-w-0 flex-col;
   }
 
   .brand-lockup strong {
@@ -343,7 +343,7 @@ body {
   }
 
   .section-heading {
-    @apply mb-10 flex items-end justify-between gap-6 small:mb-14;
+    @apply mb-10 flex flex-wrap items-end justify-between gap-4 small:gap-6 small:mb-14;
   }
 
   .section-heading h2,
@@ -412,6 +412,7 @@ body {
 
   .footer-links {
     @apply flex flex-col gap-3 text-base text-[#d8d0c0];
+    overflow-wrap: anywhere;
   }
 
   .footer-links a {
@@ -484,6 +485,69 @@ body {
     opacity: 1;
     transform: translateY(-50%) scaleX(1);
   }
+}
+
+@media (max-width: 511px) {
+  .main-navigation {
+    gap: 8px;
+    padding-inline: 12px;
+    font-size: 0.85rem;
+  }
+
+  .main-navigation .nav-brand {
+    flex: 1 1 0%;
+    min-width: 0;
+    gap: 6px;
+    white-space: normal;
+  }
+
+  .main-navigation .brand-emblem {
+    width: 36px;
+    height: 36px;
+  }
+
+  .main-navigation .brand-lockup strong {
+    font-size: 0.8rem;
+    line-height: 1.3;
+    letter-spacing: normal;
+  }
+
+  .main-navigation .brand-lockup small {
+    display: none;
+  }
+
+  .main-navigation > div:last-child {
+    gap: 4px;
+  }
+
+  .main-navigation [data-testid="nav-cart-link"] {
+    min-width: 44px;
+  }
+
+  .hero-section h1 {
+    font-size: clamp(1.8rem, 9vw, 3rem);
+    line-height: 1.2;
+  }
+
+  .hero-section p {
+    margin-top: 1rem;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .hero-mark {
+    max-width: 220px;
+  }
+
+  .empty-home-state {
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* Keep floating controls clear of the mobile navigation panel. */
+body:has([data-testid="nav-menu-popup"]) .assistant-launcher,
+body:has([data-testid="nav-menu-popup"]) [data-testid="accessibility-menu-button"] {
+  visibility: hidden;
 }
 
 @keyframes new-product-ribbon-shine {

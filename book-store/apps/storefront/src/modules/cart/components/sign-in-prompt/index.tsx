@@ -3,7 +3,7 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 
 const SignInPrompt = () => {
   return (
-    <div className="bg-white flex items-center justify-between gap-6">
+    <div className="bg-white flex flex-col items-start justify-between gap-4 xsmall:flex-row xsmall:items-center xsmall:gap-6">
       <div className="text-right">
         <Heading level="h2" className="txt-xlarge">
           כבר יש לך חשבון?
@@ -12,7 +12,7 @@ const SignInPrompt = () => {
           התחבר כדי ליהנות מחוויית קנייה טובה יותר.
         </Text>
       </div>
-      <div>
+      <div className="shrink-0">
         <LocalizedClientLink href="/account">
           <Button variant="secondary" className="h-10" data-testid="sign-in-button">
             התחברות

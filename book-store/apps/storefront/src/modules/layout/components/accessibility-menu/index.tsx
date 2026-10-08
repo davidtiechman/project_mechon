@@ -131,7 +131,7 @@ export default function AccessibilityMenu() {
       <Dialog open={isOpen} onClose={setIsOpen} className="relative z-[80]" dir="rtl">
         <div className="fixed inset-0 bg-black/35" aria-hidden="true" />
         <div className="fixed inset-0 flex items-end justify-start p-4 small:items-center small:justify-center">
-          <DialogPanel className="w-full max-w-sm rounded-lg border border-[#ddcec0] bg-white p-5 text-[#262117] shadow-xl">
+          <DialogPanel className="max-h-[calc(100dvh-2rem)] w-full max-w-sm overflow-y-auto rounded-lg border border-[#ddcec0] bg-white p-5 text-[#262117] shadow-xl">
             <div className="flex items-center justify-between gap-4">
               <DialogTitle className="text-xl font-semibold">אפשרויות נגישות</DialogTitle>
               <button
@@ -147,7 +147,7 @@ export default function AccessibilityMenu() {
             <div className="mt-5 space-y-4">
               <fieldset>
                 <legend className="font-semibold">גודל טקסט</legend>
-                <div className="mt-2 flex items-center gap-3">
+                <div className="mt-2 flex flex-wrap items-center gap-3">
                   <button
                     type="button"
                     onClick={() => changeTextScale(-1)}

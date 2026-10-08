@@ -17,8 +17,8 @@ const Hero = ({ eyebrow, title, description, buttonText, buttonUrl, image, count
 
   return (
     <section className="hero-section">
-      <div className="content-container relative z-10 grid items-center gap-12 py-4 small:grid-cols-[1.2fr_0.8fr] small:py-[36px]">
-        <div className="max-w-3xl">
+      <div className="content-container relative z-10 grid min-w-0 grid-cols-1 items-center gap-8 py-6 small:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] small:gap-12 small:py-[36px]">
+        <div className="min-w-0 max-w-3xl [overflow-wrap:anywhere]">
           <span className="eyebrow text-[#d8bf86]">{eyebrow || "מכון להוצאת והאדרת תורת רבותינו זיע״א"}</span>
           <h1>{title || "מכון מעשה רוקח"}</h1>
           {hasRichDescription ? (

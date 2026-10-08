@@ -326,7 +326,7 @@ export default function ProductBrowser({
         </p>
 
         {sortedProducts.length > productsPerPage && (
-          <nav ref={paginationRef} aria-label="עמודי תוצאות" className="mt-12 flex justify-center gap-3">
+          <nav ref={paginationRef} aria-label="עמודי תוצאות" className="mt-12 flex flex-wrap justify-center gap-3">
             {Array.from({ length: totalPages }, (_, index) => index + 1).map(
               (pageNumber) => (
                 <button

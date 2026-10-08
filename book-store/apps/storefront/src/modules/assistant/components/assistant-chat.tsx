@@ -7,7 +7,7 @@ import { useAssistantChat } from "../hooks/use-assistant-chat"
 
 function Avatar() {
   return (
-    <span className="relative block h-20 w-24 shrink-0">
+    <span className="relative block h-[48px] w-[56px] shrink-0 sm:h-16 sm:w-20">
       <Image src="/images/aharon-hayadan-avatar-v7.png" alt="" fill sizes="96px" className="object-contain" />
     </span>
   )
@@ -37,7 +37,7 @@ export default function AssistantChat() {
 
   return (
     <>
-      <div className={`fixed left-4 bottom-[calc(10.5rem+env(safe-area-inset-bottom))] z-[60] max-w-[calc(100vw-2rem)] lg:bottom-[calc(5.5rem+env(safe-area-inset-bottom))] ${minimized ? "w-20 lg:w-24" : "w-56 lg:w-[360px]"}`}>
+      <div className={`assistant-launcher fixed left-3 bottom-[calc(84px+env(safe-area-inset-bottom))] z-[60] w-[72px] max-w-[calc(100vw-2rem)] lg:left-4 lg:bottom-[calc(5.5rem+env(safe-area-inset-bottom))] ${minimized ? "lg:w-24" : "lg:w-[360px]"}`}>
       {!minimized && (
         <button
           type="button"
@@ -46,7 +46,7 @@ export default function AssistantChat() {
             setMinimized(true)
             launcher.current?.focus()
           }}
-          className="absolute -top-8 right-0 z-10 flex h-11 w-11 items-center justify-center border-0 bg-transparent p-0 text-4xl font-black leading-none text-[#2b120c] transition-colors hover:text-[#8f2f20] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7b552e]"
+          className="absolute -top-8 right-0 z-10 hidden h-11 w-11 items-center justify-center border-0 bg-transparent p-0 text-4xl font-black leading-none text-[#2b120c] transition-colors hover:text-[#8f2f20] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7b552e] lg:flex"
         >
           <span aria-hidden="true" className="-translate-y-px">×</span>
         </button>
@@ -66,17 +66,17 @@ export default function AssistantChat() {
           alt=""
           width={1245}
           height={1263}
-          sizes="(min-width: 1024px) 96px, 80px"
+          sizes="(min-width: 1024px) 96px, 72px"
           priority
-          className={`${minimized ? "block" : "hidden"} h-auto w-full object-contain`}
+          className={`block ${minimized ? "lg:block" : "lg:hidden"} h-auto w-full object-contain`}
         />
         <Image
           src="/images/aharon-hayadan-welcome-v7.png"
           alt=""
           width={3428}
           height={3084}
-          sizes="(min-width: 1024px) 360px, 224px"
-          className={`${minimized ? "hidden" : "block"} h-auto w-full object-contain`}
+          sizes="360px"
+          className={`hidden ${minimized ? "lg:hidden" : "lg:block"} h-auto w-full object-contain`}
         />
       </button>
       </div>
@@ -88,7 +88,7 @@ export default function AssistantChat() {
             id={`${id}-dialog`}
             className="flex h-[min(620px,calc(100dvh-1.5rem))] min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-[#dfd0c0] bg-[#faf6f1] text-right text-[#4b3c2c] shadow-2xl sm:mr-auto sm:ml-0 sm:w-[400px] sm:max-h-[calc(100dvh-2.5rem)]"
           >
-            <header className="flex shrink-0 items-center gap-3 border-b border-[#dfd0c0] bg-[#f1e7da] px-4 py-3">
+            <header className="flex shrink-0 items-center gap-2 border-b border-[#dfd0c0] bg-[#f1e7da] px-3 py-2">
               <Avatar />
               <div className="min-w-0 flex-1">
                 <DialogTitle className="text-xl font-bold">אהרן הידען</DialogTitle>
