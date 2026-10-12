@@ -38,6 +38,10 @@ export default async function BrandPage({ params }: Props) {
       item={item}
       products={products}
       region={region || undefined}
+      headerEmblem={slug === "biurei-hachasidut" ? {
+        src: "/images/biurei-hachasidut-emblem.png",
+        alt: "סמל מכון ביאורי החסידות",
+      } : undefined}
     />
   )
 }
