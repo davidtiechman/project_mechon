@@ -65,23 +65,18 @@ export default async function Nav({ countryCode }: { countryCode: string }) {
               <small>ספרי קודש ומחקר תורני</small>
             </span>
           </LocalizedClientLink>
-          <div className="hidden min-w-0 flex-1 items-center justify-center gap-3 h-full xlarge:flex 2xlarge:gap-4">
+          <div className="hidden min-w-0 flex-1 items-center h-full xlarge:flex">
+            <InstituteProjectsMenu projects={projects} leading={
               <LocalizedClientLink href="/store" className="nav-link">
                 חנות הספרים
               </LocalizedClientLink>
-              <InstituteProjectsMenu projects={projects} />
-              {yearCycleMenu && <YearCycleMenu menu={yearCycleMenu} />}
-              <LocalizedClientLink href="/#about" className="nav-link">
-                אודות
-              </LocalizedClientLink>
-              <LocalizedClientLink href="/#articles" className="nav-link">
-                מאמרים
-              </LocalizedClientLink>
-              {catalog ? <a href="/api/catalog/download" download={catalog.file_name} className="whitespace-nowrap rounded-md border border-[#8a6f4d] px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-[#8a6f4d] hover:text-white">
+            } trailing={yearCycleMenu && <YearCycleMenu menu={yearCycleMenu} />} ending={
+              catalog ? <a href="/api/catalog/download" download={catalog.file_name} className="whitespace-nowrap rounded-md border border-[#8a6f4d] px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-[#8a6f4d] hover:text-white">
                 קטלוג להורדה
               </a> : <span aria-disabled="true" title="הקטלוג יעלה בקרוב" className="cursor-not-allowed whitespace-nowrap rounded-md border border-[#cbbba8] px-2.5 py-1.5 text-sm text-[#8d8275] opacity-70">
                 הקטלוג יעלה בקרוב
-              </span>}
+              </span>
+            } />
           </div>
 
           <div className="mr-auto flex shrink-0 items-center gap-2 h-full 2xlarge:gap-4">

@@ -43,8 +43,11 @@ const MobileMenuBranch = ({
 }) => (
   <li className="border-r border-white/30 pr-3">
     <details>
-      <summary className="cursor-pointer list-none py-1 text-xl font-medium marker:hidden">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-1 text-xl font-medium marker:hidden">
         {node.name}
+        <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="m5 7.5 5 5 5-5" />
+        </svg>
       </summary>
       <ul className="mt-2 space-y-3 pr-3">
         {node.children.map((child) => (
@@ -192,17 +195,12 @@ const SideMenu = ({ regions, locales, currentLocale, catalog, yearCycleMenu, pro
                                   close={close}
                                 />
                               ))}
-                              {yearCycleMenu.products.map((product) => (
-                                <li key={product.id}>
-                                  <LocalizedClientLink
-                                    href={`/products/${product.handle}`}
-                                    className="block text-lg text-white/85 hover:text-white"
-                                    onClick={close}
-                                  >
-                                    {product.title}
-                                  </LocalizedClientLink>
-                                </li>
-                              ))}
+                              {yearCycleMenu.products.length > 0 && (
+                                <MobileMenuBranch
+                                  node={{ ...yearCycleMenu, name: yearCycleMenu.children.length ? "ספרים נוספים" : yearCycleMenu.name, children: [] }}
+                                  close={close}
+                                />
+                              )}
                             </ul>
                           </details>
                         </li>
