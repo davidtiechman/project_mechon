@@ -64,8 +64,10 @@ const ImageOrPlaceholder = ({
       src={image}
       alt={alt || ""}
       className={clx(
-        "absolute inset-0 object-center transition-transform duration-300 ease-out group-hover:scale-105 motion-reduce:transform-none",
-        imageFit === "cover" ? "object-cover" : "object-contain",
+        "absolute inset-0 object-center transition-transform duration-300 ease-out motion-reduce:transform-none",
+        imageFit === "cover"
+          ? "object-cover group-hover:scale-105"
+          : "object-contain",
       )}
       draggable={false}
       quality={50}

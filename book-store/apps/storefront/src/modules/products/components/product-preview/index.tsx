@@ -52,7 +52,7 @@ export default function ProductPreview({
             images={product.images}
             size="full"
             isFeatured={isFeatured}
-            imageFit="cover"
+            imageFit="contain"
             alt={`עטיפת הספר ${product.title}`}
           />
           {isNewProduct && (
