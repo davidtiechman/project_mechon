@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react"
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react"
+import { useLayoutEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react"
 import { useHoverMenu } from "@lib/hooks/use-hover-menu"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
@@ -165,7 +165,7 @@ export default function InstituteProjectsMenu({ projects, leading, trailing, end
   const leadingSlot = useRef<HTMLDivElement>(null)
   const trailingSlot = useRef<HTMLDivElement>(null)
   const endingSlot = useRef<HTMLDivElement>(null)
-  const [visibleCount, setVisibleCount] = useState(0)
+  const [visibleCount, setVisibleCount] = useState(() => Math.min(MAX_VISIBLE_PROJECTS, projects.length))
   const prioritizedProjects = useMemo(() => [
     ...projects.filter(isPinnedProject),
     ...projects.filter((project) => !isPinnedProject(project)),
@@ -175,7 +175,7 @@ export default function InstituteProjectsMenu({ projects, leading, trailing, end
   const visibleProjects = projects.filter((project) => visibleSlugs.has(project.slug))
   const overflowProjects = projects.filter((project) => !visibleSlugs.has(project.slug))
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const slot = container.current
     const ruler = measurements.current
     if (!slot || !ruler) return
