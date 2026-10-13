@@ -1,4 +1,5 @@
 import "server-only"
+import { measurePerformance } from "@lib/observability/performance"
 
 import { getCategoryByHandle } from "./categories"
 import { getInstituteProject } from "./institute-projects"
@@ -11,28 +12,42 @@ export async function getBrandProducts(
   item: Pick<ContentItem, "slug" | "title" | "name" | "products">,
   countryCode: string
 ) {
-  const title = (item.title || item.name || "").trim()
-  const linkedProductIds = item.products?.map((product) => product.id) || []
-  let filter: { tag_id: string[] } | { id: string[] } | { category_id: string[] } | undefined
+  return measurePerformance("brand_products.total", async () => {
+    const title = (item.title || item.name || "").trim()
+    const linkedProductIds = item.products?.map((product) => product.id) || []
+    let filter:
+      | { tag_id: string[] }
+      | { id: string[] }
+      | { category_id: string[] }
+      | undefined
 
-  if (["חדשים", "ספרים חדשים"].includes(title)) {
-    const tag = await getProductTagByValue("מוצר חדש")
-    if (tag) filter = { tag_id: [tag.id] }
-  } else if (linkedProductIds.length) {
-    filter = { id: linkedProductIds }
-  } else {
-    const project = getInstituteProject(item.slug || "")
-    const category = project
-      ? await getCategoryByHandle([project.categoryHandle])
-      : undefined
-    if (category) filter = { category_id: [category.id] }
-  }
+    if (["חדשים", "ספרים חדשים"].includes(title)) {
+      const tag = await measurePerformance("brand_products.tag", () =>
+        getProductTagByValue("מוצר חדש")
+      )
+      if (tag) filter = { tag_id: [tag.id] }
+    } else if (linkedProductIds.length) {
+      filter = { id: linkedProductIds }
+    } else {
+      const project = getInstituteProject(item.slug || "")
+      const category = project
+        ? await measurePerformance("brand_products.category", () =>
+            getCategoryByHandle([project.categoryHandle])
+          )
+        : undefined
+      if (category) filter = { category_id: [category.id] }
+    }
 
-  if (!filter) return []
+    if (!filter) return []
 
-  const { response } = await listProducts({
-    countryCode,
-    queryParams: { ...filter, limit: 100, order: "-created_at" },
+    const { response } = await measurePerformance(
+      "brand_products.products",
+      () =>
+        listProducts({
+          countryCode,
+          queryParams: { ...filter, limit: 100, order: "-created_at" },
+        })
+    )
+    return response.products
   })
-  return response.products
 }

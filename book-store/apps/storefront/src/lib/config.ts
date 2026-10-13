@@ -1,3 +1,7 @@
+import {
+  measurePerformance,
+  medusaOperation,
+} from "@lib/observability/performance"
 import { getLocaleHeader } from "@lib/util/get-locale-header"
 import Medusa, { FetchArgs, FetchInput } from "@medusajs/js-sdk"
 
@@ -23,7 +27,10 @@ sdk.client.fetch = async <T>(
   const headers = init?.headers ?? {}
   let localeHeader: Record<string, string | null> | undefined
   try {
-    localeHeader = await getLocaleHeader()
+    localeHeader = await measurePerformance(
+      "medusa.locale_header",
+      getLocaleHeader
+    )
     headers["x-medusa-locale"] ??= localeHeader["x-medusa-locale"]
   } catch {}
 
@@ -35,5 +42,7 @@ sdk.client.fetch = async <T>(
     ...init,
     headers: newHeaders,
   }
-  return originalFetch(input, init)
+  return measurePerformance(medusaOperation(input), () =>
+    originalFetch<T>(input, init)
+  )
 }

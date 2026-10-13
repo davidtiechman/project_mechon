@@ -11,6 +11,7 @@ function setup({ category = { id: 'cat_bina' }, tag = { id: 'tag_new' } } = {}) 
   const exports = {}
   const dependencies = {
     'server-only': {},
+    '@lib/observability/performance': { measurePerformance: (_operation, action) => action() },
     './categories': { getCategoryByHandle: async (handles) => { calls.push({ handles }); return category } },
     './institute-projects': { getInstituteProject: (slug) => slug === 'habina-vehabracha' ? { categoryHandle: 'הבינה-והברכה' } : undefined },
     './product-tags': { getProductTagByValue: async (value) => { calls.push({ tag: value }); return tag } },

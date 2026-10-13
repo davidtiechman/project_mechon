@@ -1,4 +1,5 @@
 import "server-only"
+import { measurePerformance } from "@lib/observability/performance"
 
 const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000"
 const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
@@ -30,14 +31,26 @@ export const getAdvertisements = async () => (await getContent<{ items: ContentA
 export const listContent = async (entity: "pages" | "brands" | "articles") => (await getContent<{ items: ContentItem[] }>(`/${entity}?limit=100`))?.items || []
 export const getContentItem = async (entity: "pages" | "brands" | "articles", slug: string) => (await getContent<{ item: ContentItem }>(`/${entity}/${encodeURIComponent(slug)}`))?.item || null
 export async function getActiveCatalog(): Promise<ActiveCatalog | null> {
-  try {
-    const response = await fetch(`${backendUrl}/store/site-content/catalog`, {
-      headers: publishableKey ? { "x-publishable-api-key": publishableKey } : undefined,
-      cache: "no-store",
-    })
-    if (!response.ok) return null
-    return ((await response.json()) as { catalog: ActiveCatalog | null }).catalog
-  } catch {
-    return null
-  }
+  return measurePerformance("catalog.total", async () => {
+    try {
+      const response = await measurePerformance(
+        "catalog.fetch_to_headers",
+        () =>
+          fetch(`${backendUrl}/store/site-content/catalog`, {
+            headers: publishableKey
+              ? { "x-publishable-api-key": publishableKey }
+              : undefined,
+            cache: "no-store",
+          })
+      )
+      if (!response.ok) return null
+      return (
+        (await measurePerformance("catalog.read_json", () =>
+          response.json()
+        )) as { catalog: ActiveCatalog | null }
+      ).catalog
+    } catch {
+      return null
+    }
+  })
 }

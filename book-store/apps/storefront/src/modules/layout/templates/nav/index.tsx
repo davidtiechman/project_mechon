@@ -1,3 +1,7 @@
+import {
+  measurePerformance,
+  measureSynchronous,
+} from "@lib/observability/performance"
 import { Suspense } from "react"
 
 import { listLocales } from "@lib/data/locales"
@@ -17,30 +21,45 @@ import { resolveMediaUrl } from "@lib/util/resolve-media-url"
 import { instituteProjects } from "@lib/data/institute-projects"
 import { HeaderProductSearch } from "@modules/search/components/global-product-search"
 
-export default async function Nav({ countryCode }: { countryCode: string }) {
-  const [regions, locales, currentLocale, brands, catalog, yearCycleMenu] = await Promise.all([
-    listRegions().then((regions: StoreRegion[]) => regions),
-    listLocales(),
-    getLocale(),
-    listContent("brands"),
-    getActiveCatalog(),
-    getYearCycleMenu(),
-  ])
+export default function Nav(props: { countryCode: string }) {
+  return measurePerformance("nav.ready", () => renderNav(props))
+}
 
-  const projects = await Promise.all(
-    (brands.length ? brands : instituteProjects).map(async (brand) => ({
-      slug: brand.slug!,
-      title: brand.title || ("name" in brand ? brand.name : "") || "",
-      products: (await getBrandProducts(brand, countryCode)).map((product) => ({
-        id: product.id,
-        handle: product.handle!,
-        title: product.title,
-        thumbnail: resolveMediaUrl(product.thumbnail || product.images?.[0]?.url),
-      })),
-    }))
+async function renderNav({ countryCode }: { countryCode: string }) {
+  const [regions, locales, currentLocale, brands, catalog, yearCycleMenu] =
+    await measurePerformance("nav.initial_dependencies", () =>
+      Promise.all([
+        measurePerformance("nav.regions", () =>
+          listRegions().then((regions: StoreRegion[]) => regions)
+        ),
+        measurePerformance("nav.locales", listLocales),
+        measurePerformance("nav.locale", getLocale),
+        measurePerformance("nav.brands", () => listContent("brands")),
+        measurePerformance("nav.catalog", getActiveCatalog),
+        measurePerformance("nav.year_cycle", getYearCycleMenu),
+      ])
+    )
+
+  const projects = await measurePerformance("nav.brand_products_batch", () =>
+    Promise.all(
+      (brands.length ? brands : instituteProjects).map(async (brand) => ({
+        slug: brand.slug!,
+        title: brand.title || ("name" in brand ? brand.name : "") || "",
+        products: (await getBrandProducts(brand, countryCode)).map(
+          (product) => ({
+            id: product.id,
+            handle: product.handle!,
+            title: product.title,
+            thumbnail: resolveMediaUrl(
+              product.thumbnail || product.images?.[0]?.url
+            ),
+          })
+        ),
+      }))
+    )
   )
 
-  return (
+  return measureSynchronous("nav.jsx", () => (
     <div className="sticky top-0 inset-x-0 z-50 group" dir="rtl">
       <header className="relative h-[88px] mx-auto border-b border-[#e0d2c5] bg-[#faf6f1]/95 backdrop-blur-md">
         <nav
@@ -119,5 +138,5 @@ export default async function Nav({ countryCode }: { countryCode: string }) {
         </nav>
       </header>
     </div>
-  )
+  ))
 }
