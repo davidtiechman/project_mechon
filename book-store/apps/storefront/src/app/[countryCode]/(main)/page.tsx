@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { listCategories } from "@lib/data/categories"
 import { listProducts } from "@lib/data/products"
@@ -42,26 +43,7 @@ export default async function Home(props: {
   params: Promise<{ countryCode: string }>
 }) {
   const { countryCode } = await props.params
-  const [region, homeContent] = await Promise.all([getRegion(countryCode), getHomeContent()])
-
-  const [newProductTag, categories] = await Promise.all([
-    getProductTagByValue("מוצר חדש"),
-    listCategories({ limit: 6 }),
-  ])
-
-  const products = newProductTag
-    ? await listProducts({
-        countryCode,
-        queryParams: {
-          tag_id: [newProductTag.id],
-          limit: 6,
-          order: "-created_at",
-        },
-      }).then(({ response }) => response.products)
-    : []
-  const populatedCategories = categories.filter(
-    (category) => !category.parent_category && (category.products?.length ?? 0) > 0
-  )
+  const homeContent = await getHomeContent()
   const hero = homeContent?.sections.find((section) => section.type === "hero" && section.active)
   const articles = homeContent?.articles?.length ? homeContent.articles.map((article) => ({ title: article.title || "", excerpt: article.excerpt || "", date: article.published_at ? new Intl.DateTimeFormat("he-IL", { dateStyle: "long" }).format(new Date(article.published_at)) : "" })) : fallbackArticles
 
@@ -70,57 +52,13 @@ export default async function Home(props: {
       <Hero countryCode={countryCode} eyebrow={hero?.subtitle} title={hero?.title} description={hero?.content} buttonText={hero?.data?.button_text} buttonUrl={hero?.data?.button_url} image={hero?.data?.desktop_image} />
       {homeContent?.banners.filter((banner) => banner.placement === "homepage_top").map((banner) => <ContentBanner banner={banner} key={banner.id} />)}
 
-      <section id="new-books" className="home-section content-container">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">מן הדפוס</span>
-            <h2>ספרים חדשים</h2>
-          </div>
-          <LocalizedClientLink href="/store" className="text-link">
-            לכל הספרים <span aria-hidden="true">←</span>
-          </LocalizedClientLink>
-        </div>
-        {region && products.length > 0 ? (
-          <ul className="grid grid-cols-2 gap-x-5 gap-y-12 small:grid-cols-3 small:gap-x-8 small:gap-y-16">
-            {products.map((product) => (
-              <li key={product.id}>
-                <ProductPreview product={product} region={region} isFeatured />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="empty-home-state">הספרים החדשים יופיעו כאן בקרוב.</div>
-        )}
-      </section>
+      <Suspense fallback={<section id="new-books" className="home-section content-container" aria-busy="true"><div className="empty-home-state" role="status">טוען ספרים חדשים…</div></section>}>
+        <NewBooks countryCode={countryCode} />
+      </Suspense>
 
-      <section id="categories" className="bg-[#ede1d6]/85">
-        <div className="home-section content-container">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">אוצר הספרים</span>
-              <h2>קטגוריות ספרים</h2>
-            </div>
-          </div>
-          <div className="grid gap-4 xsmall:grid-cols-2 small:grid-cols-3">
-            {populatedCategories.map((category, index) => (
-              <LocalizedClientLink
-                href={`/categories/${category.handle}`}
-                key={category.id}
-                className="category-card group"
-              >
-                <span className="category-number">{String(index + 1).padStart(2, "0")}</span>
-                <h3>{category.name}</h3>
-                <span className="category-arrow" aria-hidden="true">←</span>
-              </LocalizedClientLink>
-            ))}
-            {populatedCategories.length === 0 && (
-              <div className="empty-home-state xsmall:col-span-2 small:col-span-3">
-                קטגוריות הספרים יעודכנו בקרוב.
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      <Suspense fallback={<section id="categories" className="bg-[#ede1d6]/85" aria-busy="true"><div className="home-section content-container"><div className="empty-home-state" role="status">טוען קטגוריות…</div></div></section>}>
+        <HomeCategories />
+      </Suspense>
 
       <section id="about" className="home-section content-container">
         <div className="about-grid">
@@ -163,5 +101,87 @@ export default async function Home(props: {
         </div>
       </section>
     </div>
+  )
+}
+
+
+// These requests stay below Suspense so the Hero only awaits its own content.
+async function NewBooks({ countryCode }: { countryCode: string }) {
+  const [region, newProductTag] = await Promise.all([
+    getRegion(countryCode),
+    getProductTagByValue("מוצר חדש"),
+  ])
+  const products = newProductTag
+    ? await listProducts({
+        countryCode,
+        queryParams: {
+          tag_id: [newProductTag.id],
+          limit: 6,
+          order: "-created_at",
+        },
+      }).then(({ response }) => response.products)
+    : []
+
+  return (
+<section id="new-books" className="home-section content-container">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">מן הדפוס</span>
+            <h2>ספרים חדשים</h2>
+          </div>
+          <LocalizedClientLink href="/store" className="text-link">
+            לכל הספרים <span aria-hidden="true">←</span>
+          </LocalizedClientLink>
+        </div>
+        {region && products.length > 0 ? (
+          <ul className="grid grid-cols-2 gap-x-5 gap-y-12 small:grid-cols-3 small:gap-x-8 small:gap-y-16">
+            {products.map((product) => (
+              <li key={product.id}>
+                <ProductPreview product={product} region={region} isFeatured />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="empty-home-state">הספרים החדשים יופיעו כאן בקרוב.</div>
+        )}
+      </section>
+  )
+}
+
+async function HomeCategories() {
+  const categories = await listCategories({ limit: 6 })
+  const populatedCategories = categories.filter(
+    (category) => !category.parent_category && (category.products?.length ?? 0) > 0
+  )
+
+  return (
+<section id="categories" className="bg-[#ede1d6]/85">
+        <div className="home-section content-container">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">אוצר הספרים</span>
+              <h2>קטגוריות ספרים</h2>
+            </div>
+          </div>
+          <div className="grid gap-4 xsmall:grid-cols-2 small:grid-cols-3">
+            {populatedCategories.map((category, index) => (
+              <LocalizedClientLink
+                href={`/categories/${category.handle}`}
+                key={category.id}
+                className="category-card group"
+              >
+                <span className="category-number">{String(index + 1).padStart(2, "0")}</span>
+                <h3>{category.name}</h3>
+                <span className="category-arrow" aria-hidden="true">←</span>
+              </LocalizedClientLink>
+            ))}
+            {populatedCategories.length === 0 && (
+              <div className="empty-home-state xsmall:col-span-2 small:col-span-3">
+                קטגוריות הספרים יעודכנו בקרוב.
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
   )
 }

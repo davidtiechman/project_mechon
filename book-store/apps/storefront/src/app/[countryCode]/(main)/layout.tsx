@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { Metadata } from "next"
 
 import { listCartOptions, retrieveCart } from "@lib/data/cart"
@@ -46,7 +47,9 @@ export default async function PageLayout(props: { children: React.ReactNode; par
     <>
       <AdvertisementPopup advertisements={advertisements} />
       {globalBanners.map((banner) => <ContentBanner banner={banner} key={banner.id} />)}
-      <Nav countryCode={countryCode} />
+      <Suspense fallback={<div className="sticky top-0 inset-x-0 z-50 h-[88px] border-b border-[#e0d2c5] bg-[#faf6f1]/95" aria-busy="true" />}>
+        <Nav countryCode={countryCode} />
+      </Suspense>
       {customer && cart && (
         <CartMismatchBanner customer={customer} cart={cart} />
       )}
@@ -61,7 +64,9 @@ export default async function PageLayout(props: { children: React.ReactNode; par
       <main id="main-content" tabIndex={-1}>
         {props.children}
       </main>
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
       <AssistantChat />
     </>
   )
