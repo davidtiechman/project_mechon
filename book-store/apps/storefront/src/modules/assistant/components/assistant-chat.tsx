@@ -8,7 +8,7 @@ import { useAssistantChat } from "../hooks/use-assistant-chat"
 function Avatar() {
   return (
     <span className="relative block h-[48px] w-[56px] shrink-0 sm:h-16 sm:w-20">
-      <Image src="/images/aharon-hayadan-avatar-v7.png" alt="" fill sizes="96px" className="object-contain" />
+      <Image src="/images/aharon-hayadan-avatar-v7.webp" alt="" fill sizes="96px" className="object-contain" />
     </span>
   )
 }
@@ -62,16 +62,15 @@ export default function AssistantChat() {
         className="block w-full border-0 bg-transparent p-0 motion-safe:transition-transform motion-safe:hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#7b552e]"
       >
         <Image
-          src="/images/aharon-hayadan-avatar-v7.png"
+          src="/images/aharon-hayadan-avatar-v7.webp"
           alt=""
           width={1245}
           height={1263}
           sizes="(min-width: 1024px) 96px, 72px"
-          priority
           className={`block ${minimized ? "lg:block" : "lg:hidden"} h-auto w-full object-contain`}
         />
         <Image
-          src="/images/aharon-hayadan-welcome-v7.png"
+          src="/images/aharon-hayadan-welcome-v7.webp"
           alt=""
           width={3428}
           height={3084}
