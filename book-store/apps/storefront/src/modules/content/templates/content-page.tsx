@@ -1,3 +1,5 @@
+import { getAvodatCutout } from "@lib/util/avodat-product-thumbnail"
+import frameStyles from "@modules/content/components/ornamental-product-frame/frame.module.css"
 import Image from "next/image"
 import { ContentItem } from "@lib/data/site-content"
 import { HttpTypes } from "@medusajs/types"
@@ -11,6 +13,8 @@ export default function ContentPageTemplate({
   children,
   compactHeader = false,
   headerEmblem,
+  entranceEffect,
+  ornamentalProducts = false,
   headingLevel: Heading = "h1",
 }: {
   item: ContentItem
@@ -19,6 +23,8 @@ export default function ContentPageTemplate({
   children?: ReactNode
   compactHeader?: boolean
   headerEmblem?: { src: string; alt: string }
+  entranceEffect?: ReactNode
+  ornamentalProducts?: boolean
   headingLevel?: "h1" | "h2"
 }) {
   const content = item.content
@@ -28,8 +34,9 @@ export default function ContentPageTemplate({
 
   return (
     <div dir="rtl" className="min-h-[60vh] bg-[#faf6f1]">
-      <header className="border-b border-[#ddcec0] bg-[#f8f1ea]">
-        <div className={`content-container text-right ${compactHeader ? "py-4 small:py-5" : "py-14 small:py-16"}`}>
+      <header className={`border-b border-[#ddcec0] bg-[#f8f1ea] ${entranceEffect ? "relative isolate overflow-hidden" : ""}`}>
+        {entranceEffect}
+        <div className={`content-container text-right ${entranceEffect ? "relative z-10" : ""} ${compactHeader ? "py-4 small:py-5" : "py-14 small:py-16"}`}>
           <div className="flex items-start justify-between gap-4 small:gap-8">
             <div className="min-w-0 flex-1">
               <Heading className="break-words text-4xl font-normal text-[#4a2d21] small:text-5xl">
@@ -86,8 +93,12 @@ export default function ContentPageTemplate({
         <section className="content-container pb-14">
           <ul className="grid w-full grid-cols-2 gap-x-5 gap-y-12 small:grid-cols-3 small:gap-x-8 small:gap-y-16 medium:grid-cols-4">
             {products.map((product) => (
-              <li key={product.id}>
-                <ProductPreview product={product} region={region} />
+              <li key={product.id} className={ornamentalProducts ? frameStyles.frame : undefined}>
+                <ProductPreview
+                  product={product}
+                  region={region}
+                  thumbnailOverride={ornamentalProducts ? getAvodatCutout(product.thumbnail || product.images?.[0]?.url) : undefined}
+                />
               </li>
             ))}
           </ul>

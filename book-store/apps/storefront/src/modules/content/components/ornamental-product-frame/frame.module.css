@@ -1,0 +1,31 @@
+.frame {
+  position: relative;
+  isolation: isolate;
+  padding: 26px 28px 34px;
+}
+.frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: url("/images/avodat-product-frame.svg") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 3px 5px rgb(53 43 40 / 7%));
+}
+.frame > :global(article),
+.frame > :global(article:hover),
+.frame > :global(article:focus-within) {
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.frame:has(:global(a:focus-visible))::before,
+.frame:has(:global(button:focus-visible))::before {
+  filter: drop-shadow(0 0 2px #9a7130) drop-shadow(0 0 5px rgb(154 113 48 / 45%));
+}
+.frame > :global(article) > :global(a) > :global(div) {
+  background: transparent;
+}
+@media (max-width: 575px) {
+  .frame { padding: 18px 18px 24px; }
+}

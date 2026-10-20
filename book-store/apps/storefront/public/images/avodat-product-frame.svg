@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 520" preserveAspectRatio="none">
+  <defs><path id="frame" d="M160 8 C139 43 112 35 75 24 C27 10 12 43 12 94 C12 152 30 204 27 242 L15 260 L27 278 C30 316 12 368 12 426 C12 477 27 510 75 496 C112 485 139 477 160 512 C181 477 208 485 245 496 C293 510 308 477 308 426 C308 368 290 316 293 278 L305 260 L293 242 C290 204 308 152 308 94 C308 43 293 10 245 24 C208 35 181 43 160 8 Z"/>
+    <g id="flower" fill="#65503c"><ellipse cy="-4.2" rx="1.15" ry="3.4"/><ellipse cy="-4.2" rx="1.15" ry="3.4" transform="rotate(45)"/><ellipse cy="-4.2" rx="1.15" ry="3.4" transform="rotate(90)"/><ellipse cy="-4.2" rx="1.15" ry="3.4" transform="rotate(135)"/><ellipse cy="-4.2" rx="1.15" ry="3.4" transform="rotate(180)"/><ellipse cy="-4.2" rx="1.15" ry="3.4" transform="rotate(225)"/><ellipse cy="-4.2" rx="1.15" ry="3.4" transform="rotate(270)"/><ellipse cy="-4.2" rx="1.15" ry="3.4" transform="rotate(315)"/><circle r="1.3"/></g>
+  </defs>
+  <use href="#frame" fill="#fffdf7" stroke="#352b28" stroke-width="2.8"/>
+  <use href="#frame" fill="none" stroke="#b69a61" stroke-width="0.8" transform="translate(7 10) scale(.95625 .96154)"/>
+  <path d="M27 244 L38 260 L27 276 L17 260 Z M293 244 L303 260 L293 276 L282 260 Z" fill="#fffdf7" stroke="#352b28" stroke-width="1.8"/>
+  <use href="#flower" transform="translate(27 260)"/><use href="#flower" transform="translate(293 260)"/>
+</svg>

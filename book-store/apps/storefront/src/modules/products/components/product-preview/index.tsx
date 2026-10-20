@@ -9,10 +9,12 @@ import CardAddToCart from "./card-add-to-cart"
 export default function ProductPreview({
   product,
   isFeatured,
+  thumbnailOverride,
   region: _region,
 }: {
   product: HttpTypes.StoreProduct
   isFeatured?: boolean
+  thumbnailOverride?: string
   region: HttpTypes.StoreRegion
 }) {
   // const pricedProduct = await listProducts({
@@ -48,7 +50,7 @@ export default function ProductPreview({
       >
         <div className="relative overflow-hidden bg-white">
           <Thumbnail
-            thumbnail={product.thumbnail}
+            thumbnail={thumbnailOverride ?? product.thumbnail}
             images={product.images}
             size="full"
             isFeatured={isFeatured}
