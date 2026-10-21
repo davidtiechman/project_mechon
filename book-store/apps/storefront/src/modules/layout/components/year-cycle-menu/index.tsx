@@ -116,7 +116,7 @@ function MenuContent({ menu, open, close }: {
             modal={false}
             anchor="bottom"
             dir="rtl"
-            className="z-[60] mt-2 max-h-[70vh] w-[min(90vw,760px)] overflow-y-auto rounded-lg border border-[#dfd0c0] bg-[#faf6f1] p-6 text-right shadow-xl [--anchor-gap:8px]"
+            className="z-[60] max-h-[70vh] w-[min(90vw,760px)] overflow-y-auto rounded-lg border border-[#dfd0c0] bg-[#faf6f1] p-6 text-right shadow-xl [--anchor-gap:8px]"
           >
             <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {menu.children.map((child) => (
