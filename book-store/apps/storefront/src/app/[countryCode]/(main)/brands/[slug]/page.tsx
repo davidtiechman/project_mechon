@@ -1,3 +1,4 @@
+import AvodatHashemEntrance from "@modules/content/components/avodat-hashem-banner"
 import { getContentItem } from "@lib/data/site-content"
 import { getBrandProducts } from "@lib/data/brand-products"
 import { getRegion } from "@lib/data/regions"
@@ -36,6 +37,7 @@ export default async function BrandPage({ params }: Props) {
   return (
     <ContentPageTemplate
       item={item}
+      entranceEffect={slug === "avodat-hashem" ? <AvodatHashemEntrance /> : undefined}
       products={products}
       region={region || undefined}
       headerEmblem={slug === "biurei-hachasidut" ? {
