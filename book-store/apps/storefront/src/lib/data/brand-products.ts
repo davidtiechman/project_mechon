@@ -7,6 +7,13 @@ import { getProductTagByValue } from "./product-tags"
 import { listProducts } from "./products"
 import type { ContentItem } from "./site-content"
 
+const brandProductTags: Record<string, string[]> = {
+  "חדשים": ["מוצר חדש"],
+  "ספרים חדשים": ["מוצר חדש"],
+  "נשים וילדים": ["נשים", "תלמידים"],
+  "מזכרות": ["מזכרת"],
+}
+
 /** Shared by brand pages and navigation so both use the same catalog membership. */
 export async function getBrandProducts(
   item: Pick<ContentItem, "slug" | "title" | "name" | "products">,
@@ -21,11 +28,13 @@ export async function getBrandProducts(
       | { category_id: string[] }
       | undefined
 
-    if (["חדשים", "ספרים חדשים"].includes(title)) {
-      const tag = await measurePerformance("brand_products.tag", () =>
-        getProductTagByValue("מוצר חדש")
+    const tagValues = brandProductTags[title]
+    if (tagValues) {
+      const tags = await measurePerformance("brand_products.tag", () =>
+        Promise.all(tagValues.map(getProductTagByValue))
       )
-      if (tag) filter = { tag_id: [tag.id] }
+      const tagIds = tags.flatMap((tag) => (tag ? [tag.id] : []))
+      if (tagIds.length) filter = { tag_id: tagIds }
     } else if (linkedProductIds.length) {
       filter = { id: linkedProductIds }
     } else {
