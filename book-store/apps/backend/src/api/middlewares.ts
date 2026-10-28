@@ -1,5 +1,6 @@
 import { authenticate, defineMiddlewares, validateAndTransformBody, type MedusaRequest, type MedusaResponse, type MedusaNextFunction } from "@medusajs/framework/http"
 import { z } from "@medusajs/framework/zod"
+import { PolicyOperation } from "@medusajs/framework/utils"
 
 function protectMarketingMetadata(req: MedusaRequest, res: MedusaResponse, next: MedusaNextFunction) {
   const metadata = (req.body as { metadata?: Record<string, unknown> })?.metadata
@@ -11,6 +12,25 @@ function protectMarketingMetadata(req: MedusaRequest, res: MedusaResponse, next:
 
 export default defineMiddlewares({
   routes: [
+    {
+      matcher: "/admin/quick-operations/*",
+      middlewares: [authenticate("user", ["session", "bearer", "api-key"])],
+    },
+    {
+      matcher: "/admin/quick-operations/books",
+      method: "POST",
+      policies: [
+        { resource: "product", operation: [PolicyOperation.create, PolicyOperation.update] },
+        { resource: "inventory_item", operation: PolicyOperation.create },
+        { resource: "inventory_level", operation: PolicyOperation.create },
+        { resource: "price", operation: PolicyOperation.create },
+      ],
+    },
+    {
+      matcher: "/admin/quick-operations/settings",
+      method: "GET",
+      policies: ["stock_location", "sales_channel", "shipping_profile", "product_category", "product_collection", "store", "shipping_option"].map((resource) => ({ resource, operation: PolicyOperation.read })),
+    },
     ...["/store/customers", "/store/customers/me", "/store/carts", "/store/carts/:id"].map((matcher) => ({
       matcher, method: "POST" as const, middlewares: [protectMarketingMetadata],
     })),
