@@ -64,7 +64,7 @@ async function renderNav({ countryCode }: { countryCode: string }) {
       <header className="relative h-[88px] mx-auto border-b border-[#e0d2c5] bg-[#faf6f1]/95 backdrop-blur-md">
         <nav
           aria-label="ניווט ראשי"
-          className="main-navigation content-container flex items-center w-full h-full gap-3 whitespace-nowrap text-[22px] text-[#3b352a] 2xlarge:text-[24px]"
+          className="main-navigation content-container flex items-center w-full h-full gap-3 whitespace-nowrap text-[22px] medium:text-[20px] xlarge:text-[22px] text-[#3b352a] 2xlarge:text-[24px]"
         >
           <LocalizedClientLink
             href="/"
@@ -84,7 +84,7 @@ async function renderNav({ countryCode }: { countryCode: string }) {
               <small>ספרי קודש ומחקר תורני</small>
             </span>
           </LocalizedClientLink>
-          <div className="hidden min-w-0 flex-1 items-center h-full xlarge:flex">
+          <div className="hidden min-w-0 flex-1 items-center h-full medium:flex">
             <InstituteProjectsMenu projects={projects} leading={
               <LocalizedClientLink href="/store" className="nav-link">
                 חנות הספרים
@@ -100,7 +100,7 @@ async function renderNav({ countryCode }: { countryCode: string }) {
 
           <div className="mr-auto flex shrink-0 items-center gap-2 h-full 2xlarge:gap-4">
             <HeaderProductSearch countryCode={countryCode} />
-            <div className="xlarge:hidden h-full flex items-center">
+            <div className="medium:hidden h-full flex items-center">
               <div className="h-full">
                 <SideMenu
                   projects={projects}
@@ -112,7 +112,7 @@ async function renderNav({ countryCode }: { countryCode: string }) {
                 />
               </div>
             </div>
-            <div className="hidden xlarge:flex items-center h-full">
+            <div className="hidden medium:flex items-center h-full">
               <LocalizedClientLink
                 className="nav-link"
                 href="/account"
