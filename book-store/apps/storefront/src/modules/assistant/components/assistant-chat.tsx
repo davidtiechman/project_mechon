@@ -4,6 +4,9 @@ import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react"
 import Image from "next/image"
 import { useEffect, useId, useRef, useState, type FormEvent } from "react"
 import { useAssistantChat } from "../hooks/use-assistant-chat"
+import { useDraggableLauncher } from "../hooks/use-draggable-launcher"
+
+const LAUNCHER_SEEN_KEY = "aharon-launcher-seen"
 
 function Avatar() {
   return (
@@ -17,11 +20,22 @@ export default function AssistantChat() {
   const [open, setOpen] = useState(false)
   const [minimized, setMinimized] = useState(false)
   const launcher = useRef<HTMLButtonElement>(null)
+  const launcherContainer = useRef<HTMLDivElement>(null)
+  const { position, shouldSuppressClick, ...dragHandlers } = useDraggableLauncher(launcherContainer)
   const [draft, setDraft] = useState("")
   const { messages, isTyping, error, send } = useAssistantChat()
   const id = useId()
   const transcript = useRef<HTMLDivElement>(null)
   const input = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    try { if (localStorage.getItem(LAUNCHER_SEEN_KEY) === "true") setMinimized(true) } catch { /* Storage is optional. */ }
+  }, [])
+
+  const minimizeLauncher = () => {
+    setMinimized(true)
+    try { localStorage.setItem(LAUNCHER_SEEN_KEY, "true") } catch { /* Keep the current-page preference when storage is unavailable. */ }
+  }
 
   useEffect(() => {
     if (open && transcript.current) transcript.current.scrollTop = transcript.current.scrollHeight
@@ -37,13 +51,13 @@ export default function AssistantChat() {
 
   return (
     <>
-      <div className={`assistant-launcher fixed left-3 bottom-[calc(84px+env(safe-area-inset-bottom))] z-[60] w-[72px] max-w-[calc(100vw-2rem)] lg:left-4 lg:bottom-[calc(5.5rem+env(safe-area-inset-bottom))] ${minimized ? "lg:w-24" : "lg:w-[360px]"}`}>
+      <div ref={launcherContainer} style={position ? { left: position.x, top: position.y, bottom: "auto", right: "auto" } : undefined} className={`assistant-launcher fixed left-3 bottom-[calc(84px+env(safe-area-inset-bottom))] z-[60] w-[72px] max-w-[calc(100vw-2rem)] lg:left-4 lg:bottom-[calc(5.5rem+env(safe-area-inset-bottom))] ${minimized ? "lg:w-24" : "lg:w-[360px]"}`}>
       {!minimized && (
         <button
           type="button"
           aria-label="מזעור אהרן הידען והסתרת הודעת הפתיחה"
           onClick={() => {
-            setMinimized(true)
+            minimizeLauncher()
             launcher.current?.focus()
           }}
           className="absolute -top-8 right-0 z-10 hidden h-11 w-11 items-center justify-center border-0 bg-transparent p-0 text-4xl font-black leading-none text-[#2b120c] transition-colors hover:text-[#8f2f20] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7b552e] lg:flex"
@@ -54,16 +68,23 @@ export default function AssistantChat() {
       <button
         ref={launcher}
         type="button"
-        onClick={() => setOpen(true)}
+        {...dragHandlers}
+        onClick={(event) => {
+          if (shouldSuppressClick() && event.detail !== 0) return
+          minimizeLauncher()
+          setOpen(true)
+        }}
         aria-label="פתיחת הצ׳אט עם אהרן הידען"
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? `${id}-dialog` : undefined}
-        className="block w-full border-0 bg-transparent p-0 motion-safe:transition-transform motion-safe:hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#7b552e]"
+        aria-describedby={`${id}-move-hint`}
+        className="block w-full touch-none select-none cursor-grab active:cursor-grabbing border-0 bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#7b552e]"
       >
         <Image
           src="/images/aharon-hayadan-avatar-v7.webp"
           alt=""
+          draggable={false}
           width={1245}
           height={1263}
           sizes="(min-width: 1024px) 96px, 72px"
@@ -72,12 +93,14 @@ export default function AssistantChat() {
         <Image
           src="/images/aharon-hayadan-welcome-v7.webp"
           alt=""
+          draggable={false}
           width={3428}
           height={3084}
           sizes="360px"
           className={`hidden ${minimized ? "lg:hidden" : "lg:block"} h-auto w-full object-contain`}
         />
       </button>
+      <span id={`${id}-move-hint`} className="sr-only">ניתן לגרור את הכפתור למיקום אחר או להזיז אותו באמצעות מקשי החצים. רענון הדף מחזיר אותו למיקום המקורי.</span>
       </div>
 
       <Dialog open={open} onClose={setOpen} className="relative z-[75]" dir="rtl">

@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react"
 import { useLayoutEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react"
-import { useHoverMenu } from "@lib/hooks/use-hover-menu"
+import { HEADER_MENU_GROUP, useHoverMenu } from "@lib/hooks/use-hover-menu"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 export type ProjectMenuItem = {
@@ -26,7 +26,7 @@ function ProjectMenu({ project }: { project: ProjectMenuItem }) {
   const products = project.products || []
   const hover = useHoverMenu(() => setOpen(true), () => {
     if (!panel.current?.contains(document.activeElement)) setOpen(false)
-  })
+  }, { group: HEADER_MENU_GROUP, closeImmediately: () => setOpen(false) })
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Escape") {
@@ -108,11 +108,11 @@ function MoreProjects({ projects, open, close }: {
     const focused = document.activeElement
     if (panel.current?.contains(focused)) return
     close(focused instanceof HTMLElement ? focused : undefined)
-  })
+  }, { group: HEADER_MENU_GROUP, closeImmediately: () => close(document.activeElement instanceof HTMLElement ? document.activeElement : undefined) })
 
   return (
     <div className="flex h-full items-center" onPointerEnter={hover.onPointerEnter} onPointerLeave={hover.onPointerLeave} onFocusCapture={hover.onFocusCapture}>
-      <PopoverButton ref={button} onClick={hover.cancel} className="nav-link gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+      <PopoverButton ref={button} onClick={hover.activate} className="nav-link gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
         עוד
         <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8">
           <path d="m5 7.5 5 5 5-5" />
