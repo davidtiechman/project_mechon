@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { getCacheTag } from "@lib/data/cookies"
 import { safeReturnPath } from "@lib/util/safe-return-path"
+import {
+  GOOGLE_AVATAR_METADATA_KEY as AVATAR_METADATA_KEY,
+  safeGooglePicture,
+} from "@lib/util/google-avatar"
 
 const RETURN_COOKIE = "_google_oauth_return_to"
 
@@ -13,6 +17,7 @@ type GoogleTokenPayload = {
     given_name?: string
     family_name?: string
     email_verified?: boolean
+    picture?: string
   }
 }
 
@@ -95,30 +100,37 @@ export async function GET(request: NextRequest) {
       token = refreshed.token
     }
 
+    const googlePicture = safeGooglePicture(payload.user_metadata?.picture)
     if (
       payload.user_metadata?.given_name ||
-      payload.user_metadata?.family_name
+      payload.user_metadata?.family_name ||
+      googlePicture
     ) {
       try {
         const { customer } = await sdk.store.customer.retrieve(
-          {},
+          { fields: "id,first_name,last_name,metadata" },
           authHeaders(token),
         )
-        const missingNames = {
-          ...(!customer.first_name && payload.user_metadata.given_name
+        const metadata = (customer.metadata || {}) as Record<string, unknown>
+        const updates = {
+          ...(!customer.first_name && payload.user_metadata?.given_name
             ? { first_name: payload.user_metadata.given_name }
             : {}),
-          ...(!customer.last_name && payload.user_metadata.family_name
+          ...(!customer.last_name && payload.user_metadata?.family_name
             ? { last_name: payload.user_metadata.family_name }
+            : {}),
+          // Refresh on every login: Google changes the URL when the photo changes.
+          ...(googlePicture && metadata[AVATAR_METADATA_KEY] !== googlePicture
+            ? { metadata: { ...metadata, [AVATAR_METADATA_KEY]: googlePicture } }
             : {}),
         }
 
-        if (Object.keys(missingNames).length) {
-          await sdk.store.customer.update(missingNames, {}, authHeaders(token))
+        if (Object.keys(updates).length) {
+          await sdk.store.customer.update(updates, {}, authHeaders(token))
         }
       } catch {
         // Profile enrichment must not discard a successful authentication.
-        console.warn("Google login: could not update customer names")
+        console.warn("Google login: could not update customer profile")
       }
     }
 

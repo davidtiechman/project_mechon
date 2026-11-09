@@ -10,6 +10,8 @@ import { listRegions } from "@lib/data/regions"
 import { StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
+import AccountMenu from "@modules/layout/components/account-menu"
+import { GuestCircle } from "@modules/layout/components/account-menu/account-dropdown"
 import SideMenu from "@modules/layout/components/side-menu"
 import Image from "next/image"
 import InstituteProjectsMenu from "@modules/layout/components/institute-projects-menu"
@@ -112,23 +114,33 @@ async function renderNav({ countryCode }: { countryCode: string }) {
                 />
               </div>
             </div>
-            <div className="hidden medium:flex items-center h-full">
-              <LocalizedClientLink
-                className="nav-link"
-                href="/account"
-                data-testid="nav-account-link"
+            <div className="flex items-center h-full">
+              <Suspense
+                fallback={
+                  <LocalizedClientLink
+                    className="flex h-full shrink-0 items-center"
+                    href="/account"
+                    aria-label="החשבון שלי"
+                    data-testid="nav-account-link"
+                  >
+                    <GuestCircle />
+                  </LocalizedClientLink>
+                }
               >
-                החשבון שלי
-              </LocalizedClientLink>
+                <AccountMenu />
+              </Suspense>
             </div>
             <Suspense
               fallback={
                 <LocalizedClientLink
-                  className="nav-link flex gap-2"
+                  className="flex h-full shrink-0 items-center"
                   href="/cart"
+                  aria-label="סל הקניות"
                   data-testid="nav-cart-link"
                 >
-                  סל (0)
+                  <span className="relative grid aspect-square h-9 w-9 min-w-[2.25rem] medium:h-10 medium:w-10 medium:min-w-[2.5rem] shrink-0 place-items-center rounded-full border-[1.5px] border-[#d6c8ba] bg-[#fffaf5] text-[#4a2d21] transition-colors medium:border-2 hover:border-[#9a7130] hover:bg-[#f3ebe3]">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 medium:h-5 medium:w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
+                  </span>
                 </LocalizedClientLink>
               }
             >

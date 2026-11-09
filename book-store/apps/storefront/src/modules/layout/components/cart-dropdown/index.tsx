@@ -3,10 +3,9 @@
 import {
   Transition,
 } from "@headlessui/react"
-import { useHoverMenu } from "@lib/hooks/use-hover-menu"
+import { HEADER_MENU_GROUP, useHoverMenu } from "@lib/hooks/use-hover-menu"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
-import { Button } from "@modules/common/components/ui"
 import DeleteButton from "@modules/common/components/delete-button"
 import LineItemOptions from "@modules/common/components/line-item-options"
 import LineItemPrice from "@modules/common/components/line-item-price"
@@ -38,6 +37,8 @@ const CartDropdown = ({
   const cartButtonRef = useRef<HTMLButtonElement>(null)
 
   const timedOpen = () => {
+    // Close any other header menu before the cart pops open after adding a book
+    hover.activate()
     open()
 
     const timer = setTimeout(close, 5000)
@@ -56,7 +57,7 @@ const CartDropdown = ({
   const cartPanelRef = useRef<HTMLDivElement>(null)
   const hover = useHoverMenu(openAndCancel, () => {
     if (!cartPanelRef.current?.contains(document.activeElement)) close()
-  })
+  }, { group: HEADER_MENU_GROUP, closeImmediately: close })
 
   // Clean up the timer when the component unmounts
   useEffect(() => {
@@ -88,9 +89,10 @@ const CartDropdown = ({
         <button
           ref={cartButtonRef}
           type="button"
-          className="h-full hover:text-ui-fg-base"
+          className="flex h-full shrink-0 items-center"
+          aria-label={`סל הקניות, ${totalItems} פריטים`}
           onClick={() => {
-            hover.cancel()
+            hover.activate()
             if (cartDropdownOpen) close()
             else openAndCancel()
           }}
@@ -104,7 +106,14 @@ const CartDropdown = ({
           aria-controls="nav-cart-dropdown-panel"
           data-testid="nav-cart-link"
         >
-          {`סל (${totalItems})`}
+          <span className="relative grid aspect-square h-9 w-9 min-w-[2.25rem] medium:h-10 medium:w-10 medium:min-w-[2.5rem] shrink-0 place-items-center rounded-full border-[1.5px] border-[#d6c8ba] bg-[#fffaf5] text-[#4a2d21] transition-colors medium:border-2 hover:border-[#9a7130] hover:bg-[#f3ebe3]">
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 medium:h-5 medium:w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
+            {totalItems > 0 && (
+              <span aria-hidden="true" className="absolute -left-1 -top-1 grid aspect-square h-5 w-5 shrink-0 medium:-left-1.5 medium:-top-1.5 medium:h-6 medium:w-6 place-items-center rounded-full bg-[#4a2d21] p-0 text-xs font-bold leading-none text-white tabular-nums ring-2 ring-[#faf6f1]">
+                {totalItems > 9 ? "9+" : totalItems}
+              </span>
+            )}
+          </span>
         </button>
         <Transition
           show={cartDropdownOpen}
@@ -112,9 +121,6 @@ const CartDropdown = ({
           enter="transition ease-out duration-200"
           enterFrom="opacity-0 translate-y-1"
           enterTo="opacity-100 translate-y-0"
-          leave="transition ease-in duration-150"
-          leaveFrom="opacity-100 translate-y-0"
-          leaveTo="opacity-0 translate-y-1"
         >
           <div
             ref={cartPanelRef}
@@ -127,15 +133,19 @@ const CartDropdown = ({
                 cartButtonRef.current?.focus()
               }
             }}
-            className="fixed left-4 top-[77px] w-[min(420px,calc(100vw-2rem))] border-x border-b border-gray-200 bg-white text-ui-fg-base"
+            className="absolute left-0 top-full z-[60] -mt-2 w-[min(420px,calc(100vw-2rem))] rounded-lg border border-[#dfd0c0] bg-[#faf6f1] p-2 text-right text-[#352820] shadow-xl"
+            dir="rtl"
             data-testid="nav-cart-dropdown"
           >
-            <div className="p-4 flex items-center justify-center">
-              <h3 className="text-large-semi">סל הקניות</h3>
+            <div className="flex items-center justify-between gap-3 border-b border-[#dfd0c0] px-3 pb-3 pt-2">
+              <h3 className="text-base font-semibold text-[#4a2d21]">סל הקניות</h3>
+              {totalItems > 0 && (
+                <span className="text-sm text-[#75685b]">{totalItems} פריטים</span>
+              )}
             </div>
             {cartState && cartState.items?.length ? (
               <>
-                <div className="no-scrollbar grid max-h-[402px] grid-cols-1 gap-y-8 overflow-y-auto px-4 pb-4">
+                <div className="no-scrollbar grid max-h-[402px] grid-cols-1 gap-y-2 overflow-y-auto py-2">
                   {cartState.items
                     .sort((a, b) => {
                       return (a.created_at ?? "") > (b.created_at ?? "")
@@ -144,13 +154,13 @@ const CartDropdown = ({
                     })
                     .map((item) => (
                       <div
-                        className="grid min-w-0 grid-cols-[96px_minmax(0,1fr)] gap-x-4"
+                        className="grid min-w-0 grid-cols-[72px_minmax(0,1fr)] gap-x-3 rounded-md p-2 transition-colors hover:bg-[#f3ebe3]"
                         key={item.id}
                         data-testid="cart-item"
                       >
                         <LocalizedClientLink
                           href={`/products/${item.product_handle}`}
-                          className="w-20"
+                          className="block w-[72px] overflow-hidden rounded border border-[#e2d6ca] bg-white"
                         >
                           <Thumbnail
                             thumbnail={item.thumbnail}
@@ -163,7 +173,7 @@ const CartDropdown = ({
                           <div className="flex flex-col flex-1">
                             <div className="flex min-w-0 items-start justify-between gap-3">
                               <div className="flex min-w-0 flex-1 flex-col">
-                                <h3 className="overflow-hidden text-ellipsis whitespace-nowrap text-base-regular">
+                                <h3 className="overflow-hidden text-ellipsis whitespace-nowrap text-base font-semibold text-[#4b3c2c]">
                                   <LocalizedClientLink
                                     href={`/products/${item.product_handle}`}
                                     data-testid="product-link"
@@ -177,6 +187,7 @@ const CartDropdown = ({
                                   data-value={item.variant}
                                 />
                                 <span
+                                  className="text-sm text-[#75685b]"
                                   data-testid="cart-item-quantity"
                                   data-value={item.quantity}
                                 >
@@ -203,13 +214,13 @@ const CartDropdown = ({
                       </div>
                     ))}
                 </div>
-                <div className="p-4 flex flex-col gap-y-4 text-small-regular">
+                <div className="flex flex-col gap-y-3 border-t border-[#dfd0c0] px-3 pb-2 pt-3 text-small-regular">
                   <div className="flex items-center justify-between">
-                    <span className="text-ui-fg-base font-semibold">
+                    <span className="font-semibold text-[#4b3c2c]">
                       סה״כ
                     </span>
                     <span
-                      className="text-large-semi"
+                      className="text-large-semi text-[#4a2d21]"
                       data-testid="cart-total"
                       data-value={total}
                     >
@@ -219,32 +230,29 @@ const CartDropdown = ({
                       })}
                     </span>
                   </div>
-                  <LocalizedClientLink href="/cart" passHref>
-                    <Button
-                      className="w-full"
-                      size="large"
-                      data-testid="go-to-cart-button"
-                    >
-                      מעבר לסל
-                    </Button>
+                  <LocalizedClientLink
+                    href="/cart"
+                    className="flex h-11 w-full items-center justify-center rounded-md bg-[#4a2d21] px-4 text-base font-semibold text-white transition-colors hover:bg-[#8a5a3c]"
+                    data-testid="go-to-cart-button"
+                  >
+                    מעבר לסל
                   </LocalizedClientLink>
                 </div>
               </>
             ) : (
               <div>
-                <div className="flex py-16 flex-col gap-y-4 items-center justify-center">
-                  <div className="bg-gray-900 text-small-regular flex items-center justify-center w-6 h-6 rounded-full text-white">
-                    <span>0</span>
-                  </div>
-                  <span>סל הקניות שלך ריק.</span>
-                  <div>
-                    <LocalizedClientLink href="/store">
-                      <>
-                        <span className="sr-only">מעבר לכל הספרים</span>
-                        <Button onClick={close}>לכל הספרים</Button>
-                      </>
-                    </LocalizedClientLink>
-                  </div>
+                <div className="flex flex-col items-center justify-center gap-y-3 px-3 py-8 text-center">
+                  <span className="grid aspect-square h-10 w-10 place-items-center rounded-full border-2 border-[#d6c8ba] bg-[#fffaf5] text-[#4a2d21]" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
+                  </span>
+                  <span className="text-base text-[#4b3c2c]">סל הקניות שלך ריק.</span>
+                  <LocalizedClientLink
+                    href="/store"
+                    onClick={close}
+                    className="flex h-11 w-full items-center justify-center rounded-md bg-[#4a2d21] px-4 text-base font-semibold text-white transition-colors hover:bg-[#8a5a3c]"
+                  >
+                    לכל הספרים
+                  </LocalizedClientLink>
                 </div>
               </div>
             )}

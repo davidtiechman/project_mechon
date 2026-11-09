@@ -55,6 +55,11 @@ const nextConfig = {
         protocol: "https",
         hostname: "*.supabase.co",
       },
+      {
+        // Google account profile pictures (shown in the header account circle)
+        protocol: "https",
+        hostname: "*.googleusercontent.com",
+      },
       ...(S3_HOSTNAME && S3_PATHNAME
         ? [
             {

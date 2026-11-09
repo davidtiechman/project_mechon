@@ -56,7 +56,11 @@ async function requestVerificationEmail(email: string, token: string) {
 }
 
 export const retrieveCustomer =
-  async ({ throwOnError = false } = {}): Promise<HttpTypes.StoreCustomer | null> => {
+  async ({
+    throwOnError = false,
+    // The header only needs the name and email; account pages need orders and addresses.
+    fields = "*orders,*addresses",
+  }: { throwOnError?: boolean; fields?: string } = {}): Promise<HttpTypes.StoreCustomer | null> => {
     const authHeaders = await getAuthHeaders()
 
     // getAuthHeaders returns an empty object for guests. Avoid calling the
@@ -77,7 +81,7 @@ export const retrieveCustomer =
       .fetch<{ customer: HttpTypes.StoreCustomer }>(`/store/customers/me`, {
         method: "GET",
         query: {
-          fields: "*orders,*addresses",
+          fields,
         },
         headers,
         next,
