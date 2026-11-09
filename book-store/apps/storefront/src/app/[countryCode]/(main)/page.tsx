@@ -48,7 +48,7 @@ export default async function Home(props: {
   const articles = homeContent?.articles?.length ? homeContent.articles.map((article) => ({ title: article.title || "", excerpt: article.excerpt || "", date: article.published_at ? new Intl.DateTimeFormat("he-IL", { dateStyle: "long" }).format(new Date(article.published_at)) : "" })) : fallbackArticles
 
   return (
-    <div className="min-h-screen bg-[#f6f0e9]/80 text-[#352820] backdrop-blur-[1px]">
+    <div className="min-h-screen bg-[#f6f0e9]/80 text-[#352820]">
       <Hero countryCode={countryCode} eyebrow={hero?.subtitle} title={hero?.title} description={hero?.content} buttonText={hero?.data?.button_text} buttonUrl={hero?.data?.button_url} image={hero?.data?.desktop_image} />
       {homeContent?.banners.filter((banner) => banner.placement === "homepage_top").map((banner) => <ContentBanner banner={banner} key={banner.id} />)}
 
