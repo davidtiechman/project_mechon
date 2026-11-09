@@ -50,7 +50,7 @@ function ProjectMenu({ project }: { project: ProjectMenuItem }) {
     >
       <LocalizedClientLink
         href={`/brands/${project.slug}`}
-        className="nav-link whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="nav-link whitespace-nowrap"
         aria-haspopup="true"
         aria-expanded={open}
         aria-controls={panelId}
@@ -112,7 +112,7 @@ function MoreProjects({ projects, open, close }: {
 
   return (
     <div className="flex h-full items-center" onPointerEnter={hover.onPointerEnter} onPointerLeave={hover.onPointerLeave} onFocusCapture={hover.onFocusCapture}>
-      <PopoverButton ref={button} onClick={hover.activate} className="nav-link gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+      <PopoverButton ref={button} onClick={hover.activate} className="nav-link gap-1">
         עוד
         <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8">
           <path d="m5 7.5 5 5 5-5" />

@@ -102,7 +102,7 @@ function MenuContent({ menu, open, close }: {
   }, { group: HEADER_MENU_GROUP, closeImmediately: () => close(document.activeElement instanceof HTMLElement ? document.activeElement : undefined) })
   return (
         <div className="flex h-full items-center" onPointerEnter={hover.onPointerEnter} onPointerLeave={hover.onPointerLeave} onFocusCapture={hover.onFocusCapture}>
-          <PopoverButton ref={button} onClick={hover.activate} className="nav-link h-full gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+          <PopoverButton ref={button} onClick={hover.activate} className="nav-link h-full gap-1">
             {menu.name}
             <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path d="m5 7.5 5 5 5-5" />

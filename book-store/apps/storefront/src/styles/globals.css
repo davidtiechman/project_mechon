@@ -272,7 +272,41 @@ body {
   }
 
   .nav-link {
-    @apply relative flex h-full items-center whitespace-nowrap text-[inherit] font-semibold transition-colors hover:text-[#9a7130];
+    @apply relative flex h-full items-center whitespace-nowrap text-[inherit] font-semibold transition-colors;
+    isolation: isolate;
+  }
+
+  .nav-link:focus-visible {
+    /* Retained focus gets a frame without looking like an open menu. */
+    outline: none;
+  }
+
+  .nav-link:hover,
+  .nav-link[aria-expanded="true"] {
+    color: #fff6e8;
+  }
+
+  .nav-link::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 6px -4px;
+    border: 2px solid #9a7130;
+    border-radius: 4px;
+    background-color: transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 150ms ease, background-color 150ms ease;
+  }
+
+  .nav-link:focus-visible::before {
+    opacity: 1;
+  }
+
+  .nav-link:hover::before,
+  .nav-link[aria-expanded="true"]::before {
+    background-color: #6b4931;
+    opacity: 1;
   }
 
   .nav-link::after {
@@ -280,7 +314,8 @@ body {
     @apply absolute inset-x-0 bottom-0 h-px origin-right scale-x-0 bg-[#9a7130] transition-transform;
   }
 
-  .nav-link:hover::after {
+  .nav-link:hover::after,
+  .nav-link[aria-expanded="true"]::after {
     @apply scale-x-100;
   }
 
