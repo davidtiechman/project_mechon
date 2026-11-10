@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react"
 import { useLayoutEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react"
-import { HEADER_MENU_GROUP, useHoverMenu } from "@lib/hooks/use-hover-menu"
+import { HEADER_MENU_GROUP, openMenuOnHover, useHoverMenu } from "@lib/hooks/use-hover-menu"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 export type ProjectMenuItem = {
@@ -103,7 +103,7 @@ function MoreProjects({ projects, open, close }: {
   const button = useRef<HTMLButtonElement>(null)
   const panel = useRef<HTMLDivElement>(null)
   const hover = useHoverMenu(() => {
-    if (!open) button.current?.click()
+    if (!open) openMenuOnHover(button.current)
   }, () => {
     const focused = document.activeElement
     if (panel.current?.contains(focused)) return

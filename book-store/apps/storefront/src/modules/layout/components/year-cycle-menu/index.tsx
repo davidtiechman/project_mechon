@@ -2,7 +2,7 @@
 
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react"
 import { useId, useRef, useState } from "react"
-import { HEADER_MENU_GROUP, useHoverMenu } from "@lib/hooks/use-hover-menu"
+import { HEADER_MENU_GROUP, openMenuOnHover, useHoverMenu } from "@lib/hooks/use-hover-menu"
 import type { YearCycleMenuNode } from "@lib/data/categories"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
@@ -93,7 +93,7 @@ function MenuContent({ menu, open, close }: {
   const hover = useHoverMenu(() => {
     if (open) return
     // Headless UI owns the disclosure state and keyboard interactions.
-    button.current?.click()
+    openMenuOnHover(button.current)
   }, () => {
     // Do not hide links while someone is navigating them with a keyboard.
     const focused = document.activeElement
