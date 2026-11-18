@@ -9,6 +9,10 @@ export const paymentInfoMap: Record<
   string,
   { title: string; icon: React.JSX.Element }
 > = {
+  pp_nedarim_nedarim: {
+    title: "נדרים פלוס — אשראי, Google Pay, Apple Pay ו־bit",
+    icon: <CreditCard />,
+  },
   pp_stripe_stripe: {
     title: "כרטיס אשראי",
     icon: <CreditCard />,
@@ -49,6 +53,8 @@ export const isPaypal = (providerId?: string) => {
 export const isManual = (providerId?: string) => {
   return providerId?.startsWith("pp_system_default")
 }
+
+export const isNedarim = (providerId?: string) => providerId === "pp_nedarim_nedarim"
 
 // Add currencies that don't need to be divided by 100
 export const noDivisionCurrencies = [

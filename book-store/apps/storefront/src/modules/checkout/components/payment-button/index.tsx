@@ -1,12 +1,13 @@
 "use client"
 
-import { isManual, isStripeLike } from "@lib/constants"
+import { isManual, isNedarim, isStripeLike } from "@lib/constants"
 import { placeOrder } from "@lib/data/cart"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@modules/common/components/ui"
 import { useElements, useStripe } from "@stripe/react-stripe-js"
 import React, { useRef, useState } from "react"
 import ErrorMessage from "../error-message"
+import NedarimPaymentButton from "../nedarim-payment"
 
 type PaymentButtonProps = {
   cart: HttpTypes.StoreCart
@@ -28,9 +29,12 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
     !cart.email ||
     (cart.shipping_methods?.length ?? 0) < 1
 
-  const paymentSession = cart.payment_collection?.payment_sessions?.[0]
+  const paymentSession = cart.payment_collection?.payment_sessions?.find((session) =>
+    ["pending", "authorized", "captured", "requires_more"].includes(session.status))
 
   switch (true) {
+    case isNedarim(paymentSession?.provider_id):
+      return <NedarimPaymentButton notReady={notReady} beforePayment={beforePayment} onSubmittingChange={onSubmittingChange} checkoutPaused={process.env.NEXT_PUBLIC_NEDARIM_CHECKOUT_PAUSED === "true"} />
     case isStripeLike(paymentSession?.provider_id):
       return (
         <StripePaymentButton
