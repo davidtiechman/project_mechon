@@ -35,7 +35,7 @@ const Addresses = ({
   const router = useRouter()
   const pathname = usePathname()
 
-  const isOpen = searchParams.get("step") === "address"
+  const isOpen = (searchParams.get("step") || "address") === "address"
 
   const {
     state: sameAsBilling,

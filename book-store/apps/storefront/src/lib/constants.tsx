@@ -10,7 +10,7 @@ export const paymentInfoMap: Record<
   { title: string; icon: React.JSX.Element }
 > = {
   pp_nedarim_nedarim: {
-    title: "נדרים פלוס — אשראי, Google Pay, Apple Pay ו־bit",
+    title: "תשלום",
     icon: <CreditCard />,
   },
   pp_stripe_stripe: {

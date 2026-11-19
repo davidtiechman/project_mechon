@@ -2,24 +2,29 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "@modules/common/components/ui"
-import { beginNedarimPayment, getNedarimPaymentStatus, NedarimPayment } from "@lib/data/nedarim"
+import { beginNedarimPayment, getNedarimPaymentStatus, NedarimPayment, NedarimStatus } from "@lib/data/nedarim"
 import { placeOrder } from "@lib/data/cart"
 import ErrorMessage from "../error-message"
 
 const ORIGIN = "https://www.matara.pro"
 const IFRAME_URL = `${ORIGIN}/nedarimplus/iframe/v3/`
 
-export default function NedarimPaymentButton({ notReady, beforePayment, onSubmittingChange, checkoutPaused = false }: {
+export default function NedarimPaymentButton({ notReady, beforePayment, onSubmittingChange, checkoutPaused = false, formId, loadPayment = beginNedarimPayment, onPaymentStarted }: {
   notReady: boolean
   beforePayment: () => Promise<boolean>
   onSubmittingChange: (submitting: boolean) => void
   checkoutPaused?: boolean
+  formId?: string
+  loadPayment?: () => Promise<NedarimStatus>
+  onPaymentStarted?: () => void
 }) {
   const [payment, setPayment] = useState<NedarimPayment | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
   const [message, setMessage] = useState("")
+  const [showStatusCheck, setShowStatusCheck] = useState(false)
+  const [verifiedPaid, setVerifiedPaid] = useState(false)
   const locked = useRef(false)
   const completing = useRef(false)
 
@@ -29,8 +34,10 @@ export default function NedarimPaymentButton({ notReady, beforePayment, onSubmit
     setMessage("התשלום אושר. משלימים את ההזמנה…")
     try {
       await placeOrder()
+      setShowStatusCheck(true)
       setError("התשלום אושר, אך ההזמנה טרם הושלמה. אין לשלם שוב. אפשר ללחוץ על בדיקת אישור התשלום.")
     } catch {
+      setShowStatusCheck(true)
       setError("התשלום אושר. אם לא הועברת לאישור ההזמנה, אפשר לבדוק שוב. אין לבצע תשלום נוסף.")
     } finally { completing.current = false }
   }, [])
@@ -39,6 +46,7 @@ export default function NedarimPaymentButton({ notReady, beforePayment, onSubmit
     if (completing.current) return false
     const result = await getNedarimPaymentStatus()
     if (result.status === "paid") {
+      setVerifiedPaid(true)
       setError(null)
       await complete()
       return true
@@ -60,25 +68,26 @@ export default function NedarimPaymentButton({ notReady, beforePayment, onSubmit
       }
       if (stopped) return
       if (Date.now() - started < 10 * 60_000) timer = setTimeout(poll, 3000)
-      else setMessage("האישור עדיין ממתין. אפשר לבדוק שוב בכפתור למטה. אם כבר אישרת תשלום, אין לשלם שוב.")
+      else { setShowStatusCheck(true); setMessage("האישור עדיין ממתין. אם כבר שילמת, אין לשלם שוב.") }
     }
     timer = setTimeout(poll, 1500)
     return () => { stopped = true; clearTimeout(timer) }
   }, [payment, check])
 
   const begin = async () => {
-    if (locked.current || checkoutPaused) return
+    if (locked.current || checkoutPaused || notReady) return
     locked.current = true
     setSubmitting(true)
     onSubmittingChange(true)
     setError(null)
     try {
       if (!await beforePayment()) { onSubmittingChange(false); return }
-      const result = await beginNedarimPayment()
-      if (result.status === "paid") { await complete(); return }
+      const result = await loadPayment()
+      if (result.status === "paid") { setVerifiedPaid(true); onPaymentStarted?.(); await complete(); return }
       if (!result.payment) throw new Error("לא ניתן לפתוח את התשלום.")
       setPayment(result.payment)
-      setMessage("בחרו אמצעי תשלום בחלון המאובטח.")
+      setMessage("")
+      onPaymentStarted?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : "לא ניתן לפתוח את התשלום כרגע.")
       onSubmittingChange(false)
@@ -86,28 +95,27 @@ export default function NedarimPaymentButton({ notReady, beforePayment, onSubmit
   }
 
   return <div className="w-full space-y-4">
-    {checkoutPaused && <p role="status" className="rounded-md border border-[#ddcec0] bg-[#faf6f1] p-3 text-sm">נדרים פלוס זמין לבחירה. פתיחת חלון התשלום מושהית עד להשלמת הגדרת קבלת אישור התשלום בסביבה זו.</p>}
-    {!payment && <>
-      <p className="text-sm text-ui-fg-subtle">תשלום מאובטח בכרטיס אשראי, Google Pay, Apple Pay או bit, בהתאם למכשיר ולזמינות השירות.</p>
-      <Button size="large" disabled={notReady || submitting || checkoutPaused} isLoading={submitting} onClick={begin} data-testid="submit-order-button">
-        המשך לתשלום מאובטח
+    {checkoutPaused && <p role="status" className="rounded-md border border-[#ddcec0] bg-[#faf6f1] p-3 text-sm">פתיחת התשלום מושהית כרגע.</p>}
+    {!payment && !verifiedPaid && <>
+      <Button type={formId ? "submit" : "button"} form={formId} size="large" className="w-full" disabled={notReady || submitting || checkoutPaused} isLoading={submitting} onClick={begin} data-testid="submit-order-button">
+        לתשלום
       </Button>
     </>}
     {payment && <>
       <NedarimFrame payment={payment} onResult={() => {
         setMessage("בודקים את אישור התשלום…")
-        void check().catch(() => setMessage("ממתינים לאישור התשלום בשרת. אין לבצע תשלום נוסף."))
-      }} onPending={() => setMessage("ממתינים לאישור באפליקציה. אפשר לחזור לכאן לאחר האישור.")}
-        onBack={() => setMessage("אפשר לבחור אמצעי תשלום ולנסות שוב באותו חלון. אם כבר אישרת תשלום, בדקו את האישור לפני ניסיון נוסף.")}
-        onCancel={() => setMessage("חלון הארנק נסגר. אפשר לבחור אמצעי תשלום בחלון המאובטח.")} />
-      <Button variant="secondary" isLoading={checking} disabled={checking} onClick={async () => {
+        void check().catch(() => { setShowStatusCheck(true); setMessage("ממתינים לאישור התשלום. אין לשלם שוב.") })
+      }} onPending={() => setMessage("ממתינים לאישור התשלום.")}
+        onBack={() => setMessage("")}
+        onCancel={() => setMessage("")} />
+    </>}
+    {showStatusCheck && <Button type="button" variant="secondary" isLoading={checking} disabled={checking} onClick={async () => {
         setChecking(true)
         setError(null)
         try { if (!await check()) setMessage("אישור התשלום עדיין לא התקבל. אם כבר שילמת, אין לבצע תשלום נוסף.") }
         catch (err) { setError(err instanceof Error ? err.message : "לא ניתן לבדוק כרגע.") }
         finally { setChecking(false) }
-      }}>בדיקת אישור התשלום</Button>
-    </>}
+      }}>בדיקת אישור התשלום</Button>}
     <p role="status" aria-live="polite" className="text-sm">{message}</p>
     <ErrorMessage error={error} data-testid="nedarim-payment-error" />
   </div>
@@ -161,6 +169,6 @@ function NedarimFrame({ payment, onResult, onPending, onBack, onCancel }: {
   }, [start])
 
   return <iframe ref={iframe} src={IFRAME_URL} onLoad={start} allow="payment"
-    title="תשלום מאובטח בנדרים פלוס" scrolling="no" referrerPolicy="strict-origin-when-cross-origin"
+    title="פרטי תשלום" scrolling="no" referrerPolicy="strict-origin-when-cross-origin"
     style={{ width: "100%", height, border: 0 }} data-testid="nedarim-iframe" />
 }

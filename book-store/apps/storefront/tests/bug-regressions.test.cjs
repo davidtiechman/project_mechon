@@ -113,6 +113,11 @@ test('editing a city preserves the street until a different city is confirmed', 
   assert.equal(street(), 'דובר שלום')
   edit('חיפה')
   assert.equal(street(), '')
+  tree.find(node => node.props?.name === 'shipping_address.street').props.onChange({ target: { name: 'shipping_address.street', value: 'רחוב חדש' } })
+  tree = render()
+  props.cart = { ...props.cart, shipping_methods: [{ id: 'shipping_selected' }] }
+  tree = render()
+  assert.equal(street(), 'רחוב חדש', 'shipping refresh must preserve unsaved address edits')
 })
 
 test('partial contact configuration falls back to backend; complete direct delivery is never retried', async () => {

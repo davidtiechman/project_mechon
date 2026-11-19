@@ -153,6 +153,8 @@ const ShippingAddress = ({
     }
   }, [customer?.first_name, customer?.last_name, customer?.phone])
 
+  const savedAddress = JSON.stringify(cart?.shipping_address)
+  const savedEmail = cart?.email
   useEffect(() => {
     // Ensure cart is not null and has a shipping_address before setting form data
     if (cart && cart.shipping_address) {
@@ -162,7 +164,10 @@ const ShippingAddress = ({
     if (cart && !cart.email && customer?.email) {
       setFormAddress(undefined, customer.email)
     }
-  }, [cart, customer?.email, setFormAddress])
+    // Shipping selection refreshes the cart without changing the saved address.
+    // Preserve the customer's in-progress edits during those refreshes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedAddress, savedEmail, customer?.email, setFormAddress])
 
   useEffect(() => {
     if (!oauthDraft) return

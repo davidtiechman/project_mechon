@@ -351,7 +351,7 @@ export async function submitPromotionForm(
 }
 
 // TODO: Pass a POJO instead of a form entity here
-export async function setAddresses(currentState: unknown, formData: FormData) {
+export async function saveCheckoutAddresses(formData: FormData) {
   try {
     if (!formData) {
       throw new Error("No form data found when setting addresses")
@@ -467,6 +467,12 @@ export async function setAddresses(currentState: unknown, formData: FormData) {
     return e instanceof Error ? e.message : String(e)
   }
 
+  return null
+}
+
+export async function setAddresses(currentState: unknown, formData: FormData) {
+  const error = await saveCheckoutAddresses(formData)
+  if (error) return error
   redirect(
     `/${String(formData.get("shipping_address.country_code")).toLowerCase()}/checkout?step=delivery`,
   )

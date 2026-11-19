@@ -119,6 +119,30 @@ test('the iframe cannot open before the server has saved the required checkout c
   assert.equal(opened, 0)
 })
 
+test('an already paid checkout can retry order completion without reopening payment or resubmitting the form', async () => {
+  const hooks = runtime()
+  let opened = 0, saved = 0, completed = 0
+  const Component = load(file, {
+    ...baseDeps, react: hooks.react,
+    '@lib/data/nedarim': {
+      beginNedarimPayment: async () => { opened++; return { status: 'paid' } },
+      getNedarimPaymentStatus: async () => ({ status: 'paid' }),
+    },
+    '@lib/data/cart': { placeOrder: async () => { completed++; throw new Error('temporary order completion failure') } },
+  }).default
+  const props = { notReady: false, beforePayment: async () => { saved++; return true }, onSubmittingChange() {} }
+  let tree = nodes(hooks.render(Component, props))
+  await tree.find(node => node.props?.['data-testid'] === 'submit-order-button').props.onClick()
+  tree = nodes(hooks.render(Component, props))
+  assert.equal(tree.some(node => node.props?.['data-testid'] === 'submit-order-button'), false)
+  const retry = tree.find(node => node.type === 'button')
+  assert.ok(retry)
+  await retry.props.onClick()
+  assert.equal(opened, 1)
+  assert.equal(saved, 1)
+  assert.equal(completed, 2)
+})
+
 test('Apple domain association serves the exact configured public file and fails closed when absent', async () => {
   const environment = { env: {} }
   const route = load('app/.well-known/apple-developer-merchantid-domain-association/route.ts', {}, { process: environment })
