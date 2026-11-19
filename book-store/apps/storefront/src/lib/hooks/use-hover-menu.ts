@@ -5,6 +5,17 @@ import { useEffect, useRef, type PointerEvent } from "react"
 export const HEADER_MENU_GROUP = "header-navigation"
 const activeMenus = new Map<string, { id: symbol; close: () => void }>()
 
+/** PopoverButton.click() focuses its trigger; pointer hover must not move focus. */
+export function openMenuOnHover(button: HTMLButtonElement | null) {
+  if (!button) return
+  const previous = button.ownerDocument.activeElement
+  button.click()
+  if (previous !== button && button.ownerDocument.activeElement === button) {
+    button.blur()
+    if (previous instanceof HTMLElement) previous.focus({ preventScroll: true })
+  }
+}
+
 /** Attach to both the trigger area and any portalled panel. */
 export function useHoverMenu(open: () => void, close: () => void, options?: {
   group: string

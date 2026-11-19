@@ -8,6 +8,7 @@ const path = require("node:path")
 function setup(hoverCapable = true) {
   let pending, cleanup, opened = 0, closed = 0, delay
   const context = {
+    HTMLElement: class HTMLElement {},
     exports: {},
     require: () => ({ useRef: () => ({ current: null }), useEffect: (fn) => { cleanup = fn() } }),
     window: { matchMedia: () => ({ matches: hoverCapable }) },
@@ -17,9 +18,42 @@ function setup(hoverCapable = true) {
   const source = fs.readFileSync(path.join(__dirname, "../src/lib/hooks/use-hover-menu.ts"), "utf8")
   vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, context)
   const handlers = context.exports.useHoverMenu(() => opened++, () => closed++)
-  return { handlers, cleanup: () => cleanup(), tick: () => { const fn = pending; pending = null; fn?.() }, get opened() { return opened }, get closed() { return closed }, get delay() { return delay } }
+  return { handlers, openMenuOnHover: context.exports.openMenuOnHover, HTMLElement: context.HTMLElement, cleanup: () => cleanup(), tick: () => { const fn = pending; pending = null; fn?.() }, get opened() { return opened }, get closed() { return closed }, get delay() { return delay } }
 }
 const mouse = { pointerType: "mouse" }
+
+test("hover opening restores previous focus instead of leaving the trigger focused", () => {
+  const s = setup()
+  const previous = new s.HTMLElement()
+  const doc = { activeElement: previous }
+  let clicked = 0
+  previous.focus = (options) => {
+    assert.equal(options.preventScroll, true)
+    doc.activeElement = previous
+  }
+  const button = {
+    ownerDocument: doc,
+    click() { clicked++; doc.activeElement = this },
+    blur() { doc.activeElement = null },
+  }
+  s.openMenuOnHover(button)
+  assert.equal(clicked, 1)
+  assert.equal(doc.activeElement, previous)
+})
+
+test("hover preserves focus when the trigger was already focused by keyboard", () => {
+  const s = setup()
+  const doc = {}
+  const button = {
+    ownerDocument: doc,
+    click() {},
+    blur() { assert.fail("Existing keyboard focus must remain") },
+  }
+  doc.activeElement = button
+  s.openMenuOnHover(button)
+  assert.equal(doc.activeElement, button)
+  s.openMenuOnHover(null)
+})
 
 test("hover opens and leaving closes after 250ms", () => {
   const s = setup()
