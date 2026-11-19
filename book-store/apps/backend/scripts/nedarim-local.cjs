@@ -114,6 +114,7 @@ if (command === "copy-catalog") {
         const file = path.resolve(root, "../storefront/.env.local")
         let content = fs.readFileSync(file, "utf8")
         const updates = {
+          MEDUSA_BACKEND_URL: "http://127.0.0.1:9001",
           NEXT_PUBLIC_MEDUSA_BACKEND_URL: overrides.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://127.0.0.1:9001",
           NEXT_PUBLIC_NEDARIM_CHECKOUT_PAUSED: String(env.NEDARIM_ACCEPT_NEW_PAYMENTS === "false"),
           ...(overrides.NEXT_PUBLIC_BASE_URL ? { NEXT_PUBLIC_BASE_URL: overrides.NEXT_PUBLIC_BASE_URL } : {}),

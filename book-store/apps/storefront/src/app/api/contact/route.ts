@@ -4,6 +4,7 @@ import {
 } from "@lib/util/checkout-validation"
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import { getMedusaBackendUrl } from "@lib/util/medusa-backend-url"
 
 const schema = z.object({
   name: z
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
   try {
     if (!useDirectDelivery) {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000"}/store/contact`,
+        `${getMedusaBackendUrl()}/store/contact`,
         {
           method: "POST",
           headers: {

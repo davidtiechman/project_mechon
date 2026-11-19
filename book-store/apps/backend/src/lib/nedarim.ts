@@ -161,7 +161,7 @@ export function validateNedarimPayment(attempt: NedarimAttempt, data: Record<str
 
 export function validateNedarimHistoryPayment(attempt: NedarimAttempt, row: Record<string, unknown>) {
   const digital = ["27", "28", "29", "30"].includes(String(row.Solek))
-  if (!/^\d+$/.test(String(row.TransactionId)) || BigInt(String(row.TransactionId)) <= 0n ||
+  if (!/^\d+$/.test(String(row.TransactionId)) || BigInt(String(row.TransactionId)) <= BigInt(0) ||
       row.Comments !== `Mechon ${attempt.id}` || row.KevaId ||
       minorAmount(row.Amount) !== Number(attempt.amount_minor) ||
       String(row.Currency) !== nedarimCurrency(attempt.currency_code) ||
@@ -174,10 +174,10 @@ export function validateNedarimHistoryPayment(attempt: NedarimAttempt, row: Reco
 
 export async function retrieveNedarimHistoryPayment(attempt: NedarimAttempt, paymentId: string) {
   const password = process.env.NEDARIM_API_PASSWORD?.trim()
-  if (!password || !/^\d+$/.test(paymentId) || BigInt(paymentId) <= 0n) throw new Error("A history API key and positive payment ID are required")
+  if (!password || !/^\d+$/.test(paymentId) || BigInt(paymentId) <= BigInt(0)) throw new Error("A history API key and positive payment ID are required")
   const { mosad } = nedarimConfig()
   const params = new URLSearchParams({ Action: "GetHistoryJson", MosadId: mosad, ApiPassword: password,
-    LastId: (BigInt(paymentId) - 1n).toString(), MaxId: "1" })
+    LastId: (BigInt(paymentId) - BigInt(1)).toString(), MaxId: "1" })
   let response: Response
   try {
     response = await fetch(`https://matara.pro/nedarimplus/Reports/Manage3.aspx?${params}`, {

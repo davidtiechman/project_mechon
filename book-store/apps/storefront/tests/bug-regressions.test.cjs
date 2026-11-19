@@ -15,6 +15,7 @@ function load(file, dependencies = {}, globals = {}) {
     exports, process: { env: {} }, TextEncoder, AbortSignal,
     require(name) {
       if (name in dependencies) return dependencies[name]
+      if (name === '@lib/util/medusa-backend-url') return load('lib/util/medusa-backend-url.ts', {}, globals)
       if (['react/jsx-runtime', 'zod', 'libphonenumber-js'].includes(name)) return require(name)
       throw new Error(`Unexpected import: ${name}`)
     },
