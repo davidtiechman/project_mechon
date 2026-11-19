@@ -24,6 +24,7 @@ export default async function OrderCompletedTemplate({
   const customer = await retrieveCustomer()
 
   const isOnboarding = cookies.get("_medusa_onboarding")?.value === "true"
+  const paymentConfirmed = order.payment_status === "captured"
   const shippingMetadata = (order.shipping_address?.metadata || {}) as Record<
     string,
     unknown
@@ -58,7 +59,7 @@ export default async function OrderCompletedTemplate({
             className="flex flex-col gap-y-3 text-ui-fg-base text-3xl mb-4"
           >
             <span>תודה רבה!</span>
-            <span>ההזמנה התקבלה בהצלחה.</span>
+            <span>{paymentConfirmed ? "העסקה בוצעה בהצלחה." : "ההזמנה התקבלה בהצלחה."}</span>
           </Heading>
           <OrderDetails order={order} />
           {!customer && (

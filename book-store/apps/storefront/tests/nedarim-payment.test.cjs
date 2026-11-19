@@ -49,6 +49,7 @@ const payment = { TransactionId: '900', Key: 'test-key', Methods: 'Card,GooglePa
 const baseDeps = {
   '@modules/common/components/ui': { Button: 'button' },
   '../error-message': { default: 'ErrorMessage' },
+  './processing-overlay': { default: 'ProcessingOverlay' },
 }
 
 test('iframe delegates wallets, sends the locked transaction once, and rejects messages from other origins/windows', () => {
@@ -104,6 +105,85 @@ test('browser success only asks the server; order completion waits for a server-
   iframeComponent.props.onResult()
   await new Promise(resolve => setImmediate(resolve))
   assert.equal(completed, 1)
+})
+
+test('verification blocks repeat payment, shares concurrent status checks, and a timeout stays pending', async () => {
+  const hooks = runtime(), timers = []
+  let checks = 0, completed = 0, resolveStatus
+  const response = new Promise(resolve => { resolveStatus = resolve })
+  const Component = load(file, {
+    ...baseDeps, react: hooks.react,
+    '@lib/data/nedarim': {
+      beginNedarimPayment: async () => ({ status: 'pending', payment }),
+      getNedarimPaymentStatus: async () => { checks++; return response },
+    },
+    '@lib/data/cart': { placeOrder: async () => { completed++ } },
+  }, { setTimeout: (fn, delay) => { timers.push({ fn, delay }); return timers.length } }).default
+  const props = { notReady: false, beforePayment: async () => true, onSubmittingChange() {} }
+  await nodes(hooks.render(Component, props)).find(node => node.type === 'button').props.onClick()
+  let tree = nodes(hooks.render(Component, props))
+  const frame = tree.find(node => typeof node.type === 'function')
+  frame.props.onPending()
+  assert.equal(nodes(hooks.render(Component, props)).some(node => node.type === 'ProcessingOverlay'), false,
+    'bit and bank transfer must keep their QR/link usable while waiting in the provider iframe')
+  frame.props.onResult()
+  frame.props.onResult()
+  assert.equal(checks, 1)
+  tree = nodes(hooks.render(Component, props))
+  assert.ok(tree.some(node => node.type === 'ProcessingOverlay'))
+  assert.ok(tree.some(node => node.type === 'div' && node.props.inert === true))
+  assert.equal(tree.some(node => node.props?.['data-testid'] === 'submit-order-button'), false)
+  resolveStatus({ status: 'pending' })
+  await new Promise(resolve => setImmediate(resolve))
+  for (const effect of hooks.effects) effect()
+  const watchdog = timers.find(timer => timer.delay === 60_000)
+  assert.ok(watchdog)
+  watchdog.fn()
+  tree = nodes(hooks.render(Component, props))
+  assert.equal(tree.some(node => node.type === 'ProcessingOverlay'), false)
+  assert.ok(tree.some(node => node.type === 'div' && node.props.inert === true))
+  assert.ok(tree.some(node => node.type === 'button' && node.props.children === 'בדיקת אישור התשלום'))
+  assert.equal(tree.find(node => node.type === 'ErrorMessage').props.error, null)
+  assert.equal(completed, 0)
+})
+
+test('a card decline can display failure, but a server-confirmed payment takes precedence', async () => {
+  for (const status of ['pending', 'paid']) {
+    const hooks = runtime()
+    let completed = 0
+    const Component = load(file, {
+      ...baseDeps, react: hooks.react,
+      '@lib/data/nedarim': { beginNedarimPayment: async () => ({ status: 'pending', payment }), getNedarimPaymentStatus: async () => ({ status }) },
+      '@lib/data/cart': { placeOrder: async () => { completed++ } },
+    }).default
+    const props = { notReady: false, beforePayment: async () => true, onSubmittingChange() {} }
+    await nodes(hooks.render(Component, props)).find(node => node.type === 'button').props.onClick()
+    nodes(hooks.render(Component, props)).find(node => typeof node.type === 'function').props.onError(false)
+    await new Promise(resolve => setImmediate(resolve))
+    const tree = nodes(hooks.render(Component, props))
+    const error = tree.find(node => node.type === 'ErrorMessage').props.error
+    assert.equal(Boolean(error?.includes('לא התבצע בהצלחה')), status === 'pending')
+    assert.equal(completed, status === 'paid' ? 1 : 0)
+  }
+})
+
+test('processing uses a native modal to block the page, prevent Escape, and restore scrolling on exit', () => {
+  const hooks = runtime()
+  const body = { style: { overflow: 'auto' } }
+  let opened = 0, closed = 0, canceled = 0
+  const Component = load('modules/checkout/components/nedarim-payment/processing-overlay.tsx', { react: hooks.react }, { document: { body } }).default
+  const dialog = hooks.render(Component, { label: 'מאמתים את התשלום…' })
+  dialog.props.ref.current = { showModal() { opened++ }, close() { closed++ } }
+  const cleanup = hooks.effects[0]()
+  assert.equal(opened, 1)
+  assert.equal(body.style.overflow, 'hidden')
+  assert.equal(dialog.type, 'dialog')
+  assert.equal(dialog.props['aria-modal'], 'true')
+  dialog.props.onCancel({ preventDefault() { canceled++ } })
+  assert.equal(canceled, 1)
+  cleanup()
+  assert.equal(closed, 1)
+  assert.equal(body.style.overflow, 'auto')
 })
 
 test('the iframe cannot open before the server has saved the required checkout consent', async () => {
