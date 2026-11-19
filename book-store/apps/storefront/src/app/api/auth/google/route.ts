@@ -1,13 +1,13 @@
 import Medusa from "@medusajs/js-sdk"
 import { NextRequest, NextResponse } from "next/server"
 import { safeReturnPath } from "@lib/util/safe-return-path"
+import { getMedusaBackendUrl } from "@lib/util/medusa-backend-url"
 
 const RETURN_COOKIE = "_google_oauth_return_to"
 
 export async function GET(request: NextRequest) {
   const sdk = new Medusa({
-    baseUrl:
-      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000",
+    baseUrl: getMedusaBackendUrl(),
     publishableKey: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
   })
   const returnTo = safeReturnPath(request.nextUrl.searchParams.get("return_to"))

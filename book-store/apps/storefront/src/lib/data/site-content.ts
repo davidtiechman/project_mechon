@@ -1,7 +1,8 @@
 import "server-only"
 import { measurePerformance } from "@lib/observability/performance"
+import { getMedusaBackendUrl } from "@lib/util/medusa-backend-url"
 
-const backendUrl = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000"
+const backendUrl = getMedusaBackendUrl()
 const publishableKey = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
 
 async function getContent<T>(path: string): Promise<T | null> {

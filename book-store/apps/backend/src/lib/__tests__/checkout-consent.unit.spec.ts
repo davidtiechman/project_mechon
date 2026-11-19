@@ -1,6 +1,7 @@
 import { CHECKOUT_CONSENT_ERROR, CHECKOUT_TERMS_VERSION, createCheckoutConsent, validateCheckoutConsent } from "../checkout-consent"
 import { POST } from "../../api/store/carts/[id]/terms-acceptance/route"
 jest.mock("@medusajs/medusa/core-flows", () => ({ completeCartWorkflow: { hooks: { validate: jest.fn() } } }))
+jest.mock("../nedarim-checkout", () => ({ validateNedarimCheckout: jest.fn() }))
 import { completeCartWorkflow } from "@medusajs/medusa/core-flows"
 import "../../workflows/hooks/validate-checkout-consent"
 

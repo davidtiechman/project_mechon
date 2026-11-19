@@ -15,6 +15,7 @@ function load(file, dependencies = {}, globals = {}) {
     exports, process: { env: {} }, TextEncoder, AbortSignal,
     require(name) {
       if (name in dependencies) return dependencies[name]
+      if (name === '@lib/util/medusa-backend-url') return load('lib/util/medusa-backend-url.ts', {}, globals)
       if (['react/jsx-runtime', 'zod', 'libphonenumber-js'].includes(name)) return require(name)
       throw new Error(`Unexpected import: ${name}`)
     },
@@ -112,6 +113,11 @@ test('editing a city preserves the street until a different city is confirmed', 
   assert.equal(street(), 'דובר שלום')
   edit('חיפה')
   assert.equal(street(), '')
+  tree.find(node => node.props?.name === 'shipping_address.street').props.onChange({ target: { name: 'shipping_address.street', value: 'רחוב חדש' } })
+  tree = render()
+  props.cart = { ...props.cart, shipping_methods: [{ id: 'shipping_selected' }] }
+  tree = render()
+  assert.equal(street(), 'רחוב חדש', 'shipping refresh must preserve unsaved address edits')
 })
 
 test('partial contact configuration falls back to backend; complete direct delivery is never retried', async () => {

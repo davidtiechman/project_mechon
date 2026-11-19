@@ -13,6 +13,7 @@ function load(relative, dependencies, globals = {}) {
   }}).outputText
   vm.runInNewContext(code, { exports, require: name => {
     if (name in dependencies) return dependencies[name]
+    if (name === '@lib/util/medusa-backend-url') return load('lib/util/medusa-backend-url.ts', {}, globals)
     if (name === 'react' || name === 'react/jsx-runtime') return require(name)
     if (name.startsWith('@modules/') || name === 'next/image') return { default: name, HeaderProductSearch: name }
     throw new Error('Unexpected dependency: ' + name)

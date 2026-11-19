@@ -15,6 +15,7 @@ type CartTotalsProps = {
     item_tax_total?: number | null
     shipping_subtotal?: number | null
     shipping_total?: number | null
+    shipping_methods?: unknown[] | null
     discount_subtotal?: number | null
   }
 }
@@ -50,9 +51,9 @@ const CartTotals: React.FC<CartTotalsProps> = ({ totals }) => {
         <div className="flex items-center justify-between">
           <span>משלוח</span>
           <span data-testid="cart-shipping" data-value={shipping_total || 0}>
-            {shipping_total
-              ? convertToLocale({ amount: shipping_total, currency_code })
-              : "יחושב בשלב הבא"}
+            {shipping_total || totals.shipping_methods?.length
+              ? convertToLocale({ amount: shipping_total ?? 0, currency_code })
+              : "לפי בחירת המשלוח"}
           </span>
         </div>
         {!!discount_subtotal && (

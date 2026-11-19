@@ -4,8 +4,11 @@ import {
   loadEnv,
   Modules,
 } from "@medusajs/framework/utils"
+import { nedarimConfig, nedarimEnabled } from "./src/lib/nedarim"
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
+
+if (nedarimEnabled()) nedarimConfig()
 
 const s3EnvironmentVariables = [
   "S3_FILE_URL",
@@ -58,6 +61,14 @@ module.exports = defineConfig({
     backendUrl: process.env.MEDUSA_BACKEND_URL,
   },
   modules: [
+    { resolve: "./src/modules/nedarim-payments" },
+    ...(nedarimEnabled() ? [{
+      resolve: "@medusajs/medusa/payment",
+      dependencies: ["nedarimPayments"],
+      options: {
+        providers: [{ resolve: "./src/modules/nedarim-payment-provider", id: "nedarim" }],
+      },
+    }] : []),
     {
       resolve: "@medusajs/medusa/auth",
       dependencies: [

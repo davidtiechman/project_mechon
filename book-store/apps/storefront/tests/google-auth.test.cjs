@@ -53,6 +53,8 @@ function setup({ unlinked = false, noCustomer = false, profileFailure = false, a
     "next/cache": { revalidateTag() {} },
     "@lib/data/cookies": { async getCacheTag() { return "" } },
     "@lib/util/safe-return-path": load("lib/util/safe-return-path.ts", {}),
+    "@lib/util/medusa-backend-url": load("lib/util/medusa-backend-url.ts", {}),
+    "@lib/util/google-avatar": load("lib/util/google-avatar.ts", {}),
   })
   return { calls, run: (query = "code=test&state=test", returnTo = "/il/account") => route.GET({
     nextUrl: new URL(`https://shop.example/api/auth/google/callback?${query}`),

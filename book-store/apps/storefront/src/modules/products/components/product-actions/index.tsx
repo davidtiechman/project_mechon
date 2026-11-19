@@ -8,7 +8,7 @@ import Divider from "@modules/common/components/divider"
 import OptionSelect from "@modules/products/components/product-actions/option-select"
 import { isEqual } from "lodash"
 import { useParams, usePathname, useSearchParams } from "next/navigation"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, useTransition } from "react"
 import ProductPrice from "../product-price"
 import MobileActions from "./mobile-actions"
 import { useRouter } from "next/navigation"
@@ -38,6 +38,10 @@ export default function ProductActions({
 
   const [options, setOptions] = useState<Record<string, string | undefined>>({})
   const [isAdding, setIsAdding] = useState(false)
+  const [isBuying, setIsBuying] = useState(false)
+  const [isNavigating, startNavigation] = useTransition()
+  const [cartError, setCartError] = useState("")
+  const adding = useRef(false)
   const [cartAnnouncement, setCartAnnouncement] = useState("")
   const countryCode = useParams().countryCode as string
 
@@ -122,19 +126,23 @@ export default function ProductActions({
   const inView = useIntersection(actionsRef, "0px")
 
   // add the selected variant to the cart
-  const handleAddToCart = async () => {
-    if (!selectedVariant?.id) return null
-
+  const handleAddToCart = async (checkout = false) => {
+    if (!selectedVariant?.id || adding.current || isNavigating) return
+    adding.current = true
     setIsAdding(true)
-
-    await addToCart({
-      variantId: selectedVariant.id,
-      quantity: 1,
-      countryCode,
-    })
-
-    setIsAdding(false)
-    setCartAnnouncement(`${product.title} נוסף לסל`)
+    setIsBuying(checkout)
+    setCartError("")
+    try {
+      await addToCart({ variantId: selectedVariant.id, quantity: 1, countryCode })
+      setCartAnnouncement(`${product.title} נוסף לסל`)
+      if (checkout) startNavigation(() => router.push(`/${countryCode}/checkout`))
+    } catch {
+      setCartError("לא ניתן להוסיף את הספר כרגע. נסו שוב.")
+    } finally {
+      adding.current = false
+      setIsAdding(false)
+      setIsBuying(false)
+    }
   }
 
   return (
@@ -164,26 +172,33 @@ export default function ProductActions({
 
         <ProductPrice product={product} variant={selectedVariant} />
 
+        <Button onClick={() => handleAddToCart(true)}
+          disabled={!inStock || !selectedVariant || !!disabled || isAdding || isNavigating || !isValidVariant}
+          variant="primary" className="w-full h-11" isLoading={isBuying || isNavigating} data-testid="buy-now-button">
+          קנייה עכשיו
+        </Button>
         <Button
-          onClick={handleAddToCart}
+          onClick={() => handleAddToCart()}
           disabled={
             !inStock ||
             !selectedVariant ||
             !!disabled ||
             isAdding ||
+            isNavigating ||
             !isValidVariant
           }
-          variant="primary"
+          variant="secondary"
           className="w-full h-10"
-          isLoading={isAdding}
+          isLoading={isAdding && !isBuying}
           data-testid="add-product-button"
         >
-          {!selectedVariant && !options
+          {!selectedVariant || !isValidVariant
             ? "יש לבחור אפשרות"
             : !inStock || !isValidVariant
             ? "אזל מהמלאי"
             : "הוספה לסל"}
         </Button>
+        {cartError && <p role="alert" className="text-sm text-rose-700">{cartError}</p>}
         <p className="sr-only" role="status" aria-live="polite">
           {cartAnnouncement}
         </p>
@@ -193,10 +208,12 @@ export default function ProductActions({
           options={options}
           updateOptions={setOptionValue}
           inStock={inStock}
-          handleAddToCart={handleAddToCart}
-          isAdding={isAdding}
+          handleAddToCart={() => handleAddToCart()}
+          handleBuyNow={() => handleAddToCart(true)}
+          isAdding={isAdding && !isBuying}
+          isBuying={isBuying || isNavigating}
           show={!inView}
-          optionsDisabled={!!disabled || isAdding}
+          optionsDisabled={!!disabled || isAdding || isNavigating}
         />
       </div>
     </>

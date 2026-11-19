@@ -97,10 +97,11 @@ for (const provider of ['manual', 'stripe']) {
       const events = []
       const PaymentButton = load('modules/checkout/components/payment-button/index.tsx', {
         react: runtime.react,
-        '@lib/constants': { isManual: id => id === 'manual', isStripeLike: id => id === 'stripe' },
+        '@lib/constants': { isManual: id => id === 'manual', isStripeLike: id => id === 'stripe', isNedarim: () => false },
         '@lib/data/cart': { placeOrder: async () => { events.push('order') } },
         '@modules/common/components/ui': { Button: 'button' },
         '../error-message': { default: 'ErrorMessage' },
+        '../nedarim-payment': { default: 'NedarimPaymentButton' },
         '@stripe/react-stripe-js': {
           useStripe: () => ({ confirmCardPayment: async () => { events.push('charge'); return { paymentIntent: { status: 'succeeded' } } } }),
           useElements: () => ({ getElement: () => ({}) }),

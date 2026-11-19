@@ -1,6 +1,7 @@
-import { authenticate, defineMiddlewares, validateAndTransformBody, type MedusaRequest, type MedusaResponse, type MedusaNextFunction } from "@medusajs/framework/http"
+import { authenticate, defineMiddlewares, validateAndTransformBody, type MedusaRequest, type MedusaResponse, type MedusaNextFunction, type MiddlewareRoute } from "@medusajs/framework/http"
 import { z } from "@medusajs/framework/zod"
 import { PolicyOperation } from "@medusajs/framework/utils"
+import { nedarimEnabled, NEDARIM_PROVIDER_ID } from "../lib/nedarim"
 
 function protectMarketingMetadata(req: MedusaRequest, res: MedusaResponse, next: MedusaNextFunction) {
   const metadata = (req.body as { metadata?: Record<string, unknown> })?.metadata
@@ -10,8 +11,25 @@ function protectMarketingMetadata(req: MedusaRequest, res: MedusaResponse, next:
   next()
 }
 
-export default defineMiddlewares({
+export default defineMiddlewares<MiddlewareRoute>({
   routes: [
+    {
+      matcher: "/hooks/nedarim/:attempt_id/:transaction_id",
+      method: "POST",
+      bodyParser: { preserveRawBody: true, sizeLimit: "64kb" },
+    },
+    {
+      matcher: "/store/payment-collections/:id/payment-sessions",
+      method: "POST",
+      middlewares: [(req, res, next) => {
+        const provider = (req.body as { provider_id?: string })?.provider_id
+        if ((nedarimEnabled() && provider !== NEDARIM_PROVIDER_ID) ||
+            (process.env.NODE_ENV === "production" && provider === "pp_system_default")) {
+          return res.status(400).json({ message: "יש לבחור ספק תשלום מאובטח." })
+        }
+        next()
+      }],
+    },
     {
       matcher: "/admin/quick-operations/*",
       middlewares: [authenticate("user", ["session", "bearer", "api-key"])],

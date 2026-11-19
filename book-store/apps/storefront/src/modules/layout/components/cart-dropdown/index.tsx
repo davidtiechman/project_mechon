@@ -231,12 +231,13 @@ const CartDropdown = ({
                     </span>
                   </div>
                   <LocalizedClientLink
-                    href="/cart"
+                    href="/checkout"
                     className="flex h-11 w-full items-center justify-center rounded-md bg-[#4a2d21] px-4 text-base font-semibold text-white transition-colors hover:bg-[#8a5a3c]"
                     data-testid="go-to-cart-button"
                   >
-                    מעבר לסל
+                    לתשלום
                   </LocalizedClientLink>
+                  <LocalizedClientLink href="/cart" className="text-center text-sm underline" data-testid="edit-cart-button">עריכת הסל</LocalizedClientLink>
                 </div>
               </>
             ) : (

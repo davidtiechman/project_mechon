@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { getCacheTag } from "@lib/data/cookies"
 import { safeReturnPath } from "@lib/util/safe-return-path"
+import { getMedusaBackendUrl } from "@lib/util/medusa-backend-url"
 import {
   GOOGLE_AVATAR_METADATA_KEY as AVATAR_METADATA_KEY,
   safeGooglePicture,
@@ -35,8 +36,7 @@ export async function GET(request: NextRequest) {
   // Use a request-scoped SDK instance so authentication state is never shared
   // between users in the long-lived Next.js server process.
   const sdk = new Medusa({
-    baseUrl:
-      process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000",
+    baseUrl: getMedusaBackendUrl(),
     publishableKey: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
   })
   const storefrontUrl =

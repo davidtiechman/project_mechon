@@ -10,7 +10,7 @@ import Divider from "@modules/common/components/divider"
 import MedusaRadio from "@modules/common/components/radio"
 import { Button, clx, Heading, Text } from "@modules/common/components/ui"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 const PICKUP_OPTION_ON = "__PICKUP_ON"
 const PICKUP_OPTION_OFF = "__PICKUP_OFF"
@@ -18,6 +18,9 @@ const PICKUP_OPTION_OFF = "__PICKUP_OFF"
 type ShippingProps = {
   cart: HttpTypes.StoreCart
   availableShippingMethods: HttpTypes.StoreCartShippingOption[] | null
+  inline?: boolean
+  disabled?: boolean
+  onLoadingChange?: (loading: boolean) => void
 }
 
 function formatAddress(address: HttpTypes.StoreCartAddress) {
@@ -49,6 +52,9 @@ function formatAddress(address: HttpTypes.StoreCartAddress) {
 const Shipping: React.FC<ShippingProps> = ({
   cart,
   availableShippingMethods,
+  inline = false,
+  disabled = false,
+  onLoadingChange,
 }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingPrices, setIsLoadingPrices] = useState(true)
@@ -60,14 +66,18 @@ const Shipping: React.FC<ShippingProps> = ({
   >({})
   const [error, setError] = useState<string | null>(null)
   const [shippingMethodId, setShippingMethodId] = useState<string | null>(
-    cart.shipping_methods?.at(-1)?.shipping_option_id || null,
+    cart.shipping_methods?.at(-1)?.shipping_option_id ||
+      (inline && availableShippingMethods?.length === 1 ? availableShippingMethods[0].id : null),
   )
+  const autoSelected = useRef(false)
 
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
 
-  const isOpen = searchParams.get("step") === "delivery"
+  const isOpen = inline || searchParams.get("step") === "delivery"
+
+  useEffect(() => { onLoadingChange?.(isLoading) }, [isLoading, onLoadingChange])
 
   const _shippingMethods = useMemo(() => availableShippingMethods?.filter(
     (sm) =>
@@ -137,6 +147,7 @@ const Shipping: React.FC<ShippingProps> = ({
     id: string,
     variant: "shipping" | "pickup",
   ) => {
+    if (disabled || isLoading) return
     setError(null)
 
     if (variant === "pickup") {
@@ -166,6 +177,38 @@ const Shipping: React.FC<ShippingProps> = ({
   useEffect(() => {
     setError(null)
   }, [isOpen])
+
+  useEffect(() => {
+    if (!inline || disabled || autoSelected.current || cart.shipping_methods?.length || availableShippingMethods?.length !== 1) return
+    autoSelected.current = true
+    const option = availableShippingMethods[0]
+    void handleSetShippingMethod(option.id, _pickupMethods?.some(method => method.id === option.id) ? "pickup" : "shipping")
+    // Auto-select only the sole available option; never choose between paid alternatives.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inline, disabled, cart.id, cart.shipping_methods?.length, availableShippingMethods])
+
+  if (inline) return <section className="space-y-4" aria-labelledby="checkout-delivery-heading">
+    <Heading level="h2" id="checkout-delivery-heading" className="text-xl font-semibold">משלוח או איסוף עצמי</Heading>
+    <RadioGroup name="shipping_option_id" value={shippingMethodId ?? ""} disabled={disabled || isLoading}
+      onChange={(id: string) => void handleSetShippingMethod(id, _pickupMethods?.some(method => method.id === id) ? "pickup" : "shipping")}
+      aria-label="משלוח או איסוף עצמי" className="grid gap-3" data-testid="delivery-options-container">
+      {availableShippingMethods?.map(option => {
+        const amount = option.price_type === "calculated" ? calculatedPricesMap[option.id] : option.amount
+        const unavailable = option.price_type === "calculated" && amount == null
+        return <Radio key={option.id} value={option.id} disabled={unavailable}
+          className={clx("flex cursor-pointer items-center justify-between gap-4 rounded-lg border p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9a7130]", {
+            "border-[#9a7130] bg-[#faf6f1]": shippingMethodId === option.id,
+            "border-[#ddcec0]": shippingMethodId !== option.id,
+            "opacity-50 cursor-not-allowed": unavailable,
+          })}>
+          <span className="flex items-center gap-3"><MedusaRadio checked={shippingMethodId === option.id} /><span>{option.name}</span></span>
+          <span className="shrink-0 font-medium">{unavailable ? (isLoadingPrices ? <Loader className="animate-spin" /> : "לא זמין") : convertToLocale({ amount: amount ?? 0, currency_code: cart.currency_code })}</span>
+        </Radio>
+      })}
+    </RadioGroup>
+    {!availableShippingMethods?.length && <p role="alert">לא נמצאה אפשרות משלוח מתאימה.</p>}
+    <ErrorMessage error={error} data-testid="delivery-option-error-message" />
+  </section>
 
   return (
     <div className="bg-white">

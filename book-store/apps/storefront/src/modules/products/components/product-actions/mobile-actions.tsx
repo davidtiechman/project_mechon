@@ -18,7 +18,9 @@ type MobileActionsProps = {
   updateOptions: (title: string, value: string) => void
   inStock?: boolean
   handleAddToCart: () => void
+  handleBuyNow: () => void
   isAdding?: boolean
+  isBuying?: boolean
   show: boolean
   optionsDisabled: boolean
 }
@@ -30,7 +32,9 @@ const MobileActions: React.FC<MobileActionsProps> = ({
   updateOptions,
   inStock,
   handleAddToCart,
+  handleBuyNow,
   isAdding,
+  isBuying,
   show,
   optionsDisabled,
 }) => {
@@ -98,13 +102,11 @@ const MobileActions: React.FC<MobileActionsProps> = ({
                 <div></div>
               )}
             </div>
-            <div className={clx("grid grid-cols-2 w-full gap-x-4", {
-              "!grid-cols-1": isSimple
-            })}>
+            <div className="grid grid-cols-2 w-full gap-3">
               {!isSimple && <Button
                 onClick={open}
                 variant="secondary"
-                className="w-full"
+                className="col-span-2 w-full"
                 data-testid="mobile-actions-button"
               >
                 <div className="flex items-center justify-between w-full">
@@ -116,9 +118,12 @@ const MobileActions: React.FC<MobileActionsProps> = ({
                   <ChevronDown />
                 </div>
               </Button>}
+              <Button onClick={handleBuyNow} disabled={!inStock || !variant || optionsDisabled}
+                className="w-full" isLoading={isBuying} data-testid="mobile-buy-now-button">קנייה עכשיו</Button>
               <Button
                 onClick={handleAddToCart}
-                disabled={!inStock || !variant}
+                disabled={!inStock || !variant || optionsDisabled}
+                variant="secondary"
                 className="w-full"
                 isLoading={isAdding}
                 data-testid="mobile-cart-button"
