@@ -1,8 +1,8 @@
-import { checkNedarimTransaction, NedarimAttempt, retrieveNedarimHistoryPayment } from "./nedarim"
+import { checkNedarimTransaction, InstallmentSplit, NedarimAttempt, retrieveNedarimHistoryPayment } from "./nedarim"
 
 export type NedarimVerdict = "paid" | "not_paid" | "unknown"
 
-type Ledger = { recordPayment(id: string, paymentId: string, method: string): Promise<void> }
+type Ledger = { recordPayment(id: string, paymentId: string, method: string, split?: InstallmentSplit | null): Promise<void> }
 type Logger = { error(message: string): void; warn?(message: string): void }
 
 // Browsers poll every few seconds. Ask Nedarim about one attempt at most once per
@@ -44,7 +44,7 @@ export async function verifyWithNedarim(attempt: NedarimAttempt, ledger: Ledger,
       logger?.error(`[nedarim] Provider reports payment ${state.paymentId} for ${attempt.id}, but history verification failed; awaiting callback or reconciliation`)
       return "unknown"
     }
-    await ledger.recordPayment(attempt.id, payment.paymentId, payment.method)
+    await ledger.recordPayment(attempt.id, payment.paymentId, payment.method, payment.split)
     if (attempt.canceled_at) logger?.error(`[nedarim] Recovered payment for replaced attempt ${attempt.id}; manual reconciliation required`)
     return "paid"
   })()

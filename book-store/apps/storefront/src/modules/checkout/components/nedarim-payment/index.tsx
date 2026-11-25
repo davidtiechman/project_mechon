@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { Button } from "@modules/common/components/ui"
 import { beginNedarimPayment, getNedarimPaymentStatus, NedarimPayment, NedarimStatus } from "@lib/data/nedarim"
 import { placeOrder } from "@lib/data/cart"
+import { convertToLocale } from "@lib/util/money"
+import { installmentLabel } from "@lib/util/installments"
 import ErrorMessage from "../error-message"
 import PaymentProcessingOverlay from "./processing-overlay"
 
@@ -61,6 +63,7 @@ export default function NedarimPaymentButton({ notReady, beforePayment, onSubmit
   onPaymentClosed?: () => void
 }) {
   const [payment, setPayment] = useState<NedarimPayment | null>(null)
+  const [plan, setPlan] = useState<NedarimStatus["plan"] | null>(null)
   const [phase, setPhase] = useState<Phase>("idle")
   const [preparing, setPreparing] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -192,6 +195,7 @@ export default function NedarimPaymentButton({ notReady, beforePayment, onSubmit
       // no expiry and can be charged only once, so a retry can never charge twice.
       generation.current++
       setPayment(result.payment)
+      setPlan(result.plan && result.plan.count > 1 ? result.plan : null)
       setRetry(false)
       go("open")
       setActivity(value => value + 1)
@@ -216,6 +220,10 @@ export default function NedarimPaymentButton({ notReady, beforePayment, onSubmit
       disabled={notReady || preparing || checkoutPaused} isLoading={preparing} onClick={begin} data-testid="submit-order-button">
       {retry ? NEDARIM_TEXT.retry : NEDARIM_TEXT.pay}
     </Button>}
+    {payment && plan && (phase === "open" || phase === "processing") && <p role="note" data-testid="installments-summary"
+      className="rounded-md border border-[#ddcec0] bg-[#faf6f1] p-3 text-base font-semibold">
+      {`תשלום ב־${installmentLabel(plan, amount => convertToLocale({ amount, currency_code: plan.currency_code }))}, בכרטיס אשראי`}
+    </p>}
     {payment && (phase === "open" || phase === "processing") && <div inert={phase === "processing" ? true : undefined}>
       <NedarimFrame payment={payment}
         onResult={() => { void settle("success") }}

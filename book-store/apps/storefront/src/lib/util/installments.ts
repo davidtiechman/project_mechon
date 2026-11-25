@@ -9,3 +9,19 @@ export function maxInstallments(total: number | null | undefined, currency: stri
   if (!Number.isSafeInteger(minor) || minor <= 0 || !(perInstallment > 0)) return 1
   return Math.max(1, Math.min(Number(policy.max_installments) || 1, 36, Math.floor(minor / perInstallment)))
 }
+
+// Equal installments, with any remaining agorot added to the first one (as the server plans).
+// After payment, the confirmation shows the split Nedarim actually reported.
+export function installmentPlan(total: number | null | undefined, count: number) {
+  const minor = Math.round(Number(total) * 100)
+  const next = Math.floor(minor / count)
+  return { count, first: (minor - next * (count - 1)) / 100, next: next / 100 }
+}
+
+export function installmentLabel(plan: { count: number; first?: number; next?: number }, format: (amount: number) => string) {
+  if (plan.count < 2) return "תשלום אחד"
+  if (!plan.first || !plan.next) return `${plan.count} תשלומים`
+  return plan.first === plan.next
+    ? `${plan.count} תשלומים של ${format(plan.next)}`
+    : `${plan.count} תשלומים: הראשון ${format(plan.first)}, והשאר ${format(plan.next)} כל אחד`
+}

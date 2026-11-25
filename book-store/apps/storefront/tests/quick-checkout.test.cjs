@@ -141,7 +141,7 @@ test('quick checkout keeps terms unchecked and opens its cached payment only aft
     '@modules/account/components/marketing-checkbox': { default: 'MarketingCheckbox' },
     '@lib/util/compare-addresses': { default: () => true },
     '@lib/util/money': { convertToLocale: () => '71 ₪' },
-    '@lib/util/installments': { maxInstallments: () => 1 },
+    '@lib/util/installments': { maxInstallments: () => 1, installmentPlan() {}, installmentLabel() {} },
     '@lib/data/quick-checkout': { prepareQuickCheckout: async (...args) => { calls.push(args); return payment } },
     '../shipping-address': { default: 'AddressFields' }, '../billing_address': { default: 'BillingFields' },
     '../shipping': { default: 'Shipping' }, '../nedarim-payment': { default: 'Payment' },
@@ -238,8 +238,8 @@ test('the display rule matches the server: one installment per full configured a
   assert.equal(maxInstallments(1000, 'ils', null), 1)
 })
 
-test('the checkout offers an installment choice only when the order qualifies', async () => {
-  const { maxInstallments } = load('lib/util/installments.ts', {})
+test('the checkout offers an installment choice only when the order qualifies, with exact amounts', async () => {
+  const installmentsUtil = load('lib/util/installments.ts', {})
   const render = (total, policy) => {
     const runtime = hooks()
     const Component = load('modules/checkout/components/quick-checkout/index.tsx', {
@@ -249,8 +249,8 @@ test('the checkout offers an installment choice only when the order qualifies', 
       '@modules/account/components/google-auth-button': { default: 'GoogleAuthButton', CHECKOUT_DRAFT_KEY: 'draft' },
       '@modules/account/components/marketing-checkbox': { default: 'MarketingCheckbox' },
       '@lib/util/compare-addresses': { default: () => true },
-      '@lib/util/money': { convertToLocale: ({ amount }) => `${amount} ₪` },
-      '@lib/util/installments': { maxInstallments },
+      '@lib/util/money': { convertToLocale: ({ amount }) => `₪${amount.toFixed(2)}` },
+      '@lib/util/installments': installmentsUtil,
       '@lib/data/quick-checkout': { prepareQuickCheckout: async () => payment },
       '../shipping-address': { default: 'AddressFields' }, '../billing_address': { default: 'BillingFields' },
       '../shipping': { default: 'Shipping' }, '../nedarim-payment': { default: 'Payment' },
@@ -266,7 +266,9 @@ test('the checkout offers an installment choice only when the order qualifies', 
   assert.equal(select.props.value, 1)
   const options = tree.filter(node => node.type === 'option')
   assert.deepEqual(options.map(option => option.props.value), [1, 2, 3])
-  assert.ok(options[2].props.children.includes('50 ₪'))
+  assert.deepEqual(options.map(option => option.props.children), ['תשלום אחד', '2 תשלומים של ₪75.00', '3 תשלומים של ₪50.00'])
+  const uneven = render(100, { ...policy, amount_per_installment: 30 }).tree().filter(node => node.type === 'option')
+  assert.equal(uneven[2].props.children, '3 תשלומים: הראשון ₪33.34, והשאר ₪33.33 כל אחד', 'no approximate amounts')
   select.props.onChange({ target: { value: '3' } })
   tree = page.tree()
   assert.ok(tree.some(node => node.type === 'p' && String(node.props.children).includes('כרטיס אשראי בלבד')))

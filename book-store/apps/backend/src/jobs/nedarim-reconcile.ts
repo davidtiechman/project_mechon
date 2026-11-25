@@ -34,7 +34,7 @@ export default async function reconcileNedarim(container: MedusaContainer) {
         logger.error(`[nedarim] History payment mismatch for ${attempt.id}; manual investigation required`)
         continue
       }
-      await ledger.recordPayment(attempt.id, payment.paymentId, payment.method)
+      await ledger.recordPayment(attempt.id, payment.paymentId, payment.method, payment.split)
       logger.info(`[nedarim] Recovered missing callback for ${attempt.id} from authenticated provider history`)
     }
     await ledger.updateNedarimSyncs({ id: mosad, last_id: cursor.toString() })

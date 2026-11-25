@@ -38,7 +38,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   }
   // Commit the fact BEFORE acknowledging. A background job retries order completion after crashes.
   // The unique payment_id constraint and compare-and-set make duplicate callbacks idempotent.
-  await ledger.recordPayment(attempt.id, payment.paymentId, payment.method)
+  await ledger.recordPayment(attempt.id, payment.paymentId, payment.method, payment.split)
   if (attempt.canceled_at) logger.error(`[nedarim] Received payment for replaced attempt ${attempt.id}; manual reconciliation required`)
   return res.json({ received: true })
 }

@@ -91,6 +91,7 @@ export async function createNedarimTransaction(attempt: { id: string; amount_min
 export type NedarimAttempt = {
   id: string; session_id: string; cart_id: string | null; amount_minor: number; currency_code: string
   installments?: number | null
+  first_installment_minor?: number | null; next_installment_minor?: number | null
   transaction_id: string | null; transaction_key: string | null; payment_id: string | null
   paid_at: Date | null; canceled_at: Date | null; processed_at: Date | null
 }
@@ -158,7 +159,7 @@ export function validateNedarimPayment(attempt: NedarimAttempt, data: Record<str
   const digital = ["Bit", "DigitalTransfer"].includes(method) || ["27", "28", "29", "30"].includes(String(data.Solek))
   if (!digital && !String(data.Confirmation || "").trim()) throw new Error("Unconfirmed Nedarim card transaction")
   if (!installmentsMatch(attempt, data.Tashloumim)) throw new Error("Unexpected installment count")
-  return { paymentId: String(data.ID), method }
+  return { paymentId: String(data.ID), method, split: installmentSplit(attempt, data.FirstTashloum, data.NextTashloum) }
 }
 
 export function validateNedarimHistoryPayment(attempt: NedarimAttempt, row: Record<string, unknown>) {
@@ -171,7 +172,22 @@ export function validateNedarimHistoryPayment(attempt: NedarimAttempt, row: Reco
       !installmentsMatch(attempt, row.Tashloumim)) {
     throw new Error("History payment does not match the server payment attempt")
   }
-  return { paymentId: String(row.TransactionId), method: digital ? (String(row.Solek) === "30" ? "DigitalTransfer" : "Bit") : "Card" }
+  return { paymentId: String(row.TransactionId), method: digital ? (String(row.Solek) === "30" ? "DigitalTransfer" : "Bit") : "Card",
+    split: installmentSplit(attempt, row.FirstTashloum, row.NextTashloum) }
+}
+
+export type InstallmentSplit = { first_minor: number; next_minor: number }
+
+// How Nedarim actually split the charge (FirstTashloum / NextTashloum), kept for the
+// customer's confirmation. Display data only: the amount and count checks authorize the
+// payment, so a missing or inconsistent split never rejects a charge that was made.
+export function installmentSplit(attempt: { amount_minor: number; installments?: number | null }, first: unknown, next: unknown): InstallmentSplit | null {
+  const count = installmentCount(attempt)
+  if (count < 2) return null
+  try {
+    const firstMinor = minorAmount(first), nextMinor = minorAmount(next)
+    return firstMinor + nextMinor * (count - 1) === Number(attempt.amount_minor) ? { first_minor: firstMinor, next_minor: nextMinor } : null
+  } catch { return null }
 }
 
 export function installmentCount(attempt: { installments?: number | null }) {

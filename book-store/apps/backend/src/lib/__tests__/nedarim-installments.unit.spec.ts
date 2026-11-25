@@ -1,5 +1,6 @@
 import { createNedarimTransaction, NedarimAttempt, validateNedarimHistoryPayment, validateNedarimPayment } from "../nedarim"
-import { maxInstallments, sanitizeInstallmentPolicy, validateInstallmentPolicy } from "../nedarim-installments"
+import { maxInstallments, planInstallments, sanitizeInstallmentPolicy, validateInstallmentPolicy } from "../nedarim-installments"
+import { installmentsText } from "../../modules/resend/emails"
 
 const policy = { enabled: true, amount_per_installment: 50, max_installments: 12 }
 
@@ -83,5 +84,38 @@ describe("installment count locked into the Nedarim transaction", () => {
     expect(validateNedarimPayment(single, { ...payment, Tashloumim: undefined }, "1234567").paymentId).toBe("1000")
     expect(validateNedarimPayment(single, { ...payment, Tashloumim: "1" }, "1234567").paymentId).toBe("1000")
     expect(() => validateNedarimPayment(single, { ...payment, Tashloumim: "3" }, "1234567")).toThrow()
+  })
+})
+
+describe("exact installment amounts", () => {
+  it("splits evenly when possible and adds remaining agorot to the first installment", () => {
+    expect(planInstallments(18000, 3)).toEqual({ count: 3, first: 60, next: 60 })
+    expect(planInstallments(10000, 3)).toEqual({ count: 3, first: 33.34, next: 33.33 })
+    expect(planInstallments(25990, 4)).toEqual({ count: 4, first: 64.99, next: 64.97 })
+    for (const [minor, count] of [[10000, 3], [25990, 4], [12345, 7], [999999, 12]]) {
+      const plan = planInstallments(minor, count)
+      expect(Math.round(plan.first * 100) + Math.round(plan.next * 100) * (count - 1)).toBe(minor)
+      expect(plan.first).toBeGreaterThanOrEqual(plan.next)
+    }
+  })
+  it("keeps the split Nedarim reported only when it adds up to the paid amount", () => {
+    const attempt: NedarimAttempt = {
+      id: "ndp_" + "d".repeat(32), session_id: "s", cart_id: "c", amount_minor: 18000, currency_code: "ils", installments: 3,
+      transaction_id: "900", transaction_key: "k", payment_id: null, paid_at: null, canceled_at: null, processed_at: null,
+    }
+    const payment = { Status: "OK", ID: "1000", TransactionId: "900", Param2: attempt.id, MosadNumber: "1234567",
+      Amount: "180", Currency: "1", Confirmation: "123456", PaymentMethod: "Card", Tashloumim: "3" }
+    expect(validateNedarimPayment(attempt, { ...payment, FirstTashloum: "60", NextTashloum: "60" }, "1234567").split)
+      .toEqual({ first_minor: 6000, next_minor: 6000 })
+    // Display data only: an inconsistent or missing split never rejects a verified payment.
+    expect(validateNedarimPayment(attempt, { ...payment, FirstTashloum: "61", NextTashloum: "60" }, "1234567").split).toBeNull()
+    expect(validateNedarimPayment(attempt, payment, "1234567").split).toBeNull()
+    expect(validateNedarimPayment({ ...attempt, installments: 1 }, { ...payment, Tashloumim: "1", FirstTashloum: "180", NextTashloum: "0" }, "1234567").split).toBeNull()
+  })
+  it("describes installments in the order email", () => {
+    expect(installmentsText({ currency_code: "ils", installments: { count: 3, first: 60, next: 60 } })).toContain("3 תשלומים של")
+    expect(installmentsText({ currency_code: "ils", installments: { count: 3, first: 33.34, next: 33.33 } })).toContain("הראשון")
+    expect(installmentsText({ currency_code: "ils", installments: { count: 3 } })).toBe("שולם ב־3 תשלומים בכרטיס אשראי")
+    expect(installmentsText({ currency_code: "ils" })).toBeNull()
   })
 })

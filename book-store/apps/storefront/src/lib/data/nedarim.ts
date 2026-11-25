@@ -9,6 +9,8 @@ export type NedarimStatus = {
   status: "pending" | "paid" | "installments_changed" | "installments_unavailable"
   payment?: NedarimPayment
   installments?: number
+  // The exact split the server planned for an installment payment.
+  plan?: { count: number; first: number; next: number; currency_code: string }
   max_installments?: number
   // A customer-facing reason the payment could not be opened.
   message?: string

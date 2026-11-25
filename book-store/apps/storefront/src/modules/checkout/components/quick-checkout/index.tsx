@@ -9,7 +9,7 @@ import GoogleAuthButton, { CHECKOUT_DRAFT_KEY } from "@modules/account/component
 import MarketingCheckbox from "@modules/account/components/marketing-checkbox"
 import compareAddresses from "@lib/util/compare-addresses"
 import { convertToLocale } from "@lib/util/money"
-import { InstallmentPolicy, maxInstallments } from "@lib/util/installments"
+import { InstallmentPolicy, installmentLabel, installmentPlan, maxInstallments } from "@lib/util/installments"
 import { prepareQuickCheckout } from "@lib/data/quick-checkout"
 import type { NedarimStatus } from "@lib/data/nedarim"
 import ShippingAddress from "../shipping-address"
@@ -92,7 +92,7 @@ export default function QuickCheckout({ cart, customer, shippingMethods, checkou
             onChange={event => setInstallments(Number(event.target.value))}
             className="w-full rounded-md border border-[#ddcec0] bg-white p-3 text-base">
             {Array.from({ length: maxCount }, (_, index) => index + 1).map(count => <option key={count} value={count}>
-              {count === 1 ? "תשלום אחד" : `${count} תשלומים (כ־${convertToLocale({ amount: (cart.total ?? 0) / count, currency_code: cart.currency_code })} לתשלום)`}
+              {installmentLabel(installmentPlan(cart.total, count), amount => convertToLocale({ amount, currency_code: cart.currency_code }))}
             </option>)}
           </select>
           {chosenInstallments > 1 && <p className="text-sm">בחלוקה לתשלומים התשלום בכרטיס אשראי בלבד.</p>}

@@ -33,14 +33,14 @@ describe("Nedarim callback endpoint", () => {
   it("validates and records the signed raw body before acknowledging", async () => {
     const { req, res, ledger } = request()
     await POST(req as any, res as any)
-    expect(ledger.recordPayment).toHaveBeenCalledWith(attempt.id, "1000", "Card")
+    expect(ledger.recordPayment).toHaveBeenCalledWith(attempt.id, "1000", "Card", null)
     expect(ledger.recordPayment.mock.invocationCallOrder[0]).toBeLessThan(res.json.mock.invocationCallOrder[0])
     expect(res.status).not.toHaveBeenCalled()
   })
   it("records a live provider callback containing both preparation and history TransactionId members", async () => {
     const { req, res, ledger } = request({}, true, true)
     await POST(req as any, res as any)
-    expect(ledger.recordPayment).toHaveBeenCalledWith(attempt.id, "1000", "Card")
+    expect(ledger.recordPayment).toHaveBeenCalledWith(attempt.id, "1000", "Card", null)
     expect(res.status).not.toHaveBeenCalled()
   })
   it("does not acknowledge storage failures, preserving recovery through history", async () => {

@@ -7,6 +7,14 @@ import type {
 import NedarimPaymentsService from "../nedarim-payments/service"
 import { checkNedarimTransaction, minorAmount, nedarimCurrency } from "../../lib/nedarim"
 
+// Stored on the Medusa payment. Installment details are display data for the confirmation.
+function paymentData(attempt: Record<string, any>) {
+  const count = Number(attempt.installments ?? 1)
+  const split = attempt.first_installment_minor && attempt.next_installment_minor
+    ? { first_installment: Number(attempt.first_installment_minor) / 100, next_installment: Number(attempt.next_installment_minor) / 100 } : {}
+  return { attempt_id: attempt.id, transaction_id: attempt.payment_id, ...(count > 1 ? { installments: count, ...split } : {}) }
+}
+
 export default class NedarimPaymentProvider extends AbstractPaymentProvider {
   static identifier = "nedarim"
   private ledger: NedarimPaymentsService
@@ -56,7 +64,7 @@ export default class NedarimPaymentProvider extends AbstractPaymentProvider {
       // Never return pending_authorization: that would let Medusa create an unpaid order.
       throw new MedusaError(MedusaError.Types.NOT_ALLOWED, "התשלום עדיין לא אושר בשרת.")
     }
-    return { status: PaymentSessionStatus.CAPTURED, data: { attempt_id: attempt.id, transaction_id: attempt.payment_id } }
+    return { status: PaymentSessionStatus.CAPTURED, data: paymentData(attempt) }
   }
 
   async getPaymentStatus(input: GetPaymentStatusInput) {
@@ -86,14 +94,14 @@ export default class NedarimPaymentProvider extends AbstractPaymentProvider {
 
   async retrievePayment(input: RetrievePaymentInput) {
     const attempt = await this.attempt(input.data)
-    return { data: { attempt_id: attempt.id, transaction_id: attempt.payment_id } }
+    return { data: paymentData(attempt) }
   }
 
   async capturePayment(input: CapturePaymentInput) {
     const attempt = await this.attempt(input.data)
     if (!attempt.paid_at || attempt.canceled_at) throw new Error("Nedarim payment is not confirmed")
     // The iframe already charged the full amount. Never charge again here.
-    return { data: { attempt_id: attempt.id, transaction_id: attempt.payment_id } }
+    return { data: paymentData(attempt) }
   }
 
   async cancelPayment(): Promise<never> {

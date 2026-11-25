@@ -60,6 +60,13 @@ describe("Nedarim payment provider trust boundary", () => {
       expect(ledger.createNedarimAttempts).toHaveBeenCalledTimes(2)
     })
   })
+  it("saves the installment count and Nedarim's split on the payment for the confirmation", async () => {
+    ledger.retrieveNedarimAttempt.mockResolvedValue({ ...attempt, paid_at: new Date(), payment_id: "1000", installments: 3,
+      first_installment_minor: 3334, next_installment_minor: 3333 })
+    expect((await provider.authorizePayment({ data: { attempt_id: "ndp_test" }, context: { idempotency_key: "payses_real" } })).data)
+      .toEqual({ attempt_id: "ndp_test", transaction_id: "1000", installments: 3, first_installment: 33.34, next_installment: 33.33 })
+    expect((await provider.capturePayment({ data: { attempt_id: "ndp_test" } } as any)).data).toMatchObject({ installments: 3 })
+  })
   it("refuses to report an unperformed refund or cancellation as successful", async () => {
     await expect(provider.refundPayment()).rejects.toThrow()
     await expect(provider.cancelPayment()).rejects.toThrow()

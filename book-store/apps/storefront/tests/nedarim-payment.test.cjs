@@ -46,8 +46,11 @@ function nodes(node) {
 }
 const file = 'modules/checkout/components/nedarim-payment/index.tsx'
 const payment = { TransactionId: '900', Key: 'test-key', Methods: 'Card,GooglePay,ApplePay,Bit', ButtonText: 'תשלום' }
+const installmentsUtil = load('lib/util/installments.ts', {})
 const baseDeps = {
   '@modules/common/components/ui': { Button: 'button' },
+  '@lib/util/money': { convertToLocale: ({ amount }) => `₪${amount.toFixed(2)}` },
+  '@lib/util/installments': installmentsUtil,
   '../error-message': { default: 'ErrorMessage' },
   './processing-overlay': { default: 'ProcessingOverlay' },
 }
@@ -310,4 +313,35 @@ test('a paused local checkout displays its reason and cannot start a payment', a
   await button.props.onClick()
   assert.equal(opened, 0)
   assert.ok(tree.some(node => node.props?.role === 'status' && typeof node.props.children === 'string' && node.props.children.includes('מושהית')))
+})
+
+test('an installment payment shows its exact split next to the payment window', async () => {
+  const plan = { count: 3, first: 60, next: 60, currency_code: 'ils' }
+  const page = checkout({ begin: async () => ({ status: 'pending', payment: { ...payment, ButtonText: 'תשלום ב־3 תשלומים' }, plan }) })
+  await page.open()
+  const summary = page.tree().find(node => node.props?.['data-testid'] === 'installments-summary')
+  assert.equal(summary.props.children, 'תשלום ב־3 תשלומים של ₪60.00, בכרטיס אשראי')
+  const uneven = checkout({ begin: async () => ({ status: 'pending', payment, plan: { count: 3, first: 33.34, next: 33.33, currency_code: 'ils' } }) })
+  await uneven.open()
+  assert.equal(uneven.tree().find(node => node.props?.['data-testid'] === 'installments-summary').props.children,
+    'תשלום ב־3 תשלומים: הראשון ₪33.34, והשאר ₪33.33 כל אחד, בכרטיס אשראי')
+  const single = checkout()
+  await single.open()
+  assert.equal(single.tree().some(node => node.props?.['data-testid'] === 'installments-summary'), false)
+})
+
+test('the order confirmation says the payment was made in installments, with the split Nedarim reported', () => {
+  const Details = load('modules/order/components/payment-details/index.tsx', {
+    '@modules/common/components/ui': { Container: 'div', Heading: 'h2', Text: 'p' },
+    '@lib/constants': { isStripeLike: () => false, paymentInfoMap: { pp_nedarim_nedarim: { title: 'תשלום', icon: 'icon' } } },
+    '@modules/common/components/divider': { default: 'hr' },
+    '@lib/util/money': { convertToLocale: ({ amount }) => `₪${amount.toFixed(2)}` },
+    '@lib/util/installments': installmentsUtil,
+  }).default
+  const order = data => ({ currency_code: 'ils', payment_collections: [{ payments: [{ provider_id: 'pp_nedarim_nedarim', amount: 180, created_at: '2026-11-26T00:04:00Z', data }] }] })
+  const text = data => nodes(Details({ order: order(data) })).find(node => node.props?.['data-testid'] === 'payment-installments')?.props.children
+  assert.equal(text({ installments: 3, first_installment: 60, next_installment: 60 }), 'שולם ב־3 תשלומים של ₪60.00')
+  assert.equal(text({ installments: 3, first_installment: 33.34, next_installment: 33.33 }), 'שולם ב־3 תשלומים: הראשון ₪33.34, והשאר ₪33.33 כל אחד')
+  assert.equal(text({ installments: 3 }), 'שולם ב־3 תשלומים')
+  assert.equal(text({ attempt_id: 'ndp_x' }), undefined)
 })

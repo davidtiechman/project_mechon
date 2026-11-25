@@ -55,7 +55,7 @@ describe("Nedarim authenticated history recovery", () => {
   it("reads exactly the requested existing payment and validates its server-generated attempt binding", async () => {
     const fetchMock = jest.fn().mockResolvedValue({ ok: true, json: async () => [history] })
     global.fetch = fetchMock
-    expect(await retrieveNedarimHistoryPayment(attempt, "1000")).toEqual({ paymentId: "1000", method: "Card" })
+    expect(await retrieveNedarimHistoryPayment(attempt, "1000")).toEqual({ paymentId: "1000", method: "Card", split: null })
     const url = new URL(fetchMock.mock.calls[0][0])
     expect(url.searchParams.get("LastId")).toBe("999")
     expect(url.searchParams.get("MaxId")).toBe("1")
@@ -79,7 +79,7 @@ describe("Nedarim authenticated history recovery", () => {
     expect(global.fetch).not.toHaveBeenCalled()
   })
   it("allows a confirmed digital history row without a card confirmation number", () => {
-    expect(validateNedarimHistoryPayment(attempt, { ...history, Solek: "27", Confirmation: "" })).toEqual({ paymentId: "1000", method: "Bit" })
+    expect(validateNedarimHistoryPayment(attempt, { ...history, Solek: "27", Confirmation: "" })).toEqual({ paymentId: "1000", method: "Bit", split: null })
   })
 })
 

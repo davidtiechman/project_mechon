@@ -69,7 +69,7 @@ describe("server-side payment verification with Nedarim", () => {
       .mockResolvedValueOnce(json([history]))
     global.fetch = fetchMock
     expect(await verifyWithNedarim(attempt, ledger, logger, now)).toBe("paid")
-    expect(ledger.recordPayment).toHaveBeenCalledWith(attempt.id, "83315297", "Card")
+    expect(ledger.recordPayment).toHaveBeenCalledWith(attempt.id, "83315297", "Card", null)
     expect(new URL(fetchMock.mock.calls[1][0]).searchParams.get("Action")).toBe("GetHistoryJson")
   })
   it("does not record a provider 'OK' whose history row has another amount, comment or currency", async () => {

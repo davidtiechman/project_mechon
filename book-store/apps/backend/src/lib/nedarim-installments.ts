@@ -44,6 +44,13 @@ export function maxInstallments(amountMinor: number, currency: string, policy: I
   return Math.max(1, Math.min(policy.max_installments, NEDARIM_MAX_INSTALLMENTS, Math.floor(amountMinor / perInstallmentMinor)))
 }
 
+// Equal installments, with any remaining agorot added to the first one. Shown before
+// paying; after payment the confirmation shows the split Nedarim actually reported.
+export function planInstallments(amountMinor: number, count: number) {
+  const next = Math.floor(amountMinor / count)
+  return { count, first: (amountMinor - next * (count - 1)) / 100, next: next / 100 }
+}
+
 type Scope = { resolve(name: string): any }
 
 export async function loadInstallmentPolicy(scope: Scope): Promise<InstallmentPolicy> {

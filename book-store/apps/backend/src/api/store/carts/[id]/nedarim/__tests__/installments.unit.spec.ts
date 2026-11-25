@@ -45,11 +45,14 @@ describe("choosing installments when opening a payment", () => {
     expect(ledger.claimCreation).toHaveBeenCalledWith("ndp_test", "cart_test", 3)
     expect(jest.mocked(createNedarimTransaction).mock.calls[0][0]).toMatchObject({ installments: 3 })
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ status: "pending", installments: 3,
-      payment: expect.objectContaining({ Methods: "Card" }) }))
+      plan: { count: 3, first: 50, next: 50, currency_code: "ils" },
+      payment: expect.objectContaining({ Methods: "Card", ButtonText: "תשלום ב־3 תשלומים" }) }))
   })
   it("keeps every payment method for a single payment", async () => {
     const res = await call({})
     expect(res.json.mock.calls[0][0].payment.Methods).toContain("Bit")
+    expect(res.json.mock.calls[0][0].payment.ButtonText).toBe("תשלום")
+    expect(res.json.mock.calls[0][0].plan).toBeUndefined()
   })
   it("refuses more installments than the owner's rule allows for the server amount", async () => {
     const res = await call({ installments: 4 })

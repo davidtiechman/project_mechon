@@ -3,6 +3,7 @@ import { EntityManager } from "@medusajs/framework/mikro-orm/knex"
 import { InjectManager, MedusaContext, MedusaService } from "@medusajs/framework/utils"
 import { NedarimAttemptModel } from "./models/nedarim-attempt"
 import { NedarimSync } from "./models/nedarim-sync"
+import type { InstallmentSplit } from "../../lib/nedarim"
 
 export type Attempt = InferTypeOf<typeof NedarimAttemptModel>
 
@@ -33,10 +34,11 @@ export default class NedarimPaymentsService extends MedusaService({ NedarimAttem
   }
 
   @InjectManager()
-  async recordPayment(id: string, paymentId: string, method: string, @MedusaContext() context: Context<EntityManager> = {}) {
+  async recordPayment(id: string, paymentId: string, method: string, split: InstallmentSplit | null = null, @MedusaContext() context: Context<EntityManager> = {}) {
     const rows = await context.manager!.getKnex()("nedarim_attempt")
       .where({ id, payment_id: null, deleted_at: null })
-      .update({ payment_id: paymentId, payment_method: method, paid_at: new Date(), updated_at: new Date() }).returning("id")
+      .update({ payment_id: paymentId, payment_method: method, paid_at: new Date(), updated_at: new Date(),
+        first_installment_minor: split?.first_minor ?? null, next_installment_minor: split?.next_minor ?? null }).returning("id")
     if (rows.length) return
     const attempt = await this.retrieveNedarimAttempt(id)
     if (attempt.payment_id !== paymentId) throw new Error("Conflicting Nedarim payment")

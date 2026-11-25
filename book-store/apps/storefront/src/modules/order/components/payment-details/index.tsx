@@ -4,6 +4,7 @@ import { isStripeLike, paymentInfoMap } from "@lib/constants"
 import Divider from "@modules/common/components/divider"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
+import { installmentLabel } from "@lib/util/installments"
 
 type PaymentDetailsProps = {
   order: HttpTypes.StoreOrder
@@ -11,6 +12,11 @@ type PaymentDetailsProps = {
 
 const PaymentDetails = ({ order }: PaymentDetailsProps) => {
   const payment = order.payment_collections?.[0].payments?.[0]
+  // Saved by the Nedarim provider: the count and the split Nedarim reported.
+  const count = Number(payment?.data?.installments)
+  const installments = Number.isInteger(count) && count > 1 ? installmentLabel({ count,
+    first: Number(payment?.data?.first_installment) || undefined, next: Number(payment?.data?.next_installment) || undefined },
+    amount => convertToLocale({ amount, currency_code: order.currency_code })) : null
 
   return (
     <div>
@@ -53,6 +59,9 @@ const PaymentDetails = ({ order }: PaymentDetailsProps) => {
                       ))}`}
                 </Text>
               </div>
+              {installments && <Text className="txt-medium text-ui-fg-subtle mt-1" data-testid="payment-installments">
+                {`שולם ב־${installments}`}
+              </Text>}
             </div>
           </div>
         )}
