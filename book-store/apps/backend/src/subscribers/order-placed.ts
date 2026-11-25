@@ -2,6 +2,15 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import type { CreateNotificationDTO, Logger } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
 
+// Installment details saved on the Nedarim payment (count, and the split Nedarim reported).
+function installmentsOf(order: Record<string, any>) {
+  const data = order.payment_collections?.[0]?.payments?.[0]?.data
+  const count = Number(data?.installments)
+  if (!Number.isInteger(count) || count < 2) return undefined
+  const first = Number(data.first_installment), next = Number(data.next_installment)
+  return { count, ...(first > 0 && next > 0 ? { first, next } : {}) }
+}
+
 export default async function orderPlacedHandler({
   event: { data },
   container,
@@ -16,6 +25,7 @@ export default async function orderPlacedHandler({
       fields: [
         "id", "display_id", "email", "currency_code", "total", "shipping_total",
         "items.*", "shipping_address.*", "shipping_methods.*", "customer.*",
+        "payment_collections.payments.data",
       ],
       filters: { id: data.id },
     })
@@ -37,6 +47,7 @@ export default async function orderPlacedHandler({
       shipping_methods: order.shipping_methods,
       shipping_total: order.shipping_total,
       total: order.total,
+      installments: installmentsOf(order),
     }
     const notifications: CreateNotificationDTO[] = []
 

@@ -20,6 +20,8 @@ export async function prepareQuickCheckout(formData: FormData, accepted: boolean
   if (!cartId) throw new Error("לא נמצאה עגלת קניות פעילה.")
   const shippingMethodId = String(formData.get("shipping_option_id") || "")
   if (!shippingMethodId) throw new Error("יש לבחור משלוח או איסוף עצמי.")
+  const installments = Number(formData.get("installments") || 1)
+  if (!Number.isInteger(installments) || installments < 1) throw new Error("מספר התשלומים אינו תקין.")
   const headers = await getAuthHeaders()
   const readCart = async () => (await sdk.client.fetch<HttpTypes.StoreCartResponse>(`/store/carts/${cartId}`, {
     method: "GET", headers, cache: "no-store",
@@ -47,6 +49,21 @@ export async function prepareQuickCheckout(formData: FormData, accepted: boolean
   } catch {
     marketingMessage = "בחירת הדיוור לא נשמרה. אפשר לעדכן אותה בהעדפות הדיוור."
   }
-  const payment = await beginNedarimPayment()
+  let payment = await beginNedarimPayment(installments)
+  if (payment.status === "installments_changed") {
+    // The opened transaction has another installment count. A new payment session opens a
+    // new transaction; the server cancels the old one only after Nedarim confirms it is unpaid.
+    await initiatePaymentSession(await readCart(), { provider_id: PROVIDER })
+    payment = await beginNedarimPayment(installments)
+  }
+  if (payment.status === "installments_unavailable") {
+    const max = Number(payment.max_installments) || 1
+    return { ...payment, marketingMessage, message: max > 1
+      ? `אפשר לחלק את ההזמנה הזו לעד ${max} תשלומים. יש לבחור מספר קטן יותר.`
+      : "ההזמנה הזו אינה ניתנת לחלוקה לתשלומים. יש לבחור תשלום אחד." }
+  }
+  if (payment.status === "installments_changed") {
+    return { ...payment, marketingMessage, message: "לא ניתן לשנות כרגע את מספר התשלומים. יש לרענן את העמוד ולנסות שוב." }
+  }
   return { ...payment, marketingMessage }
 }

@@ -56,13 +56,14 @@ export function providerText(value: unknown, max: number) {
   return String(value ?? "").replace(/[<>]/g, "").replace(/&#/g, "").slice(0, max)
 }
 
-export async function createNedarimTransaction(attempt: { id: string; amount_minor: number; currency_code: string }, cart: Record<string, any>) {
+export async function createNedarimTransaction(attempt: { id: string; amount_minor: number; currency_code: string; installments?: number | null }, cart: Record<string, any>) {
   const config = nedarimConfig()
   const address = cart.billing_address || cart.shipping_address || {}
   const form = new URLSearchParams({
     Mosad: config.mosad, ApiValid: config.apiValid, PaymentType: "Ragil",
     Amount: (attempt.amount_minor / 100).toFixed(2), Currency: nedarimCurrency(attempt.currency_code),
-    Tashlumim: "1", Param2: attempt.id,
+    // Server-locked installment count; the browser cannot change it (no MaxPayments picker).
+    Tashlumim: String(installmentCount(attempt)), Param2: attempt.id,
     // Param2 is not stored in history. This exact, server-generated comment enables recovery.
     Comment: `Mechon ${attempt.id}`,
     FirstName: providerText(address.first_name, 50), LastName: providerText(address.last_name, 50),
@@ -89,6 +90,8 @@ export async function createNedarimTransaction(attempt: { id: string; amount_min
 
 export type NedarimAttempt = {
   id: string; session_id: string; cart_id: string | null; amount_minor: number; currency_code: string
+  installments?: number | null
+  first_installment_minor?: number | null; next_installment_minor?: number | null
   transaction_id: string | null; transaction_key: string | null; payment_id: string | null
   paid_at: Date | null; canceled_at: Date | null; processed_at: Date | null
 }
@@ -155,8 +158,8 @@ export function validateNedarimPayment(attempt: NedarimAttempt, data: Record<str
   const method = String(data.PaymentMethod || "Card")
   const digital = ["Bit", "DigitalTransfer"].includes(method) || ["27", "28", "29", "30"].includes(String(data.Solek))
   if (!digital && !String(data.Confirmation || "").trim()) throw new Error("Unconfirmed Nedarim card transaction")
-  if (data.Tashloumim != null && String(data.Tashloumim) !== "1") throw new Error("Unexpected installment count")
-  return { paymentId: String(data.ID), method }
+  if (!installmentsMatch(attempt, data.Tashloumim)) throw new Error("Unexpected installment count")
+  return { paymentId: String(data.ID), method, split: installmentSplit(attempt, data.FirstTashloum, data.NextTashloum) }
 }
 
 export function validateNedarimHistoryPayment(attempt: NedarimAttempt, row: Record<string, unknown>) {
@@ -166,10 +169,73 @@ export function validateNedarimHistoryPayment(attempt: NedarimAttempt, row: Reco
       minorAmount(row.Amount) !== Number(attempt.amount_minor) ||
       String(row.Currency) !== nedarimCurrency(attempt.currency_code) ||
       (!digital && !String(row.Confirmation || "").trim()) ||
-      (row.Tashloumim != null && String(row.Tashloumim) !== "1")) {
+      !installmentsMatch(attempt, row.Tashloumim)) {
     throw new Error("History payment does not match the server payment attempt")
   }
-  return { paymentId: String(row.TransactionId), method: digital ? (String(row.Solek) === "30" ? "DigitalTransfer" : "Bit") : "Card" }
+  return { paymentId: String(row.TransactionId), method: digital ? (String(row.Solek) === "30" ? "DigitalTransfer" : "Bit") : "Card",
+    split: installmentSplit(attempt, row.FirstTashloum, row.NextTashloum) }
+}
+
+export type InstallmentSplit = { first_minor: number; next_minor: number }
+
+// How Nedarim actually split the charge, kept for the customer's confirmation. History rows
+// report FirstTashloum and NextTashloum; the callback documents FirstTashloum only, so the
+// remaining installments are derived from the total, and kept only if they divide exactly.
+// Display data only: the amount and count checks authorize the payment, so a missing or
+// inconsistent split never rejects a charge that was made.
+export function installmentSplit(attempt: { amount_minor: number; installments?: number | null }, first: unknown, next?: unknown): InstallmentSplit | null {
+  const count = installmentCount(attempt)
+  if (count < 2) return null
+  const total = Number(attempt.amount_minor)
+  let firstMinor: number
+  try { firstMinor = minorAmount(first) } catch { return null }
+  const rest = total - firstMinor
+  if (rest <= 0 || rest % (count - 1) !== 0) return null
+  const nextMinor = rest / (count - 1)
+  if (next !== undefined && next !== null && next !== "") {
+    try { if (minorAmount(next) !== nextMinor) return null } catch { return null }
+  }
+  return { first_minor: firstMinor, next_minor: nextMinor }
+}
+
+export function installmentCount(attempt: { installments?: number | null }) {
+  const count = Number(attempt.installments ?? 1)
+  if (!Number.isInteger(count) || count < 1 || count > 36) throw new Error("Invalid installment count")
+  return count
+}
+
+// A single payment may omit Tashloumim; an installment payment must report exactly
+// the count that was locked into the server-created transaction.
+function installmentsMatch(attempt: { installments?: number | null }, reported: unknown) {
+  const expected = installmentCount(attempt)
+  if (reported == null || reported === "") return expected === 1
+  return String(reported) === String(expected)
+}
+
+export type NedarimTransactionState = { state: "paid"; paymentId: string } | { state: "not_paid" }
+
+// Read-only status lookup by the ID CreateTransaction returned. Nedarim documents
+// CheckTransaction on its bit endpoint; the same endpoint reports iframe (method 3)
+// transactions too. Only our server calls it, so a browser cannot forge the answer.
+// "OK" yields the final payment ID, which callers must still verify against history.
+export async function checkNedarimTransaction(transactionId: string): Promise<NedarimTransactionState> {
+  const { mosad } = nedarimConfig()
+  if (!/^\d+$/.test(transactionId)) throw new Error("Invalid Nedarim transaction ID")
+  const params = new URLSearchParams({ Action: "CheckTransaction", MosadId: mosad, TransactionId: transactionId })
+  let response: Response
+  try {
+    response = await fetch(`https://matara.pro/nedarimplus/V6/Files/WebServices/DebitBit.aspx?${params}`, {
+      signal: AbortSignal.timeout(8_000), redirect: "error",
+    })
+  } catch { throw new Error("Nedarim status request failed") }
+  if (!response.ok) throw new Error("Nedarim status is unavailable")
+  let data: Record<string, unknown>
+  try { data = await response.json() } catch { throw new Error("Invalid Nedarim status response") }
+  const message = String(data?.Message ?? "").trim()
+  if (data?.Status === "OK" && /^\d+$/.test(message) && BigInt(message) > 0n) return { state: "paid", paymentId: message }
+  if (data?.Status === "Error" && /ממתינה לביצוע|לא אושרה/.test(message)) return { state: "not_paid" }
+  // Unknown wording is never interpreted as either success or failure.
+  throw new Error("Unrecognized Nedarim status response")
 }
 
 export async function retrieveNedarimHistoryPayment(attempt: NedarimAttempt, paymentId: string) {

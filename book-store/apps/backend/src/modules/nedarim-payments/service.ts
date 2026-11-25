@@ -3,17 +3,18 @@ import { EntityManager } from "@medusajs/framework/mikro-orm/knex"
 import { InjectManager, MedusaContext, MedusaService } from "@medusajs/framework/utils"
 import { NedarimAttemptModel } from "./models/nedarim-attempt"
 import { NedarimSync } from "./models/nedarim-sync"
+import type { InstallmentSplit } from "../../lib/nedarim"
 
 export type Attempt = InferTypeOf<typeof NedarimAttemptModel>
 
 export default class NedarimPaymentsService extends MedusaService({ NedarimAttempt: NedarimAttemptModel, NedarimSync }) {
   // Database compare-and-set operations also protect against concurrent webhooks/replicas.
   @InjectManager()
-  async claimCreation(id: string, cartId: string, @MedusaContext() context: Context<EntityManager> = {}) {
+  async claimCreation(id: string, cartId: string, installments = 1, @MedusaContext() context: Context<EntityManager> = {}) {
     const rows = await context.manager!.getKnex()("nedarim_attempt")
       .where({ id, transaction_id: null, paid_at: null, canceled_at: null, deleted_at: null })
       .where((q) => q.whereNull("creation_started_at").orWhere("creation_started_at", "<", new Date(Date.now() - 60_000)))
-      .update({ cart_id: cartId, creation_started_at: new Date(), updated_at: new Date() }).returning("creation_started_at")
+      .update({ cart_id: cartId, installments, creation_started_at: new Date(), updated_at: new Date() }).returning("creation_started_at")
     return rows[0]?.creation_started_at as Date | undefined
   }
 
@@ -33,10 +34,11 @@ export default class NedarimPaymentsService extends MedusaService({ NedarimAttem
   }
 
   @InjectManager()
-  async recordPayment(id: string, paymentId: string, method: string, @MedusaContext() context: Context<EntityManager> = {}) {
+  async recordPayment(id: string, paymentId: string, method: string, split: InstallmentSplit | null = null, @MedusaContext() context: Context<EntityManager> = {}) {
     const rows = await context.manager!.getKnex()("nedarim_attempt")
       .where({ id, payment_id: null, deleted_at: null })
-      .update({ payment_id: paymentId, payment_method: method, paid_at: new Date(), updated_at: new Date() }).returning("id")
+      .update({ payment_id: paymentId, payment_method: method, paid_at: new Date(), updated_at: new Date(),
+        first_installment_minor: split?.first_minor ?? null, next_installment_minor: split?.next_minor ?? null }).returning("id")
     if (rows.length) return
     const attempt = await this.retrieveNedarimAttempt(id)
     if (attempt.payment_id !== paymentId) throw new Error("Conflicting Nedarim payment")

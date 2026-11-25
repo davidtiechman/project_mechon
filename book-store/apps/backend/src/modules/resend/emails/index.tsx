@@ -44,6 +44,7 @@ export type OrderEmailData = {
   shipping_methods?: Array<{ name?: string; amount?: unknown }>
   shipping_total?: unknown
   total?: unknown
+  installments?: { count: number; first?: number; next?: number }
 }
 
 const styles = {
@@ -107,8 +108,18 @@ function Items({ data }: { data: OrderEmailData }) {
   return <Section><Heading as="h3" style={{ ...styles.title, fontSize: "17px", textAlign: "right" }}>פרטי ההזמנה</Heading>{data.items?.map((item, index) => <Section key={item.id ?? index} style={styles.row}><Text style={{ ...styles.text, margin: 0 }}><strong>{item.product_title ?? item.title ?? "מוצר"}</strong>{item.variant_title ? ` — ${item.variant_title}` : ""}</Text><Text style={{ ...styles.muted, margin: "4px 0 0" }}>כמות: {numberValue(item.quantity)} · מחיר: {money(item.total, data.currency_code)}</Text></Section>)}</Section>
 }
 
+export function installmentsText(data: Pick<OrderEmailData, "installments" | "currency_code">) {
+  const plan = data.installments
+  if (!plan || plan.count < 2) return null
+  if (!plan.first || !plan.next) return `שולם ב־${plan.count} תשלומים בכרטיס אשראי`
+  return plan.first === plan.next
+    ? `שולם ב־${plan.count} תשלומים של ${money(plan.next, data.currency_code)}`
+    : `שולם ב־${plan.count} תשלומים: הראשון ${money(plan.first, data.currency_code)}, והשאר ${money(plan.next, data.currency_code)} כל אחד`
+}
+
 function Totals({ data }: { data: OrderEmailData }) {
-  return <Section><Text style={styles.text}>משלוח: <strong>{money(data.shipping_total, data.currency_code)}</strong></Text><Text style={{ ...styles.text, fontSize: "19px" }}>סך הכול: <strong>{money(data.total, data.currency_code)}</strong></Text></Section>
+  const installments = installmentsText(data)
+  return <Section><Text style={styles.text}>משלוח: <strong>{money(data.shipping_total, data.currency_code)}</strong></Text><Text style={{ ...styles.text, fontSize: "19px" }}>סך הכול: <strong>{money(data.total, data.currency_code)}</strong></Text>{installments && <Text style={styles.text}>{installments}</Text>}</Section>
 }
 
 export function OrderCustomerEmail(data: OrderEmailData) {

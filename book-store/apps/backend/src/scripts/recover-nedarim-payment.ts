@@ -20,7 +20,7 @@ export default async function recoverNedarimPayment({ container, args }: ExecArg
     const { mosad } = nedarimConfig()
     if (await ledger.claimSync(mosad) === undefined) throw new Error("History rate limit is active; retry after the ten-minute lease expires")
     const payment = await retrieveNedarimHistoryPayment(attempt, paymentId)
-    await ledger.recordPayment(attempt.id, payment.paymentId, payment.method)
+    await ledger.recordPayment(attempt.id, payment.paymentId, payment.method, payment.split)
   }
   await completeNedarimOrders(container)
   const completed = await ledger.retrieveNedarimAttempt(attempt.id)
