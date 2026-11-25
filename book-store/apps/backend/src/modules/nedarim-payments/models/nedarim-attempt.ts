@@ -6,6 +6,8 @@ export const NedarimAttemptModel = model.define("nedarim_attempt", {
   cart_id: model.text().nullable(),
   amount_minor: model.number(),
   currency_code: model.text(),
+  // Number of installments locked into the Nedarim transaction (1 = single payment).
+  installments: model.number().default(1),
   transaction_id: model.text().nullable(),
   transaction_key: model.text().nullable(),
   payment_id: model.text().nullable(),

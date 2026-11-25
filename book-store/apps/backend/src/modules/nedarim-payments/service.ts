@@ -9,11 +9,11 @@ export type Attempt = InferTypeOf<typeof NedarimAttemptModel>
 export default class NedarimPaymentsService extends MedusaService({ NedarimAttempt: NedarimAttemptModel, NedarimSync }) {
   // Database compare-and-set operations also protect against concurrent webhooks/replicas.
   @InjectManager()
-  async claimCreation(id: string, cartId: string, @MedusaContext() context: Context<EntityManager> = {}) {
+  async claimCreation(id: string, cartId: string, installments = 1, @MedusaContext() context: Context<EntityManager> = {}) {
     const rows = await context.manager!.getKnex()("nedarim_attempt")
       .where({ id, transaction_id: null, paid_at: null, canceled_at: null, deleted_at: null })
       .where((q) => q.whereNull("creation_started_at").orWhere("creation_started_at", "<", new Date(Date.now() - 60_000)))
-      .update({ cart_id: cartId, creation_started_at: new Date(), updated_at: new Date() }).returning("creation_started_at")
+      .update({ cart_id: cartId, installments, creation_started_at: new Date(), updated_at: new Date() }).returning("creation_started_at")
     return rows[0]?.creation_started_at as Date | undefined
   }
 

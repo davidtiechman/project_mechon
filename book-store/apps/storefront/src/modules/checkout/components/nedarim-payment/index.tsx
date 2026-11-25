@@ -187,7 +187,7 @@ export default function NedarimPaymentButton({ notReady, beforePayment, onSubmit
       if (!await beforePayment()) { onSubmittingChange(false); return }
       const result = await loadPayment()
       if (result.status === "paid") { onPaymentStarted?.(); await complete(); return }
-      if (!result.payment) throw new Error("לא ניתן לפתוח את התשלום.")
+      if (!result.payment) throw new Error(result.message || "לא ניתן לפתוח את התשלום.")
       // Reopening reuses the same server transaction: an unpaid Nedarim transaction has
       // no expiry and can be charged only once, so a retry can never charge twice.
       generation.current++

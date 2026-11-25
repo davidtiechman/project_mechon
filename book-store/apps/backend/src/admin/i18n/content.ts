@@ -80,3 +80,5 @@ export const siteContentHe = {
 
 Object.assign(siteContentEn.sections, { catalog: "Catalog" })
 Object.assign(siteContentHe.sections, { catalog: "קטלוג" })
+Object.assign(siteContentEn.sections, { installments: "Card installments" })
+Object.assign(siteContentHe.sections, { installments: "תשלומים בכרטיס" })
