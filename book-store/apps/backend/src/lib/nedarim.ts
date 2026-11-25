@@ -178,16 +178,24 @@ export function validateNedarimHistoryPayment(attempt: NedarimAttempt, row: Reco
 
 export type InstallmentSplit = { first_minor: number; next_minor: number }
 
-// How Nedarim actually split the charge (FirstTashloum / NextTashloum), kept for the
-// customer's confirmation. Display data only: the amount and count checks authorize the
-// payment, so a missing or inconsistent split never rejects a charge that was made.
-export function installmentSplit(attempt: { amount_minor: number; installments?: number | null }, first: unknown, next: unknown): InstallmentSplit | null {
+// How Nedarim actually split the charge, kept for the customer's confirmation. History rows
+// report FirstTashloum and NextTashloum; the callback documents FirstTashloum only, so the
+// remaining installments are derived from the total, and kept only if they divide exactly.
+// Display data only: the amount and count checks authorize the payment, so a missing or
+// inconsistent split never rejects a charge that was made.
+export function installmentSplit(attempt: { amount_minor: number; installments?: number | null }, first: unknown, next?: unknown): InstallmentSplit | null {
   const count = installmentCount(attempt)
   if (count < 2) return null
-  try {
-    const firstMinor = minorAmount(first), nextMinor = minorAmount(next)
-    return firstMinor + nextMinor * (count - 1) === Number(attempt.amount_minor) ? { first_minor: firstMinor, next_minor: nextMinor } : null
-  } catch { return null }
+  const total = Number(attempt.amount_minor)
+  let firstMinor: number
+  try { firstMinor = minorAmount(first) } catch { return null }
+  const rest = total - firstMinor
+  if (rest <= 0 || rest % (count - 1) !== 0) return null
+  const nextMinor = rest / (count - 1)
+  if (next !== undefined && next !== null && next !== "") {
+    try { if (minorAmount(next) !== nextMinor) return null } catch { return null }
+  }
+  return { first_minor: firstMinor, next_minor: nextMinor }
 }
 
 export function installmentCount(attempt: { installments?: number | null }) {

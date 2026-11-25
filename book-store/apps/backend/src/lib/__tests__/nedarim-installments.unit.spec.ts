@@ -107,7 +107,15 @@ describe("exact installment amounts", () => {
       Amount: "180", Currency: "1", Confirmation: "123456", PaymentMethod: "Card", Tashloumim: "3" }
     expect(validateNedarimPayment(attempt, { ...payment, FirstTashloum: "60", NextTashloum: "60" }, "1234567").split)
       .toEqual({ first_minor: 6000, next_minor: 6000 })
+    // The callback documents FirstTashloum only: the rest is derived from the total.
+    expect(validateNedarimPayment(attempt, { ...payment, FirstTashloum: "60" }, "1234567").split)
+      .toEqual({ first_minor: 6000, next_minor: 6000 })
+    expect(validateNedarimPayment({ ...attempt, amount_minor: 10000 }, { ...payment, Amount: "100", FirstTashloum: "33.34" }, "1234567").split)
+      .toEqual({ first_minor: 3334, next_minor: 3333 })
+    expect(validateNedarimPayment({ ...attempt, amount_minor: 27500, installments: 4 }, { ...payment, Amount: "275", Tashloumim: "4", FirstTashloum: "68.75" }, "1234567").split)
+      .toEqual({ first_minor: 6875, next_minor: 6875 })
     // Display data only: an inconsistent or missing split never rejects a verified payment.
+    expect(validateNedarimPayment({ ...attempt, amount_minor: 10000 }, { ...payment, Amount: "100", FirstTashloum: "33.33" }, "1234567").split).toBeNull()
     expect(validateNedarimPayment(attempt, { ...payment, FirstTashloum: "61", NextTashloum: "60" }, "1234567").split).toBeNull()
     expect(validateNedarimPayment(attempt, payment, "1234567").split).toBeNull()
     expect(validateNedarimPayment({ ...attempt, installments: 1 }, { ...payment, Tashloumim: "1", FirstTashloum: "180", NextTashloum: "0" }, "1234567").split).toBeNull()
