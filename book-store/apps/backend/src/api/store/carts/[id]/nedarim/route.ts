@@ -3,6 +3,7 @@ import { MedusaError } from "@medusajs/framework/utils"
 import { validateCheckoutConsent } from "../../../../../lib/checkout-consent"
 import { createNedarimTransaction, nedarimEnabled, NEDARIM_METHODS } from "../../../../../lib/nedarim"
 import { activeNedarimSession, assertNedarimCart, loadNedarimCart } from "../../../../../lib/nedarim-checkout"
+import { verifyWithNedarim } from "../../../../../lib/nedarim-verify"
 import NedarimPaymentsService from "../../../../../modules/nedarim-payments/service"
 
 async function context(req: MedusaStoreRequest) {
@@ -53,6 +54,18 @@ export async function POST(req: MedusaStoreRequest, res: MedusaResponse) {
 
 export async function GET(req: MedusaStoreRequest, res: MedusaResponse) {
   res.setHeader("Cache-Control", "no-store")
-  const { attempt } = await context(req)
-  return res.json({ status: attempt.paid_at && attempt.payment_id ? "paid" : "pending" })
+  const { attempt, ledger } = await context(req)
+  if (attempt.paid_at && attempt.payment_id) return res.json({ status: "paid" })
+  // Without verify=1 this is a cheap database poll for the signed callback.
+  if ((req.query as Record<string, unknown> | undefined)?.verify !== "1") return res.json({ status: "pending" })
+  // Ask Nedarim directly (rate limited per attempt). Only a provider-reported payment
+  // that also matches authenticated history is recorded; the browser cannot supply it.
+  const logger = req.scope.resolve("logger")
+  let verdict: "paid" | "not_paid" | "unknown"
+  try { verdict = await verifyWithNedarim(attempt, ledger, logger) }
+  catch {
+    logger.error(`[nedarim] Server-side verification failed for ${attempt.id}; investigate before retrying payment`)
+    verdict = "unknown"
+  }
+  return res.json(verdict === "paid" ? { status: "paid" } : { status: "pending", provider: verdict })
 }

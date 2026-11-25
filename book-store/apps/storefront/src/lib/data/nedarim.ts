@@ -4,14 +4,20 @@ import { sdk } from "@lib/config"
 import { getAuthHeaders, getCartId } from "./cookies"
 
 export type NedarimPayment = { TransactionId: string; Key: string; Methods: string; ButtonText: string }
-export type NedarimStatus = { status: "pending" | "paid"; payment?: NedarimPayment }
+export type NedarimStatus = {
+  status: "pending" | "paid"
+  payment?: NedarimPayment
+  // Present only when the server asked Nedarim directly (verify). "unknown" is never a failure.
+  provider?: "not_paid" | "unknown"
+}
 
-async function request(method: "GET" | "POST") {
+async function request(method: "GET" | "POST", verify = false) {
   const cartId = await getCartId()
   if (!cartId) throw new Error("לא נמצאה עגלת קניות פעילה.")
   try {
     return await sdk.client.fetch<NedarimStatus>(`/store/carts/${cartId}/nedarim`, {
       method, headers: await getAuthHeaders(), cache: "no-store",
+      ...(verify ? { query: { verify: "1" } } : {}),
     })
   } catch {
     throw new Error(method === "POST"
@@ -21,4 +27,5 @@ async function request(method: "GET" | "POST") {
 }
 
 export async function beginNedarimPayment() { return request("POST") }
-export async function getNedarimPaymentStatus() { return request("GET") }
+// verify=true asks the server to confirm with Nedarim itself (rate limited server-side).
+export async function getNedarimPaymentStatus(verify = false) { return request("GET", verify) }

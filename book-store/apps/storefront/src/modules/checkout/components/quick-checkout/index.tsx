@@ -100,6 +100,7 @@ export default function QuickCheckout({ cart, customer, shippingMethods, checkou
       {marketingMessage && <p role="status" className="mb-4 text-sm">{marketingMessage}</p>}
       <NedarimPaymentButton notReady={shippingLoading} beforePayment={beforePayment} onSubmittingChange={setSubmitting}
         checkoutPaused={checkoutPaused} formId={FORM_ID} onPaymentStarted={() => setPaymentOpen(true)}
+        onPaymentClosed={() => setPaymentOpen(false)}
         loadPayment={async () => {
           if (!prepared.current) throw new Error("לא ניתן לפתוח את התשלום כרגע.")
           return prepared.current

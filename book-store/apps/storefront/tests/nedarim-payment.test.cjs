@@ -31,7 +31,7 @@ function runtime() {
       useState(initial) {
         const key = index++
         if (!(key in values)) values[key] = initial
-        return [values[key], (next) => { values[key] = next }]
+        return [values[key], (next) => { values[key] = typeof next === 'function' ? next(values[key]) : next }]
       },
       useCallback(fn) { return fn },
       useEffect(fn) { effects.push(fn) },
@@ -81,90 +81,152 @@ test('iframe delegates wallets, sends the locked transaction once, and rejects m
   assert.equal(listeners.size, 0)
 })
 
-test('browser success only asks the server; order completion waits for a server-confirmed payment', async () => {
-  const hooks = runtime()
-  let serverStatus = 'pending', completed = 0, statusChecks = 0
+const tick = () => new Promise(resolve => setImmediate(resolve))
+const T = { processing: 'מעבדים את העסקה…', retry: 'לתשלום חוזר', check: 'בדיקת אישור התשלום' }
+// A controllable payment page: status answers are queued, timers run on demand.
+function checkout({ statuses = [], placeOrder = async () => {}, begin } = {}) {
+  const hooks = runtime(), timers = [], calls = []
+  let completed = 0, closed = 0, submitting = null
   const Component = load(file, {
     ...baseDeps, react: hooks.react,
     '@lib/data/nedarim': {
-      beginNedarimPayment: async () => ({ status: 'pending', payment }),
-      getNedarimPaymentStatus: async () => { statusChecks++; return { status: serverStatus } },
+      beginNedarimPayment: begin || (async () => ({ status: 'pending', payment })),
+      getNedarimPaymentStatus: async (verify = false) => {
+        calls.push(verify)
+        const next = statuses.length > 1 ? statuses.shift() : statuses[0]
+        if (next instanceof Error) throw next
+        return next || { status: 'pending' }
+      },
     },
-    '@lib/data/cart': { placeOrder: async () => { completed++ } },
-  }).default
-  const props = { notReady: false, beforePayment: async () => true, onSubmittingChange() {} }
-  let tree = nodes(hooks.render(Component, props))
-  await tree.find(node => node.type === 'button').props.onClick()
-  tree = nodes(hooks.render(Component, props))
-  const iframeComponent = tree.find(node => typeof node.type === 'function')
-  iframeComponent.props.onResult()
-  await new Promise(resolve => setImmediate(resolve))
-  assert.equal(statusChecks, 1)
-  assert.equal(completed, 0)
-  serverStatus = 'paid'
-  iframeComponent.props.onResult()
-  await new Promise(resolve => setImmediate(resolve))
-  assert.equal(completed, 1)
+    '@lib/data/cart': { placeOrder: async () => { completed++; return placeOrder() } },
+  }, { setTimeout: (fn, delay) => { timers.push({ fn, delay }); return timers.length }, clearTimeout() {} }).default
+  const props = { notReady: false, beforePayment: async () => true, onSubmittingChange(v) { submitting = v }, onPaymentClosed() { closed++ } }
+  const tree = () => nodes(hooks.render(Component, props))
+  const api = {
+    hooks, timers, calls, props, tree,
+    get completed() { return completed }, get closed() { return closed }, get submitting() { return submitting },
+    frame: () => tree().find(node => typeof node.type === 'function'),
+    button: label => tree().find(node => node.type === 'button' && (!label || node.props.children === label)),
+    error: () => tree().find(node => node.type === 'ErrorMessage').props.error,
+    overlay: () => tree().find(node => node.type === 'ProcessingOverlay'),
+    async open() { await api.button().props.onClick(); tree() },
+    // Runs the waits between server checks (3s each) and lets the checks resolve.
+    async advance(delay = 3000, rounds = 1) {
+      for (let i = 0; i < rounds; i++) {
+        const index = timers.findIndex(timer => timer.delay === delay)
+        if (index < 0) return
+        timers.splice(index, 1)[0].fn()
+        await tick(); await tick()
+      }
+    },
+  }
+  return api
+}
+
+test('browser success only triggers a server check; the order waits for server-confirmed payment', async () => {
+  const page = checkout({ statuses: [{ status: 'pending', provider: 'unknown' }, { status: 'paid' }] })
+  await page.open()
+  page.frame().props.onResult()
+  await tick(); await tick()
+  assert.deepEqual(page.calls, [true], 'the success message must ask the server to verify with Nedarim')
+  assert.equal(page.completed, 0)
+  assert.equal(page.overlay().props.label, T.processing)
+  await page.advance()
+  assert.equal(page.completed, 1)
 })
 
-test('verification blocks repeat payment, shares concurrent status checks, and a timeout stays pending', async () => {
-  const hooks = runtime(), timers = []
-  let checks = 0, completed = 0, resolveStatus
-  const response = new Promise(resolve => { resolveStatus = resolve })
-  const Component = load(file, {
-    ...baseDeps, react: hooks.react,
-    '@lib/data/nedarim': {
-      beginNedarimPayment: async () => ({ status: 'pending', payment }),
-      getNedarimPaymentStatus: async () => { checks++; return response },
-    },
-    '@lib/data/cart': { placeOrder: async () => { completed++ } },
-  }, { setTimeout: (fn, delay) => { timers.push({ fn, delay }); return timers.length } }).default
-  const props = { notReady: false, beforePayment: async () => true, onSubmittingChange() {} }
-  await nodes(hooks.render(Component, props)).find(node => node.type === 'button').props.onClick()
-  let tree = nodes(hooks.render(Component, props))
-  const frame = tree.find(node => typeof node.type === 'function')
-  frame.props.onPending()
-  assert.equal(nodes(hooks.render(Component, props)).some(node => node.type === 'ProcessingOverlay'), false,
-    'bit and bank transfer must keep their QR/link usable while waiting in the provider iframe')
-  frame.props.onResult()
-  frame.props.onResult()
-  assert.equal(checks, 1)
-  tree = nodes(hooks.render(Component, props))
-  assert.ok(tree.some(node => node.type === 'ProcessingOverlay'))
+test('processing blocks a repeat payment, ignores duplicate events, and keeps bit QR codes usable', async () => {
+  const page = checkout({ statuses: [{ status: 'pending', provider: 'unknown' }] })
+  await page.open()
+  page.frame().props.onPending()
+  assert.equal(page.overlay(), undefined, 'bit and bank transfer must keep their QR/link usable while waiting in the provider iframe')
+  page.frame().props.onResult()
+  page.frame().props.onResult()
+  await tick()
+  assert.equal(page.calls.length, 1)
+  const tree = page.tree()
+  assert.ok(page.overlay())
   assert.ok(tree.some(node => node.type === 'div' && node.props.inert === true))
   assert.equal(tree.some(node => node.props?.['data-testid'] === 'submit-order-button'), false)
-  resolveStatus({ status: 'pending' })
-  await new Promise(resolve => setImmediate(resolve))
-  for (const effect of hooks.effects) effect()
-  const watchdog = timers.find(timer => timer.delay === 60_000)
-  assert.ok(watchdog)
-  watchdog.fn()
-  tree = nodes(hooks.render(Component, props))
-  assert.equal(tree.some(node => node.type === 'ProcessingOverlay'), false)
-  assert.ok(tree.some(node => node.type === 'div' && node.props.inert === true))
-  assert.ok(tree.some(node => node.type === 'button' && node.props.children === 'בדיקת אישור התשלום'))
-  assert.equal(tree.find(node => node.type === 'ErrorMessage').props.error, null)
-  assert.equal(completed, 0)
 })
 
-test('a card decline can display failure, but a server-confirmed payment takes precedence', async () => {
-  for (const status of ['pending', 'paid']) {
-    const hooks = runtime()
-    let completed = 0
-    const Component = load(file, {
-      ...baseDeps, react: hooks.react,
-      '@lib/data/nedarim': { beginNedarimPayment: async () => ({ status: 'pending', payment }), getNedarimPaymentStatus: async () => ({ status }) },
-      '@lib/data/cart': { placeOrder: async () => { completed++ } },
-    }).default
-    const props = { notReady: false, beforePayment: async () => true, onSubmittingChange() {} }
-    await nodes(hooks.render(Component, props)).find(node => node.type === 'button').props.onClick()
-    nodes(hooks.render(Component, props)).find(node => typeof node.type === 'function').props.onError(false)
-    await new Promise(resolve => setImmediate(resolve))
-    const tree = nodes(hooks.render(Component, props))
-    const error = tree.find(node => node.type === 'ErrorMessage').props.error
-    assert.equal(Boolean(error?.includes('לא התבצע בהצלחה')), status === 'pending')
-    assert.equal(completed, status === 'paid' ? 1 : 0)
-  }
+test('when Nedarim cannot answer, the customer is told the confirmation is delayed, never that it failed', async () => {
+  const page = checkout({ statuses: [{ status: 'pending', provider: 'unknown' }] })
+  await page.open()
+  page.frame().props.onResult()
+  await tick(); await tick()
+  await page.advance(3000, 40)
+  assert.equal(page.calls.length, 30)
+  assert.equal(page.overlay(), undefined)
+  assert.equal(page.error(), null)
+  assert.ok(page.button(T.check), 'a status check remains available')
+  assert.equal(page.tree().some(node => node.props?.['data-testid'] === 'submit-order-button'), false, 'no second payment may be offered')
+  assert.equal(page.frame(), undefined)
+  assert.equal(page.completed, 0)
+})
+
+test('a success message that Nedarim reports as not executed returns to checkout with a retry', async () => {
+  const page = checkout({ statuses: [{ status: 'pending', provider: 'not_paid' }] })
+  await page.open()
+  page.frame().props.onResult()
+  await tick(); await tick()
+  await page.advance(3000, 40)
+  assert.ok(page.error().includes('לא בוצע חיוב'))
+  assert.ok(page.button(T.retry))
+  assert.equal(page.closed, 1)
+})
+
+test('a decline is shown only after Nedarim confirms it, then returns to checkout with "pay again"', async () => {
+  const page = checkout({ statuses: [{ status: 'pending', provider: 'not_paid' }] })
+  await page.open()
+  page.frame().props.onError(false)
+  await tick(); await tick()
+  assert.deepEqual(page.calls, [true])
+  assert.ok(page.error().includes('העסקה לא בוצעה'))
+  assert.equal(page.frame(), undefined, 'the payment window closes')
+  assert.ok(page.button(T.retry))
+  assert.equal(page.closed, 1, 'the checkout form is shown again')
+  assert.equal(page.submitting, false)
+  await page.button(T.retry).props.onClick()
+  assert.ok(page.frame(), 'retrying reopens the same server transaction')
+})
+
+test('a decline that Nedarim reports as paid completes the order instead', async () => {
+  const page = checkout({ statuses: [{ status: 'paid' }] })
+  await page.open()
+  page.frame().props.onError(false)
+  await tick(); await tick()
+  assert.equal(page.completed, 1)
+  assert.equal(page.error(), null)
+})
+
+test('an error that only needs more input in the iframe does not close the payment window', async () => {
+  const page = checkout()
+  await page.open()
+  page.frame().props.onError(true)
+  await tick()
+  assert.equal(page.calls.length, 0)
+  assert.ok(page.frame())
+})
+
+test('an abandoned payment window closes after the timeout and a server check', async () => {
+  const page = checkout({ statuses: [{ status: 'pending', provider: 'not_paid' }] })
+  await page.open()
+  for (const effect of page.hooks.effects.splice(0)) effect()
+  await page.advance(10 * 60_000)
+  assert.ok(page.calls.includes(true))
+  assert.ok(page.error().includes('זמן התשלום הסתיים'))
+  assert.ok(page.button(T.retry))
+})
+
+test('a network failure during a decline check is not reported as a failed payment', async () => {
+  const page = checkout({ statuses: [new Error('offline')] })
+  await page.open()
+  page.frame().props.onError(false)
+  await tick(); await tick()
+  await page.advance(3000, 5)
+  assert.equal(page.error(), null)
+  assert.ok(page.button(T.check))
 })
 
 test('processing uses a native modal to block the page, prevent Escape, and restore scrolling on exit', () => {

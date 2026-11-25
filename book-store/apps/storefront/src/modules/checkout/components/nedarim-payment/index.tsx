@@ -9,9 +9,48 @@ import PaymentProcessingOverlay from "./processing-overlay"
 
 const ORIGIN = "https://www.matara.pro"
 const IFRAME_URL = `${ORIGIN}/nedarimplus/iframe/v3/`
-const VERIFICATION_WAIT_MS = 60_000
+const POLL_MS = 3000
+// Without any result from the payment window, close it after this long and verify.
+export const OPEN_TIMEOUT_MS = 10 * 60_000
+// After the window reports success, wait this many checks (~90s) for server confirmation.
+const SUCCESS_CHECKS = 30
+// After a decline or timeout, a few checks are enough: Nedarim answers "not executed" at once.
+const FAILURE_CHECKS = 3
+const DELAYED_POLL_MS = 30_000
+const DELAYED_CHECKS = 30
 
-export default function NedarimPaymentButton({ notReady, beforePayment, onSubmittingChange, checkoutPaused = false, formId, loadPayment = beginNedarimPayment, onPaymentStarted }: {
+type Phase = "idle" | "open" | "processing" | "completing" | "delayed"
+type Reason = "success" | "declined" | "timeout" | "manual"
+
+export const NEDARIM_TEXT = {
+  processing: "מעבדים את העסקה…",
+  preparing: "מכינים את התשלום…",
+  completing: "התשלום אושר. משלימים את ההזמנה…",
+  retry: "לתשלום חוזר",
+  pay: "לתשלום",
+  check: "בדיקת אישור התשלום",
+  failed: {
+    success: "העסקה לא אושרה ולא בוצע חיוב. אפשר לנסות שוב.",
+    declined: "העסקה לא בוצעה ולא בוצע חיוב. אפשר לבדוק את פרטי התשלום ולנסות שוב.",
+    timeout: "זמן התשלום הסתיים ולא בוצע חיוב. אפשר לנסות שוב.",
+    manual: "התשלום לא בוצע ולא בוצע חיוב. אפשר לנסות שוב.",
+  } as Record<Reason, string>,
+  // Shown only when the server cannot get a reliable answer from Nedarim.
+  delayed: "אישור התשלום מתעכב. אם התשלום בוצע, ההזמנה תאושר ותישלח אליך הודעה בדוא״ל בתוך כמה דקות. אין לשלם שוב.",
+  paidOrderPending: "התשלום התקבל. ההזמנה תאושר ותישלח אליך הודעה בדוא״ל בתוך כמה דקות. אין לשלם שוב.",
+  bitPending: "ממתינים לאישור התשלום באפליקציה.",
+}
+
+const sleep = (ms: number) => new Promise<void>(resolve => { setTimeout(resolve, ms) })
+
+/**
+ * The customer sees only three outcomes: processing, success, or "not completed — try again".
+ * Every decision is made by our server: the browser's success message only triggers a
+ * server check, and a failure is shown only when Nedarim itself reports "not executed".
+ * If Nedarim cannot answer, the customer is told the confirmation is delayed — never that
+ * the payment failed — so a payment that did go through is never repeated.
+ */
+export default function NedarimPaymentButton({ notReady, beforePayment, onSubmittingChange, checkoutPaused = false, formId, loadPayment = beginNedarimPayment, onPaymentStarted, onPaymentClosed }: {
   notReady: boolean
   beforePayment: () => Promise<boolean>
   onSubmittingChange: (submitting: boolean) => void
@@ -19,154 +58,174 @@ export default function NedarimPaymentButton({ notReady, beforePayment, onSubmit
   formId?: string
   loadPayment?: () => Promise<NedarimStatus>
   onPaymentStarted?: () => void
+  onPaymentClosed?: () => void
 }) {
   const [payment, setPayment] = useState<NedarimPayment | null>(null)
-  const [submitting, setSubmitting] = useState(false)
+  const [phase, setPhase] = useState<Phase>("idle")
+  const [preparing, setPreparing] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [checking, setChecking] = useState(false)
   const [message, setMessage] = useState("")
-  const [showStatusCheck, setShowStatusCheck] = useState(false)
-  const [verifiedPaid, setVerifiedPaid] = useState(false)
-  const [processing, setProcessing] = useState<"preparing" | "verifying" | "completing" | null>(null)
+  const [retry, setRetry] = useState(false)
+  const [paid, setPaid] = useState(false)
+  const [activity, setActivity] = useState(0)
   const locked = useRef(false)
+  const settling = useRef(false)
   const completing = useRef(false)
-  const statusRequest = useRef<Promise<boolean> | null>(null)
-  const confirmationExpected = useRef(false)
+  // Each opened payment window gets a new generation; loops of a closed window stop.
+  const generation = useRef(0)
+  const phaseRef = useRef<Phase>("idle")
+  const go = (next: Phase) => { phaseRef.current = next; setPhase(next) }
+  // Parent callbacks change identity on every render; keep timers and loops stable.
+  const parent = useRef({ onSubmittingChange, onPaymentClosed })
+  parent.current = { onSubmittingChange, onPaymentClosed }
 
   const complete = useCallback(async () => {
     if (completing.current) return
     completing.current = true
-    setProcessing("completing")
-    setMessage("העסקה בוצעה בהצלחה. משלימים את ההזמנה…")
-    try {
-      await placeOrder()
-      setShowStatusCheck(true)
-      setError("התשלום אושר, אך ההזמנה טרם הושלמה. אין לשלם שוב. אפשר ללחוץ על בדיקת אישור התשלום.")
-    } catch {
-      setShowStatusCheck(true)
-      setError("התשלום אושר. אם לא הועברת לאישור ההזמנה, אפשר לבדוק שוב. אין לבצע תשלום נוסף.")
-    } finally { completing.current = false; setProcessing(null) }
+    setPaid(true)
+    go("completing")
+    setError(null)
+    setMessage("")
+    try { await placeOrder() } catch { /* a background job completes paid orders */ }
+    finally { completing.current = false }
+    // A completed order navigates to its confirmation page. Still here: the payment is
+    // recorded and the order is completed in the background and confirmed by email.
+    go("delayed")
+    setMessage(NEDARIM_TEXT.paidOrderPending)
   }, [])
 
-  const check = useCallback(async () => {
-    if (statusRequest.current) return statusRequest.current
-    const request = (async () => {
-      const result = await getNedarimPaymentStatus()
-      if (result.status === "paid") {
-        confirmationExpected.current = true
-        setVerifiedPaid(true)
-        setError(null)
-        await complete()
-        return true
+  const fail = useCallback((reason: Reason) => {
+    generation.current++
+    setPayment(null)
+    go("idle")
+    setRetry(true)
+    setMessage("")
+    setError(NEDARIM_TEXT.failed[reason])
+    parent.current.onSubmittingChange(false)
+    parent.current.onPaymentClosed?.()
+  }, [])
+
+  const settle = useCallback(async (reason: Reason) => {
+    if (settling.current || completing.current) return
+    settling.current = true
+    const run = generation.current
+    go("processing")
+    setError(null)
+    setMessage("")
+    let notPaid = false
+    try {
+      const checks = reason === "success" ? SUCCESS_CHECKS : FAILURE_CHECKS
+      for (let i = 0; i < checks && run === generation.current; i++) {
+        if (i) await sleep(POLL_MS)
+        if (run !== generation.current) return
+        let result: NedarimStatus | null = null
+        try { result = await getNedarimPaymentStatus(true) } catch { result = null }
+        if (run !== generation.current) return
+        if (result?.status === "paid") { settling.current = false; await complete(); return }
+        notPaid = result?.provider === "not_paid"
+        // A decline or timeout is final once Nedarim says the transaction was not executed.
+        // After a reported success, keep waiting: the callback may still be on its way.
+        if (notPaid && reason !== "success") break
       }
-      return false
-    })()
-    statusRequest.current = request
-    try { return await request }
-    finally { statusRequest.current = null }
-  }, [complete])
+      if (run !== generation.current) return
+      if (notPaid) fail(reason)
+      else { go("delayed"); setMessage(NEDARIM_TEXT.delayed) }
+    } finally { settling.current = false }
+  }, [complete, fail])
 
+  // While the window is open: a cheap database poll catches the signed callback, and a
+  // timeout closes an abandoned window after a server-side check.
   useEffect(() => {
-    if (processing !== "verifying") return
-    const timer = setTimeout(() => {
-      setProcessing(null)
-      setShowStatusCheck(true)
-      setMessage("אישור התשלום עדיין בבדיקה. אם כבר שילמת, אין לשלם שוב.")
-    }, VERIFICATION_WAIT_MS)
-    return () => clearTimeout(timer)
-  }, [processing])
-
-  useEffect(() => {
-    if (!payment) return
+    if (phase !== "open") return
     let stopped = false
     let timer: ReturnType<typeof setTimeout>
-    const started = Date.now()
+    const run = generation.current
     const poll = async () => {
       if (stopped) return
       try {
-        if (await check()) return
-      } catch {
-        if (!stopped) setMessage("ממתינים לאישור התשלום. ניתן לבדוק שוב בעוד רגע; אין צורך לשלם שוב.")
-      }
-      if (stopped) return
-      if (Date.now() - started < 10 * 60_000) timer = setTimeout(poll, 3000)
-      else { setShowStatusCheck(true); setMessage("האישור עדיין ממתין. אם כבר שילמת, אין לשלם שוב.") }
+        if ((await getNedarimPaymentStatus()).status === "paid") {
+          if (!stopped && run === generation.current) await complete()
+          return
+        }
+      } catch { /* keep polling; nothing is decided in the browser */ }
+      if (!stopped) timer = setTimeout(poll, POLL_MS)
     }
-    timer = setTimeout(poll, 1500)
+    timer = setTimeout(poll, POLL_MS)
+    const timeout = setTimeout(() => { if (!stopped && phaseRef.current === "open") void settle("timeout") }, OPEN_TIMEOUT_MS)
+    return () => { stopped = true; clearTimeout(timer); clearTimeout(timeout) }
+  }, [phase, activity, complete, settle])
+
+  // A delayed confirmation keeps checking with Nedarim in the background for a while.
+  useEffect(() => {
+    if (phase !== "delayed" || paid) return
+    let stopped = false
+    let timer: ReturnType<typeof setTimeout>
+    let count = 0
+    const run = generation.current
+    const poll = async () => {
+      if (stopped || run !== generation.current) return
+      try {
+        const result = await getNedarimPaymentStatus(true)
+        if (stopped || run !== generation.current) return
+        if (result.status === "paid") return void complete()
+        if (result.provider === "not_paid") return fail("manual")
+      } catch { /* still unknown */ }
+      if (!stopped && ++count < DELAYED_CHECKS) timer = setTimeout(poll, DELAYED_POLL_MS)
+    }
+    timer = setTimeout(poll, DELAYED_POLL_MS)
     return () => { stopped = true; clearTimeout(timer) }
-  }, [payment, check])
+  }, [phase, paid, complete, fail])
 
   const begin = async () => {
     if (locked.current || checkoutPaused || notReady) return
     locked.current = true
-    setSubmitting(true)
-    setProcessing("preparing")
+    setPreparing(true)
     onSubmittingChange(true)
     setError(null)
+    setMessage("")
     try {
       if (!await beforePayment()) { onSubmittingChange(false); return }
       const result = await loadPayment()
-      if (result.status === "paid") { setVerifiedPaid(true); onPaymentStarted?.(); await complete(); return }
+      if (result.status === "paid") { onPaymentStarted?.(); await complete(); return }
       if (!result.payment) throw new Error("לא ניתן לפתוח את התשלום.")
+      // Reopening reuses the same server transaction: an unpaid Nedarim transaction has
+      // no expiry and can be charged only once, so a retry can never charge twice.
+      generation.current++
       setPayment(result.payment)
-      setMessage("")
+      setRetry(false)
+      go("open")
+      setActivity(value => value + 1)
       onPaymentStarted?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : "לא ניתן לפתוח את התשלום כרגע.")
       onSubmittingChange(false)
-    } finally { locked.current = false; setSubmitting(false); setProcessing(null) }
+    } finally { locked.current = false; setPreparing(false) }
   }
 
-  const verifyResult = () => {
-    confirmationExpected.current = true
-    setProcessing("verifying")
-    setError(null)
-    setMessage("בודקים את אישור התשלום…")
-    // A delayed callback or a network error is not evidence that a charge failed.
-    // Polling continues while the dialog prevents another payment submission.
-    void check().catch(() => setMessage("ממתינים לאישור התשלום. אין לשלם שוב."))
-  }
+  const checkAgain = () => { if (paid) void complete(); else void settle("manual") }
 
-  const paymentError = async (requiresInput: boolean) => {
-    if (confirmationExpected.current) return
-    setProcessing("verifying")
-    try {
-      if (await check() || confirmationExpected.current) return
-      setProcessing(null)
-      setMessage("")
-      setError(requiresInput ? null : "התשלום לא התבצע בהצלחה. בדקו את הפרטים ונסו שוב.")
-    } catch {
-      setShowStatusCheck(true)
-      setMessage("לא ניתן לבדוק את אישור התשלום כרגע. אם כבר שילמת, אין לשלם שוב.")
-    } finally { if (!confirmationExpected.current) setProcessing(null) }
-  }
+  const overlay = preparing ? NEDARIM_TEXT.preparing
+    : phase === "processing" ? NEDARIM_TEXT.processing
+    : phase === "completing" ? NEDARIM_TEXT.completing : null
 
   return <div className="w-full space-y-4">
-    {processing && <PaymentProcessingOverlay label={processing === "preparing" ? "מכינים את התשלום…" : processing === "completing" ? "העסקה בוצעה בהצלחה. משלימים את ההזמנה…" : "מאמתים את התשלום…"} />}
+    {overlay && <PaymentProcessingOverlay label={overlay} />}
     {checkoutPaused && <p role="status" className="rounded-md border border-[#ddcec0] bg-[#faf6f1] p-3 text-sm">פתיחת התשלום מושהית כרגע.</p>}
-    {!payment && !verifiedPaid && <>
-      <Button type={formId ? "submit" : "button"} form={formId} size="large" className="w-full" disabled={notReady || submitting || checkoutPaused} isLoading={submitting} onClick={begin} data-testid="submit-order-button">
-        לתשלום
-      </Button>
-    </>}
-    {payment && <>
-      <div inert={confirmationExpected.current || verifiedPaid ? true : undefined}>
-        <NedarimFrame payment={payment} onResult={verifyResult} onError={requiresInput => { void paymentError(requiresInput) }}
-          onPending={() => setMessage("ממתינים לאישור התשלום.")}
-          onBack={() => { if (!confirmationExpected.current) setMessage("") }}
-          onCancel={() => { if (!confirmationExpected.current) setMessage("") }} />
-      </div>
-    </>}
-    {showStatusCheck && <Button type="button" variant="secondary" isLoading={checking} disabled={checking} onClick={async () => {
-        setChecking(true)
-        setProcessing("verifying")
-        setError(null)
-        try { if (!await check()) setMessage("אישור התשלום עדיין לא התקבל. אם כבר שילמת, אין לבצע תשלום נוסף.") }
-        catch (err) { setError(err instanceof Error ? err.message : "לא ניתן לבדוק כרגע.") }
-        finally { setChecking(false); setProcessing(null) }
-      }}>בדיקת אישור התשלום</Button>}
-    <p role="status" aria-live="polite" className="text-sm">{message}</p>
     <ErrorMessage error={error} data-testid="nedarim-payment-error" />
+    {phase === "idle" && !paid && <Button type={formId ? "submit" : "button"} form={formId} size="large" className="w-full"
+      disabled={notReady || preparing || checkoutPaused} isLoading={preparing} onClick={begin} data-testid="submit-order-button">
+      {retry ? NEDARIM_TEXT.retry : NEDARIM_TEXT.pay}
+    </Button>}
+    {payment && (phase === "open" || phase === "processing") && <div inert={phase === "processing" ? true : undefined}>
+      <NedarimFrame payment={payment}
+        onResult={() => { void settle("success") }}
+        onError={requiresInput => { if (!requiresInput) void settle("declined") }}
+        onPending={() => { setMessage(NEDARIM_TEXT.bitPending); setActivity(value => value + 1) }}
+        onBack={() => { setMessage(""); setActivity(value => value + 1) }}
+        onCancel={() => { setMessage("") }} />
+    </div>}
+    {phase === "delayed" && <Button type="button" variant="secondary" onClick={checkAgain}>{NEDARIM_TEXT.check}</Button>}
+    <p role="status" aria-live="polite" className="text-sm">{message}</p>
   </div>
 }
 

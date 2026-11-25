@@ -172,6 +172,32 @@ export function validateNedarimHistoryPayment(attempt: NedarimAttempt, row: Reco
   return { paymentId: String(row.TransactionId), method: digital ? (String(row.Solek) === "30" ? "DigitalTransfer" : "Bit") : "Card" }
 }
 
+export type NedarimTransactionState = { state: "paid"; paymentId: string } | { state: "not_paid" }
+
+// Read-only status lookup by the ID CreateTransaction returned. Nedarim documents
+// CheckTransaction on its bit endpoint; the same endpoint reports iframe (method 3)
+// transactions too. Only our server calls it, so a browser cannot forge the answer.
+// "OK" yields the final payment ID, which callers must still verify against history.
+export async function checkNedarimTransaction(transactionId: string): Promise<NedarimTransactionState> {
+  const { mosad } = nedarimConfig()
+  if (!/^\d+$/.test(transactionId)) throw new Error("Invalid Nedarim transaction ID")
+  const params = new URLSearchParams({ Action: "CheckTransaction", MosadId: mosad, TransactionId: transactionId })
+  let response: Response
+  try {
+    response = await fetch(`https://matara.pro/nedarimplus/V6/Files/WebServices/DebitBit.aspx?${params}`, {
+      signal: AbortSignal.timeout(8_000), redirect: "error",
+    })
+  } catch { throw new Error("Nedarim status request failed") }
+  if (!response.ok) throw new Error("Nedarim status is unavailable")
+  let data: Record<string, unknown>
+  try { data = await response.json() } catch { throw new Error("Invalid Nedarim status response") }
+  const message = String(data?.Message ?? "").trim()
+  if (data?.Status === "OK" && /^\d+$/.test(message) && BigInt(message) > 0n) return { state: "paid", paymentId: message }
+  if (data?.Status === "Error" && /ממתינה לביצוע|לא אושרה/.test(message)) return { state: "not_paid" }
+  // Unknown wording is never interpreted as either success or failure.
+  throw new Error("Unrecognized Nedarim status response")
+}
+
 export async function retrieveNedarimHistoryPayment(attempt: NedarimAttempt, paymentId: string) {
   const password = process.env.NEDARIM_API_PASSWORD?.trim()
   if (!password || !/^\d+$/.test(paymentId) || BigInt(paymentId) <= BigInt(0)) throw new Error("A history API key and positive payment ID are required")

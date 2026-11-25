@@ -5,7 +5,7 @@ import type {
   InitiatePaymentInput, RetrievePaymentInput, UpdatePaymentInput,
 } from "@medusajs/framework/types"
 import NedarimPaymentsService from "../nedarim-payments/service"
-import { minorAmount, nedarimCurrency } from "../../lib/nedarim"
+import { checkNedarimTransaction, minorAmount, nedarimCurrency } from "../../lib/nedarim"
 
 export default class NedarimPaymentProvider extends AbstractPaymentProvider {
   static identifier = "nedarim"
@@ -35,6 +35,20 @@ export default class NedarimPaymentProvider extends AbstractPaymentProvider {
     return attempt
   }
 
+  // A callback can arrive after the customer already changed the cart. Replacing a
+  // transaction that Nedarim reports as paid would strand that payment without an
+  // order, so refuse; the callback or reconciliation then completes the original order.
+  // If Nedarim cannot be reached, the existing safeguards still apply: a payment for a
+  // replaced attempt is recorded and logged for manual reconciliation.
+  private async assertNotPaidAtNedarim(attempt: { transaction_id?: string | null }) {
+    if (!attempt.transaction_id) return
+    let state
+    try { state = await checkNedarimTransaction(attempt.transaction_id) } catch { return }
+    if (state.state === "paid") {
+      throw new MedusaError(MedusaError.Types.NOT_ALLOWED, "התשלום כבר בוצע בנדרים פלוס ואישור ההזמנה בדרך. אין לשנות את העגלה ואין לשלם שוב.")
+    }
+  }
+
   async authorizePayment(input: AuthorizePaymentInput) {
     if (!input.context?.idempotency_key) throw new Error("Missing trusted payment session")
     const attempt = await this.attempt(input.data, input.context.idempotency_key)
@@ -57,6 +71,7 @@ export default class NedarimPaymentProvider extends AbstractPaymentProvider {
       return { data: { attempt_id: attempt.id } }
     }
     if (attempt.paid_at) throw new Error("Cannot change an already paid Nedarim session")
+    await this.assertNotPaidAtNedarim(attempt)
     await this.ledger.updateNedarimAttempts({ id: attempt.id, canceled_at: new Date() })
     return this.initiatePayment({ ...input, context: { idempotency_key: attempt.session_id } })
   }
@@ -64,6 +79,7 @@ export default class NedarimPaymentProvider extends AbstractPaymentProvider {
   async deletePayment(input: DeletePaymentInput) {
     const attempt = await this.attempt(input.data)
     if (attempt.paid_at) throw new Error("Cannot delete a paid Nedarim session")
+    await this.assertNotPaidAtNedarim(attempt)
     await this.ledger.updateNedarimAttempts({ id: attempt.id, canceled_at: new Date() })
     return { data: { attempt_id: attempt.id } }
   }
