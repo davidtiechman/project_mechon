@@ -2,7 +2,7 @@
 
 import { sdk } from "@lib/config"
 import { getAuthHeaders, getCartId } from "./cookies"
-import type { InstallmentPolicy } from "@lib/util/installments"
+import type { PaymentOptions } from "@lib/util/installments"
 
 export type NedarimPayment = { TransactionId: string; Key: string; Methods: string; ButtonText: string }
 export type NedarimStatus = {
@@ -37,12 +37,13 @@ async function request(method: "GET" | "POST", verify = false, installments = 1)
 // The server validates the count against the owner's rule and locks it into the transaction.
 export async function beginNedarimPayment(installments = 1) { return request("POST", false, installments) }
 
-// Display-only copy of the owner's installment rule; null when unavailable.
-export async function getInstallmentPolicy(): Promise<InstallmentPolicy | null> {
+// Display-only copy of the owner's payment options; null when unavailable.
+export async function getPaymentOptions(): Promise<PaymentOptions | null> {
   try {
-    return (await sdk.client.fetch<{ policy: InstallmentPolicy }>("/store/site-content/installments", {
+    const options = await sdk.client.fetch<Partial<PaymentOptions>>("/store/site-content/installments", {
       method: "GET", cache: "no-store",
-    })).policy
+    })
+    return options.policy && options.wallets ? { policy: options.policy, wallets: options.wallets } : null
   } catch { return null }
 }
 // verify=true asks the server to confirm with Nedarim itself (rate limited server-side).

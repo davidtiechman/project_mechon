@@ -1,17 +1,16 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { MedusaError } from "@medusajs/framework/utils"
-import { loadInstallmentPolicy, saveInstallmentPolicy } from "../../../../lib/nedarim-installments"
+import { loadInstallmentPolicy, loadWallets, savePaymentOptions } from "../../../../lib/nedarim-installments"
 
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-  res.json({ policy: await loadInstallmentPolicy(req.scope) })
+  const [policy, wallets] = await Promise.all([loadInstallmentPolicy(req.scope), loadWallets(req.scope)])
+  res.json({ policy, wallets })
 }
 
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
-  let policy
-  try { policy = await saveInstallmentPolicy(req.scope, req.body) }
+  try { res.json(await savePaymentOptions(req.scope, req.body)) }
   catch (error) {
     if (error instanceof MedusaError) throw error
-    throw new MedusaError(MedusaError.Types.INVALID_DATA, error instanceof Error ? error.message : "הגדרות התשלומים אינן תקינות.")
+    throw new MedusaError(MedusaError.Types.INVALID_DATA, error instanceof Error ? error.message : "הגדרות התשלום אינן תקינות.")
   }
-  res.json({ policy })
 }

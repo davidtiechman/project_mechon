@@ -7,6 +7,7 @@ jest.mock("../../../../../../lib/checkout-consent", () => ({ validateCheckoutCon
 jest.mock("../../../../../../lib/nedarim-installments", () => ({
   ...jest.requireActual("../../../../../../lib/nedarim-installments"),
   loadInstallmentPolicy: jest.fn(async () => ({ enabled: true, amount_per_installment: 50, max_installments: 12 })),
+  loadWallets: jest.fn(async () => ({ google_pay: true, apple_pay: false, bit: true, digital_transfer: false })),
 }))
 jest.mock("../../../../../../lib/nedarim", () => ({
   ...jest.requireActual("../../../../../../lib/nedarim"),
@@ -50,7 +51,7 @@ describe("choosing installments when opening a payment", () => {
   })
   it("keeps every payment method for a single payment", async () => {
     const res = await call({})
-    expect(res.json.mock.calls[0][0].payment.Methods).toContain("Bit")
+    expect(res.json.mock.calls[0][0].payment.Methods).toBe("Card,GooglePay,Bit")
     expect(res.json.mock.calls[0][0].payment.ButtonText).toBe("תשלום")
     expect(res.json.mock.calls[0][0].plan).toBeUndefined()
   })

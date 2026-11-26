@@ -1,10 +1,10 @@
 import type { MedusaStoreRequest, MedusaResponse } from "@medusajs/framework/http"
 import { MedusaError } from "@medusajs/framework/utils"
 import { validateCheckoutConsent } from "../../../../../lib/checkout-consent"
-import { createNedarimTransaction, nedarimEnabled, NEDARIM_METHODS } from "../../../../../lib/nedarim"
+import { createNedarimTransaction, nedarimEnabled } from "../../../../../lib/nedarim"
 import { activeNedarimSession, assertNedarimCart, loadNedarimCart } from "../../../../../lib/nedarim-checkout"
 import { verifyWithNedarim } from "../../../../../lib/nedarim-verify"
-import { loadInstallmentPolicy, maxInstallments, NEDARIM_MAX_INSTALLMENTS, planInstallments } from "../../../../../lib/nedarim-installments"
+import { loadInstallmentPolicy, loadWallets, maxInstallments, NEDARIM_MAX_INSTALLMENTS, nedarimMethods, planInstallments } from "../../../../../lib/nedarim-installments"
 import NedarimPaymentsService from "../../../../../modules/nedarim-payments/service"
 
 async function context(req: MedusaStoreRequest) {
@@ -67,7 +67,7 @@ export async function POST(req: MedusaStoreRequest, res: MedusaResponse) {
   const plan = count > 1 ? { ...planInstallments(Number(prepared.amount_minor), count), currency_code: prepared.currency_code } : undefined
   return res.json({ status: "pending", installments: count, plan, payment: {
     TransactionId: prepared.transaction_id, Key: prepared.transaction_key,
-    Methods: count > 1 ? "Card" : NEDARIM_METHODS,
+    Methods: nedarimMethods(await loadWallets(req.scope), count),
     // The Nedarim window shows no installment summary for a server-created transaction,
     // so its payment button says it explicitly.
     ButtonText: count > 1 ? `תשלום ב־${count} תשלומים` : "תשלום",

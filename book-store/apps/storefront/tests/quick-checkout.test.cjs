@@ -118,11 +118,12 @@ test('Nedarim-only checkout uses one page instead of provider selection and a se
     '@modules/checkout/components/shipping': { default: 'Shipping' },
     '@modules/checkout/components/checkout-steps': { default: 'Steps' },
     '@modules/checkout/components/quick-checkout': { default: 'QuickCheckout' },
-    '@lib/data/nedarim': { getInstallmentPolicy: async () => ({ enabled: true, amount_per_installment: 50, max_installments: 12 }) },
+    '@lib/data/nedarim': { getPaymentOptions: async () => ({ policy: { enabled: true, amount_per_installment: 50, max_installments: 12 }, wallets: { google_pay: true, apple_pay: false, bit: false, digital_transfer: false } }) },
   }, { process: { env: {} } }).default
   const tree = await Form({ cart: { id: 'cart_owned', total: 10, region: { id: 'reg_il' } }, customer: null })
   assert.equal(tree.type, 'QuickCheckout')
-  assert.equal(tree.props.installmentPolicy.amount_per_installment, 50, 'the owner rule reaches the checkout page')
+  assert.equal(tree.props.paymentOptions.policy.amount_per_installment, 50, 'the owner rule reaches the checkout page')
+  assert.equal(tree.props.paymentOptions.wallets.google_pay, true)
   assert.equal(nodes(tree).some(node => ['Steps', 'Payment', 'Review'].includes(node.type)), false)
   shippingOptions = [{ id: 'so_carrier', price_type: 'calculated' }]
   const quoted = await Form({ cart: { id: 'cart_owned', total: 10, region: { id: 'reg_il' } }, customer: null })
@@ -141,7 +142,7 @@ test('quick checkout keeps terms unchecked and opens its cached payment only aft
     '@modules/account/components/marketing-checkbox': { default: 'MarketingCheckbox' },
     '@lib/util/compare-addresses': { default: () => true },
     '@lib/util/money': { convertToLocale: () => '71 ₪' },
-    '@lib/util/installments': { maxInstallments: () => 1, installmentPlan() {}, installmentLabel() {} },
+    '@lib/util/installments': load('lib/util/installments.ts', {}),
     '@lib/data/quick-checkout': { prepareQuickCheckout: async (...args) => { calls.push(args); return payment } },
     '../shipping-address': { default: 'AddressFields' }, '../billing_address': { default: 'BillingFields' },
     '../shipping': { default: 'Shipping' }, '../nedarim-payment': { default: 'Payment' },
@@ -238,9 +239,9 @@ test('the display rule matches the server: one installment per full configured a
   assert.equal(maxInstallments(1000, 'ils', null), 1)
 })
 
-test('the checkout offers an installment choice only when the order qualifies, with exact amounts', async () => {
+test('the checkout shows payment options clearly: methods for one payment, and installments as a separate choice', async () => {
   const installmentsUtil = load('lib/util/installments.ts', {})
-  const render = (total, policy) => {
+  const render = (total, paymentOptions) => {
     const runtime = hooks()
     const Component = load('modules/checkout/components/quick-checkout/index.tsx', {
       react: runtime.react, 'next/navigation': { usePathname: () => '/il/checkout' },
@@ -255,24 +256,41 @@ test('the checkout offers an installment choice only when the order qualifies, w
       '../shipping-address': { default: 'AddressFields' }, '../billing_address': { default: 'BillingFields' },
       '../shipping': { default: 'Shipping' }, '../nedarim-payment': { default: 'Payment' },
     }).default
-    const props = { cart: { id: 'cart_owned', total, currency_code: 'ils' }, customer: null, shippingMethods: [], checkoutPaused: false, installmentPolicy: policy }
-    return { runtime, Component, props, tree: () => nodes(runtime.render(Component, props)) }
+    const props = { cart: { id: 'cart_owned', total, currency_code: 'ils' }, customer: null, shippingMethods: [], checkoutPaused: false, paymentOptions }
+    return () => nodes(runtime.render(Component, props))
   }
+  const text = node => [].concat(node.props.children).filter(part => typeof part === 'string').join('')
+  const wallets = { google_pay: true, apple_pay: false, bit: false, digital_transfer: false }
   const policy = { enabled: true, amount_per_installment: 50, max_installments: 12 }
-  const page = render(150, policy)
-  let tree = page.tree()
+  const page = render(150, { policy, wallets })
+  let tree = page()
+  const hidden = () => page().find(node => node.type === 'input' && node.props.name === 'installments')
+  assert.ok(tree.some(node => node.type === 'h2' && node.props.children === 'אופן התשלום'), 'a visible section heading')
+  const radios = tree.filter(node => node.type === 'input' && node.props.type === 'radio')
+  assert.deepEqual(radios.map(radio => radio.props.value), ['single', 'installments'])
+  assert.equal(radios[0].props.checked, true, 'a single payment is the default')
+  assert.equal(hidden().props.value, 1)
+  const spans = tree.filter(node => node.type === 'span' && typeof node.props.children === 'string').map(node => node.props.children)
+  assert.ok(spans.includes('תשלום אחד של ₪150.00'))
+  assert.ok(spans.includes('בכרטיס אשראי או ב־Google Pay'), 'the customer sees every method a single payment offers')
+  assert.ok(spans.includes('עד 3 תשלומים, בכרטיס אשראי בלבד'))
+  assert.equal(tree.some(node => node.type === 'select'), false, 'the count is chosen only after choosing installments')
+  radios[1].props.onChange()
+  tree = page()
   const select = tree.find(node => node.type === 'select')
-  assert.equal(select.props.name, 'installments', 'the choice is part of the checkout form data')
-  assert.equal(select.props.value, 1)
-  const options = tree.filter(node => node.type === 'option')
-  assert.deepEqual(options.map(option => option.props.value), [1, 2, 3])
-  assert.deepEqual(options.map(option => option.props.children), ['תשלום אחד', '2 תשלומים של ₪75.00', '3 תשלומים של ₪50.00'])
-  const uneven = render(100, { ...policy, amount_per_installment: 30 }).tree().filter(node => node.type === 'option')
-  assert.equal(uneven[2].props.children, '3 תשלומים: הראשון ₪33.34, והשאר ₪33.33 כל אחד', 'no approximate amounts')
+  assert.deepEqual(tree.filter(node => node.type === 'option').map(option => option.props.children), ['2 תשלומים של ₪75.00', '3 תשלומים של ₪50.00'])
+  assert.equal(hidden().props.value, 2)
   select.props.onChange({ target: { value: '3' } })
-  tree = page.tree()
-  assert.ok(tree.some(node => node.type === 'p' && String(node.props.children).includes('כרטיס אשראי בלבד')))
-  assert.equal(render(99, policy).tree().some(node => node.type === 'select'), false)
-  assert.equal(render(1000, { ...policy, enabled: false }).tree().some(node => node.type === 'select'), false)
-  assert.equal(render(1000, null).tree().some(node => node.type === 'select'), false)
+  assert.equal(hidden().props.value, 3)
+  // Methods follow the owner's settings, e.g. once bit and Apple Pay are turned on.
+  const more = render(150, { policy, wallets: { ...wallets, apple_pay: true, bit: true } })()
+  assert.ok(more.some(node => node.type === 'span' && node.props.children === 'בכרטיס אשראי, ב־Google Pay, ב־Apple Pay או בביט'))
+  // Below the threshold: no installment choice, but the methods and the threshold are explained.
+  const small = render(99, { policy, wallets })()
+  assert.equal(small.some(node => node.type === 'input' && node.props.type === 'radio'), false)
+  assert.equal(text(small.find(node => node.props?.['data-testid'] === 'payment-methods-note')),
+    'אפשר לשלם בכרטיס אשראי או ב־Google Pay. חלוקה לתשלומים אפשרית בהזמנה מ־₪100.00.')
+  const off = render(1000, { policy: { ...policy, enabled: false }, wallets })()
+  assert.equal(text(off.find(node => node.props?.['data-testid'] === 'payment-methods-note')), 'אפשר לשלם בכרטיס אשראי או ב־Google Pay.')
+  assert.equal(render(1000, null)().find(node => node.type === 'input' && node.props.name === 'installments').props.value, 1)
 })
