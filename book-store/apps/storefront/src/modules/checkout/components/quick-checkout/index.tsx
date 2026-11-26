@@ -46,7 +46,6 @@ export default function QuickCheckout({ cart, customer, shippingMethods, checkou
   // A single payment unless the customer explicitly chose installments (and the order qualifies).
   const chosenInstallments = paymentMode === "installments" && maxCount > 1 ? Math.min(Math.max(installments, 2), maxCount) : 1
   const money = (amount: number) => convertToLocale({ amount, currency_code: cart.currency_code })
-  const installmentsFrom = policy?.enabled && cart.currency_code?.toLowerCase() === "ils" ? policy.amount_per_installment * 2 : null
   const optionCard = (selected: boolean) => `flex cursor-pointer items-start gap-3 rounded-lg border-2 p-4 ${selected ? "border-[#68462f] bg-[#faf6f1]" : "border-[#ddcec0] bg-white"}`
 
   useEffect(() => {
@@ -120,7 +119,6 @@ export default function QuickCheckout({ cart, customer, shippingMethods, checkou
             </div>}
           </div> : <p className="text-base" data-testid="payment-methods-note">
             {`אפשר לשלם ${paymentMethodsText(paymentOptions?.wallets)}.`}
-            {installmentsFrom ? ` חלוקה לתשלומים אפשרית בהזמנה מ־${money(installmentsFrom)}.` : ""}
           </p>}
         </section>
         <div className="space-y-4 border-t border-[#ddcec0] pt-6">

@@ -285,11 +285,10 @@ test('the checkout shows payment options clearly: methods for one payment, and i
   // Methods follow the owner's settings, e.g. once bit and Apple Pay are turned on.
   const more = render(150, { policy, wallets: { ...wallets, apple_pay: true, bit: true } })()
   assert.ok(more.some(node => node.type === 'span' && node.props.children === 'בכרטיס אשראי, ב־Google Pay, ב־Apple Pay או בביט'))
-  // Below the threshold: no installment choice, but the methods and the threshold are explained.
+  // Below the threshold: no installment choice and no mention of it; only the accepted methods.
   const small = render(99, { policy, wallets })()
   assert.equal(small.some(node => node.type === 'input' && node.props.type === 'radio'), false)
-  assert.equal(text(small.find(node => node.props?.['data-testid'] === 'payment-methods-note')),
-    'אפשר לשלם בכרטיס אשראי או ב־Google Pay. חלוקה לתשלומים אפשרית בהזמנה מ־₪100.00.')
+  assert.equal(text(small.find(node => node.props?.['data-testid'] === 'payment-methods-note')), 'אפשר לשלם בכרטיס אשראי או ב־Google Pay.')
   const off = render(1000, { policy: { ...policy, enabled: false }, wallets })()
   assert.equal(text(off.find(node => node.props?.['data-testid'] === 'payment-methods-note')), 'אפשר לשלם בכרטיס אשראי או ב־Google Pay.')
   assert.equal(render(1000, null)().find(node => node.type === 'input' && node.props.name === 'installments').props.value, 1)
