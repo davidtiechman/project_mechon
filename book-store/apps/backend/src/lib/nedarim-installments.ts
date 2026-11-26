@@ -2,9 +2,11 @@ import { SITE_CONTENT_MODULE } from "../modules/site-content"
 
 // Owner-editable rule, stored as a site setting and edited in Admin > Site content > Installments.
 export const INSTALLMENTS_SETTING_KEY = "nedarim_installments"
-// Provider limits (NedarimPlus-API): at most 36 installments, at least 5 ₪ each.
+// Provider limits: at most 36 installments (NedarimPlus-API). The API documents at least
+// 5 ₪ per installment, but Nedarim support (2026-11-26) states at least 10 ₪ per installment
+// on its payment pages, so the stricter limit applies.
 export const NEDARIM_MAX_INSTALLMENTS = 36
-export const NEDARIM_MIN_INSTALLMENT_AMOUNT = 5
+export const NEDARIM_MIN_INSTALLMENT_AMOUNT = 10
 
 export type InstallmentPolicy = {
   enabled: boolean

@@ -64,8 +64,8 @@ const InstallmentsPage = () => {
         </div>
         <div className="flex flex-col gap-1">
           <Label htmlFor="installments-amount">תשלום אחד על כל (₪)</Label>
-          <Input id="installments-amount" type="number" min={5} step="0.01" required value={amount} onChange={(e) => setAmount(e.target.value)} />
-          <Text size="small" className="text-ui-fg-subtle">לפחות 5 ₪, לפי מגבלת נדרים פלוס.</Text>
+          <Input id="installments-amount" type="number" min={10} step="0.01" required value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <Text size="small" className="text-ui-fg-subtle">לפחות 10 ₪, לפי מגבלת נדרים פלוס.</Text>
         </div>
         <div className="flex flex-col gap-1">
           <Label htmlFor="installments-max">מספר תשלומים מרבי</Label>

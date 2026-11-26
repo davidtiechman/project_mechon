@@ -23,11 +23,14 @@ describe("owner installment rule: one installment per full amount", () => {
     expect(maxInstallments(NaN, "ils", policy)).toBe(1)
   })
   it("never exceeds Nedarim's 36-installment limit", () => {
-    expect(maxInstallments(10_000_000, "ils", { enabled: true, amount_per_installment: 5, max_installments: 36 })).toBe(36)
+    expect(maxInstallments(10_000_000, "ils", { enabled: true, amount_per_installment: 10, max_installments: 36 })).toBe(36)
   })
 })
 
 describe("owner settings validation", () => {
+  it("accepts Nedarim's 10 ₪ minimum per installment", () => {
+    expect(validateInstallmentPolicy({ enabled: true, amount_per_installment: 10, max_installments: 6 }).amount_per_installment).toBe(10)
+  })
   it("accepts a valid rule and normalizes the amount", () => {
     expect(validateInstallmentPolicy({ enabled: true, amount_per_installment: "50.1", max_installments: "6" }))
       .toEqual({ enabled: true, amount_per_installment: 50.1, max_installments: 6 })
@@ -35,6 +38,7 @@ describe("owner settings validation", () => {
   it.each([
     { enabled: "yes", amount_per_installment: 50, max_installments: 6 },
     { enabled: true, amount_per_installment: 4.99, max_installments: 6 },
+    { enabled: true, amount_per_installment: 9.99, max_installments: 6 },
     { enabled: true, amount_per_installment: 50.001, max_installments: 6 },
     { enabled: true, amount_per_installment: 50, max_installments: 1 },
     { enabled: true, amount_per_installment: 50, max_installments: 37 },
