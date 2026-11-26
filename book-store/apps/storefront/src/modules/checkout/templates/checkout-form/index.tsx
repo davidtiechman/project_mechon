@@ -1,6 +1,6 @@
 import { listCartShippingMethods } from "@lib/data/fulfillment"
 import { listCartPaymentMethods } from "@lib/data/payment"
-import { getInstallmentPolicy } from "@lib/data/nedarim"
+import { getPaymentOptions } from "@lib/data/nedarim"
 import { HttpTypes } from "@medusajs/types"
 import Addresses from "@modules/checkout/components/addresses"
 import Payment from "@modules/checkout/components/payment"
@@ -21,10 +21,10 @@ export default async function CheckoutForm({
     return null
   }
 
-  const [shippingMethods, paymentMethods, installmentPolicy] = await Promise.all([
+  const [shippingMethods, paymentMethods, paymentOptions] = await Promise.all([
     listCartShippingMethods(cart.id),
     listCartPaymentMethods(cart.region?.id ?? ""),
-    getInstallmentPolicy(),
+    getPaymentOptions(),
   ])
 
   if (!shippingMethods || !paymentMethods) {
@@ -35,7 +35,7 @@ export default async function CheckoutForm({
   const fixedShipping = shippingMethods.every(option => option.price_type !== "calculated")
   if (paymentMethods.length === 1 && isNedarim(paymentMethods[0].id) && Number(cart.total) > 0 && fixedShipping) {
     return <QuickCheckout key={cart.id} cart={cart} customer={customer} shippingMethods={shippingMethods}
-      checkoutPaused={process.env.NEXT_PUBLIC_NEDARIM_CHECKOUT_PAUSED === "true"} installmentPolicy={installmentPolicy} />
+      checkoutPaused={process.env.NEXT_PUBLIC_NEDARIM_CHECKOUT_PAUSED === "true"} paymentOptions={paymentOptions} />
   }
 
   return (

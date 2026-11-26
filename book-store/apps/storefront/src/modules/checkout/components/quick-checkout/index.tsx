@@ -9,7 +9,7 @@ import GoogleAuthButton, { CHECKOUT_DRAFT_KEY } from "@modules/account/component
 import MarketingCheckbox from "@modules/account/components/marketing-checkbox"
 import compareAddresses from "@lib/util/compare-addresses"
 import { convertToLocale } from "@lib/util/money"
-import { InstallmentPolicy, installmentLabel, installmentPlan, maxInstallments } from "@lib/util/installments"
+import { installmentLabel, installmentPlan, maxInstallments, PaymentOptions, paymentMethodsText } from "@lib/util/installments"
 import { prepareQuickCheckout } from "@lib/data/quick-checkout"
 import type { NedarimStatus } from "@lib/data/nedarim"
 import ShippingAddress from "../shipping-address"
@@ -19,12 +19,12 @@ import NedarimPaymentButton from "../nedarim-payment"
 
 const FORM_ID = "checkout-details"
 
-export default function QuickCheckout({ cart, customer, shippingMethods, checkoutPaused, installmentPolicy }: {
+export default function QuickCheckout({ cart, customer, shippingMethods, checkoutPaused, paymentOptions }: {
   cart: HttpTypes.StoreCart
   customer: HttpTypes.StoreCustomer | null
   shippingMethods: HttpTypes.StoreCartShippingOption[]
   checkoutPaused: boolean
-  installmentPolicy?: InstallmentPolicy | null
+  paymentOptions?: PaymentOptions | null
 }) {
   const pathname = usePathname()
   const form = useRef<HTMLFormElement>(null)
@@ -39,9 +39,14 @@ export default function QuickCheckout({ cart, customer, shippingMethods, checkou
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [marketingMessage, setMarketingMessage] = useState("")
   const [oauthDraft, setOauthDraft] = useState<Record<string, string>>()
-  const [installments, setInstallments] = useState(1)
-  const maxCount = maxInstallments(cart.total, cart.currency_code, installmentPolicy)
-  const chosenInstallments = Math.min(installments, maxCount)
+  const [paymentMode, setPaymentMode] = useState<"single" | "installments">("single")
+  const [installments, setInstallments] = useState(2)
+  const policy = paymentOptions?.policy
+  const maxCount = maxInstallments(cart.total, cart.currency_code, policy)
+  // A single payment unless the customer explicitly chose installments (and the order qualifies).
+  const chosenInstallments = paymentMode === "installments" && maxCount > 1 ? Math.min(Math.max(installments, 2), maxCount) : 1
+  const money = (amount: number) => convertToLocale({ amount, currency_code: cart.currency_code })
+  const optionCard = (selected: boolean) => `flex cursor-pointer items-start gap-3 rounded-lg border-2 p-4 ${selected ? "border-[#68462f] bg-[#faf6f1]" : "border-[#ddcec0] bg-white"}`
 
   useEffect(() => {
     try {
@@ -86,17 +91,36 @@ export default function QuickCheckout({ cart, customer, shippingMethods, checkou
             <BillingAddress cart={cart} customer={customer} oauthDraft={oauthDraft} /></div>}
         </section>
         <Shipping cart={cart} availableShippingMethods={shippingMethods} inline disabled={submitting} onLoadingChange={setShippingLoading} />
-        {maxCount > 1 && <div className="space-y-2" data-testid="installments-field">
-          <label htmlFor="checkout-installments" className="block text-lg font-semibold">מספר תשלומים</label>
-          <select id="checkout-installments" name="installments" value={chosenInstallments}
-            onChange={event => setInstallments(Number(event.target.value))}
-            className="w-full rounded-md border border-[#ddcec0] bg-white p-3 text-base">
-            {Array.from({ length: maxCount }, (_, index) => index + 1).map(count => <option key={count} value={count}>
-              {installmentLabel(installmentPlan(cart.total, count), amount => convertToLocale({ amount, currency_code: cart.currency_code }))}
-            </option>)}
-          </select>
-          {chosenInstallments > 1 && <p className="text-sm">בחלוקה לתשלומים התשלום בכרטיס אשראי בלבד.</p>}
-        </div>}
+        <section className="space-y-4" aria-labelledby="payment-options-heading" data-testid="payment-options">
+          <Heading level="h2" id="payment-options-heading" className="text-2xl font-semibold">אופן התשלום</Heading>
+          <input type="hidden" name="installments" value={chosenInstallments} />
+          {maxCount > 1 ? <div className="space-y-3" role="radiogroup" aria-labelledby="payment-options-heading">
+            <label className={optionCard(paymentMode === "single")}>
+              <input type="radio" name="payment_mode" value="single" checked={paymentMode === "single"}
+                onChange={() => setPaymentMode("single")} className="mt-1 h-5 w-5 shrink-0 accent-[#4a2d21]" />
+              <span><span className="block text-lg font-semibold">{`תשלום אחד של ${money(cart.total ?? 0)}`}</span>
+                <span className="block text-sm">{paymentMethodsText(paymentOptions?.wallets)}</span></span>
+            </label>
+            <label className={optionCard(paymentMode === "installments")}>
+              <input type="radio" name="payment_mode" value="installments" checked={paymentMode === "installments"}
+                onChange={() => setPaymentMode("installments")} className="mt-1 h-5 w-5 shrink-0 accent-[#4a2d21]" />
+              <span><span className="block text-lg font-semibold">חלוקה לתשלומים</span>
+                <span className="block text-sm">{`עד ${maxCount} תשלומים, בכרטיס אשראי בלבד`}</span></span>
+            </label>
+            {paymentMode === "installments" && <div className="space-y-2" data-testid="installments-field">
+              <label htmlFor="checkout-installments" className="block font-semibold">מספר תשלומים</label>
+              <select id="checkout-installments" value={chosenInstallments}
+                onChange={event => setInstallments(Number(event.target.value))}
+                className="w-full rounded-md border-2 border-[#68462f] bg-white p-3 text-base">
+                {Array.from({ length: maxCount - 1 }, (_, index) => index + 2).map(count => <option key={count} value={count}>
+                  {installmentLabel(installmentPlan(cart.total, count), money)}
+                </option>)}
+              </select>
+            </div>}
+          </div> : <p className="text-base" data-testid="payment-methods-note">
+            {`אפשר לשלם ${paymentMethodsText(paymentOptions?.wallets)}.`}
+          </p>}
+        </section>
         <div className="space-y-4 border-t border-[#ddcec0] pt-6">
           <label htmlFor="checkout-terms-consent" className="flex items-start gap-3 text-sm leading-7">
             <input id="checkout-terms-consent" name="checkout_terms" type="checkbox" required checked={accepted}

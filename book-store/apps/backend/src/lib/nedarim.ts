@@ -2,7 +2,6 @@ import { createHmac, randomUUID, timingSafeEqual } from "node:crypto"
 
 export const NEDARIM_PROVIDER_ID = "pp_nedarim_nedarim"
 export const NEDARIM_IFRAME_ORIGIN = "https://www.matara.pro"
-export const NEDARIM_METHODS = "Card,GooglePay,ApplePay,Bit,DigitalTransfer"
 export const nedarimEnabled = () => process.env.NEDARIM_ENABLED !== "false" && !!process.env.NEDARIM_MOSAD?.trim()
 
 export function nedarimConfig() {

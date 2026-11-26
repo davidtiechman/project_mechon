@@ -1,4 +1,18 @@
 export type InstallmentPolicy = { enabled: boolean; amount_per_installment: number; max_installments: number }
+// Methods the owner offers for a single payment, besides a credit card (see the backend setting).
+export type WalletSettings = { google_pay: boolean; apple_pay: boolean; bit: boolean; digital_transfer: boolean }
+export type PaymentOptions = { policy: InstallmentPolicy; wallets: WalletSettings }
+export const DEFAULT_WALLETS: WalletSettings = { google_pay: true, apple_pay: false, bit: false, digital_transfer: false }
+
+const WALLET_PHRASES: Array<[keyof WalletSettings, string]> = [
+  ["google_pay", "ב־Google Pay"], ["apple_pay", "ב־Apple Pay"], ["bit", "בביט"], ["digital_transfer", "בהעברה בנקאית בקליק"],
+]
+
+// "בכרטיס אשראי או ב־Google Pay" / "בכרטיס אשראי, ב־Google Pay או בביט"
+export function paymentMethodsText(wallets: WalletSettings | null | undefined) {
+  const phrases = ["בכרטיס אשראי", ...WALLET_PHRASES.filter(([key]) => (wallets ?? DEFAULT_WALLETS)[key]).map(([, phrase]) => phrase)]
+  return phrases.length === 1 ? phrases[0] : `${phrases.slice(0, -1).join(", ")} או ${phrases[phrases.length - 1]}`
+}
 
 // Display-only mirror of the backend rule (apps/backend/src/lib/nedarim-installments.ts).
 // The payment route enforces the rule again against the server-locked amount.

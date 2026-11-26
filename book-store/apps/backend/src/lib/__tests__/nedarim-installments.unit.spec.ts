@@ -1,5 +1,5 @@
 import { createNedarimTransaction, NedarimAttempt, validateNedarimHistoryPayment, validateNedarimPayment } from "../nedarim"
-import { maxInstallments, planInstallments, sanitizeInstallmentPolicy, validateInstallmentPolicy } from "../nedarim-installments"
+import { maxInstallments, nedarimMethods, planInstallments, sanitizeInstallmentPolicy, sanitizeWallets, savePaymentOptions, validateInstallmentPolicy, validateWallets } from "../nedarim-installments"
 import { installmentsText } from "../../modules/resend/emails"
 
 const policy = { enabled: true, amount_per_installment: 50, max_installments: 12 }
@@ -23,11 +23,14 @@ describe("owner installment rule: one installment per full amount", () => {
     expect(maxInstallments(NaN, "ils", policy)).toBe(1)
   })
   it("never exceeds Nedarim's 36-installment limit", () => {
-    expect(maxInstallments(10_000_000, "ils", { enabled: true, amount_per_installment: 5, max_installments: 36 })).toBe(36)
+    expect(maxInstallments(10_000_000, "ils", { enabled: true, amount_per_installment: 10, max_installments: 36 })).toBe(36)
   })
 })
 
 describe("owner settings validation", () => {
+  it("accepts Nedarim's 10 ₪ minimum per installment", () => {
+    expect(validateInstallmentPolicy({ enabled: true, amount_per_installment: 10, max_installments: 6 }).amount_per_installment).toBe(10)
+  })
   it("accepts a valid rule and normalizes the amount", () => {
     expect(validateInstallmentPolicy({ enabled: true, amount_per_installment: "50.1", max_installments: "6" }))
       .toEqual({ enabled: true, amount_per_installment: 50.1, max_installments: 6 })
@@ -35,6 +38,7 @@ describe("owner settings validation", () => {
   it.each([
     { enabled: "yes", amount_per_installment: 50, max_installments: 6 },
     { enabled: true, amount_per_installment: 4.99, max_installments: 6 },
+    { enabled: true, amount_per_installment: 9.99, max_installments: 6 },
     { enabled: true, amount_per_installment: 50.001, max_installments: 6 },
     { enabled: true, amount_per_installment: 50, max_installments: 1 },
     { enabled: true, amount_per_installment: 50, max_installments: 37 },
@@ -125,5 +129,32 @@ describe("exact installment amounts", () => {
     expect(installmentsText({ currency_code: "ils", installments: { count: 3, first: 33.34, next: 33.33 } })).toContain("הראשון")
     expect(installmentsText({ currency_code: "ils", installments: { count: 3 } })).toBe("שולם ב־3 תשלומים בכרטיס אשראי")
     expect(installmentsText({ currency_code: "ils" })).toBeNull()
+  })
+})
+
+describe("owner payment methods for a single payment", () => {
+  const none = { google_pay: false, apple_pay: false, bit: false, digital_transfer: false }
+  it("offers a credit card always, plus only the methods the owner turned on", () => {
+    expect(nedarimMethods(none, 1)).toBe("Card")
+    expect(nedarimMethods({ ...none, google_pay: true }, 1)).toBe("Card,GooglePay")
+    expect(nedarimMethods({ google_pay: true, apple_pay: true, bit: true, digital_transfer: true }, 1)).toBe("Card,GooglePay,ApplePay,Bit,DigitalTransfer")
+  })
+  it("offers a credit card only for installments, whatever is turned on", () => {
+    expect(nedarimMethods({ google_pay: true, apple_pay: true, bit: true, digital_transfer: true }, 3)).toBe("Card")
+  })
+  it("defaults to Google Pay only, and requires a yes/no for every method on save", () => {
+    expect(sanitizeWallets(undefined)).toEqual({ google_pay: true, apple_pay: false, bit: false, digital_transfer: false })
+    expect(() => validateWallets({ google_pay: true })).toThrow()
+    expect(() => validateWallets({ ...none, bit: "yes" })).toThrow()
+  })
+  it("saves nothing when either part of the form is invalid", async () => {
+    const service = { listSiteSettings: jest.fn(async () => []), createSiteSettings: jest.fn(), updateSiteSettings: jest.fn() }
+    const scope = { resolve: () => service }
+    await expect(savePaymentOptions(scope, { enabled: true, amount_per_installment: 50, max_installments: 12, wallets: { google_pay: true } })).rejects.toThrow()
+    await expect(savePaymentOptions(scope, { enabled: true, amount_per_installment: 5, max_installments: 12, wallets: none })).rejects.toThrow()
+    expect(service.createSiteSettings).not.toHaveBeenCalled()
+    const saved = await savePaymentOptions(scope, { enabled: true, amount_per_installment: 50, max_installments: 12, wallets: { ...none, bit: true } })
+    expect(saved.wallets.bit).toBe(true)
+    expect(service.createSiteSettings).toHaveBeenCalledTimes(2)
   })
 })
